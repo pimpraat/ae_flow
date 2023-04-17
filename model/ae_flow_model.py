@@ -5,7 +5,7 @@ from decoder import *
 from flow import *
 
 class AE_Flow_Model(nn.Module):
-    def __init__(self, z_dim=8):
+    def __init__(self):
         """
        
         Inputs:
@@ -19,19 +19,16 @@ class AE_Flow_Model(nn.Module):
     def forward(self, x):
         """
         Inputs:
-            x - Batch of input images. Shape: [B,C,H,W]
+
         Outputs:
-            recon_x - Reconstructed image of shape [B,C,H,W]
-            z - Batch of latent codes. Shape: [B,z_dim]
+
         """
-        #######################
-        # PUT YOUR CODE HERE  #
-        #######################
+   
 
         x = self.encoder(x)
         reconstructed_x = self.decoder(x)
 
-        #######################
-        # END OF YOUR CODE    #
-        #######################
         return reconstructed_x
+    
+    def get_reconstructionloss(x, recon_x):
+        return torch.nn.functional.mse_loss(input=recon_x, target=x)
