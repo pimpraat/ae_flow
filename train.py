@@ -33,8 +33,20 @@ def train_step(epoch, model, train_loader,
     print('====> Epoch {} : Average loss: {:.4f}'.format(epoch, train_loss / len(train_loader)))
 
 #TODO: Finish implementation
+# See: https://pytorch.org/torcheval/stable/metric_example.html
 def eval_model(epoch, model, test_loader):
     results = {}
+
+
+    with torch.no_grad(): # Deactivate gradients for the following code
+        input, target = [], []
+        for data_inputs, data_labels in test_loader:
+
+            data_inputs, data_labels = data_inputs.to(device), data_labels.to(device)
+            preds = model(data_inputs)
+            preds = preds.squeeze(dim=1)
+            preds = torch.sigmoid(preds) # Sigmoid to map predictions between 0 and 1
+            pred_labels = (preds >= 0.5).long() # Binarize predictions to 0 and 1
 
     results['AUC'] = None
     results['F1'] = None
