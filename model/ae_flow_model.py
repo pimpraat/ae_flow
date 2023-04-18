@@ -28,8 +28,8 @@ class AE_Flow_Model(nn.Module):
         # PUT YOUR CODE HERE  #
         #######################
 
-        x = self.encoder(x)
-        reconstructed_x = self.decoder(x)
+        z = self.encoder(x)
+        reconstructed_x = self.decoder(z)
 
         #######################
         # END OF YOUR CODE    #
