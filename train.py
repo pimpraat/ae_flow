@@ -2,8 +2,8 @@ import torch
 import argparse
 torch.manual_seed(42) # Setting the seed
 
-from model.ae_flow_model import *
-from data.dataloaders import generate_data
+from model.ae_flow_model import AE_Flow_Model
+from dataloader import load
 
 
 def train_step(epoch, model, train_loader,
@@ -19,14 +19,17 @@ def train_step(epoch, model, train_loader,
     model.train()
     train_loss = 0
     for batch_idx, (x, _) in enumerate(train_loader):
-        original_x = x.to(model.device)
+        original_x = x # .to(model.device)
 
         optimizer.zero_grad()
+        print(f"Shape of input-batch in train function: {original_x.shape}")
         reconstructed_x = model(original_x)
 
         loss = model.get_reconstructionloss(x=original_x, recon_x=reconstructed_x)
         loss.backward()
         optimizer.step()
+
+        print(loss)
 
         train_loss += loss
 
@@ -61,21 +64,26 @@ def main(args):
     """
     """
 
-    train_loader, test_loader = generate_data(dataset=args.dataset, root=args.data_dir,
-                         batch_size=args.batch_size,
-                         num_workers=args.num_workers)
+    train_loader, _, _ = load(data_dir='data/chest_xray/',batch_size=64, num_workers=4)
+    
 
-    args.cuda = not args.no_cuda and torch.cuda.is_available()
-    device = torch.device("cuda:0" if args.cuda else "cpu")
+    print(len(train_loader))
+    # assert(False)
+    # load_data(dataset=args.dataset, root=args.data_dir,
+                        #  batch_size=args.batch_size,
+                        #  num_workers=args.num_workers)
+
+    # args.cuda = not args.no_cuda and torch.cuda.is_available()
+    # device = torch.device("cuda:0" if args.cuda else "cpu")
 
     # Create model and push to the device
     model = AE_Flow_Model()
-    model = model.to(device)
+    # model = model.to(device)
 
-    optimizer = torch.optim
+    optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, )
     
     # Training loop
-    print(f"Using device {device}")
+    # print(f"Using device {device}")
     for epoch in range(args.epochs):
         # Training epoch
         train_step(epoch, model, train_loader,
@@ -96,7 +104,7 @@ if __name__ == '__main__':
                         help='')
     parser.add_argument('--optim_lr', type=float, default=2e-4,
                         help='')
-    parser.add_argument('--optim_momentum', type=float, default=0.9,
+    parser.add_argument('--optim_momentum', type=float, default=0.9, ## still needs to be set in the Optimizer!
                         help='')
     parser.add_argument('--optim_weight_decay', type=float, default=1e-5,
                         help='')

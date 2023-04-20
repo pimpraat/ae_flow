@@ -1,5 +1,4 @@
-import torchvision
-import torchvision.transforms as T
+import torchvision.transforms as transforms
 import torch
 import torch.utils.data as data
 from torch.utils.data import random_split
@@ -10,13 +9,25 @@ import glob
 
 
 def loads(data_dir,ext,label):
-    convert_tensor = T.ToTensor()
-    resizer = T.Resize((256,256))
+    convert_tensor = transforms.ToTensor()
+
+    ## Resize every image as specified in the paper
+    resizer = transforms.Resize((256,256))
+
+    #Normalized using the regular ImageNet values
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])
+    
+    # At least for X-ray greyscale means 1 channel, Encoder block requires 3 channels thus transform
+    apply_greyscale = transforms.Grayscale(num_output_channels=3)
+
     image_list = []
-    for filename in glob.glob(data_dir+'*.'+ext):
+    for filename in glob.glob(data_dir+'*.'+ext)[0:128]: #For development limit to two batches
         im=Image.open(filename)
         im = resizer(im)
+        im = apply_greyscale(im) #todo are all inputs greyscale/1-channel?
         im = convert_tensor(im)
+        im = normalize(im) 
         image_list.append((im,label))
     return image_list
 
@@ -29,9 +40,9 @@ def load(data_dir,batch_size=128, num_workers=4):
     test_dir_0 = data_dir+"test/NORMAL/"
     test_dir_1 = data_dir+"test/PNEUMONIA/"
 
-    train_dataset = loads(train_dir,"JPEG",0)
-    val_dataset = loads(val_dir_0,"JPEG",0)+loads(val_dir_1,"JPEG",1)
-    test_set = loads(test_dir_0,"JPEG",0)+loads(test_dir_1,"JPEG",1)
+    train_dataset = loads(train_dir,"jpeg",0)
+    val_dataset = loads(val_dir_0,"jpeg",0)+loads(val_dir_1,"jpeg",1)
+    test_set = loads(test_dir_0,"jpeg",0)+loads(test_dir_1,"jpeg",1)
 
 
 

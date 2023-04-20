@@ -1,8 +1,8 @@
 import torch.nn as nn
 
-from encoder import *
-from decoder import *
-from flow import *
+from model.decoder import Decoder
+from model.encoder import Encoder
+# from flow import *
 
 class AE_Flow_Model(nn.Module):
     def __init__(self):
@@ -23,7 +23,7 @@ class AE_Flow_Model(nn.Module):
         Outputs:
 
         """
-   
+    
 
         z = self.encoder(x)
         reconstructed_x = self.decoder(z)
@@ -31,4 +31,4 @@ class AE_Flow_Model(nn.Module):
         return reconstructed_x
     
     def get_reconstructionloss(x, recon_x):
-        return torch.nn.functional.mse_loss(input=recon_x, target=x)
+        return nn.functional.mse_loss(input=recon_x, target=x)

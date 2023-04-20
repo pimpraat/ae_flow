@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class Decoder(nn.Module):
-    def __init__(self, z_dim, act_fn=nn.ReLU):
+    def __init__(self, act_fn=nn.ReLU):
         """
         
         Inputs:
@@ -15,10 +15,10 @@ class Decoder(nn.Module):
             act_fn(),
             nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=2, stride=2),
             nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3),
-            act_fn,
+            act_fn(),
             nn.ConvTranspose2d(in_channels=256, out_channels=64, kernel_size=2, stride=2),
             nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3),
-            act_fn,
+            act_fn(),
             nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=2, stride=2),
         )
        
