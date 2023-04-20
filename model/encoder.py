@@ -11,8 +11,6 @@ class Encoder(nn.Module):
     def __init__(self):
         super(Encoder, self).__init__()
         self.block = torchvision.models.wide_resnet50_2(pretrained=True), #weights=Wide_ResNet50_2_Weights.DEFAULT)
-        print(self.block)
-        assert(False)
     def forward(self, x):
         """ 
         Inputs:
@@ -20,8 +18,6 @@ class Encoder(nn.Module):
         Outputs:
 
         """
-        # print(f"block: {self.block[0]}")
-        # print(f"x: {x.shape, x}")
         x = self.block[0](x)
         assert(x.shape == (16,16,1024))
         return x
