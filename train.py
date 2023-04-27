@@ -1,4 +1,5 @@
 import torch
+import torchmetrics
 import argparse
 torch.manual_seed(42) # Setting the seed
 
@@ -22,14 +23,17 @@ def train_step(epoch, model, train_loader,
         original_x = x # .to(model.device)
 
         optimizer.zero_grad()
-        print(f"Shape of input-batch in train function: {original_x.shape}")
-        reconstructed_x = model(original_x)
+        # print(f"Shape of input-batch in train function: {original_x.shape}")
+        reconstructed_x = model(original_x).squeeze(dim=1)
 
-        loss = model.get_reconstructionloss(x=original_x, recon_x=reconstructed_x)
+
+        # print(f"x shape in loss: {original_x.shape}")
+        # print(f"recon_x shape in loss: {reconstructed_x.shape}")
+        loss = model.get_reconstructionloss(original_x, reconstructed_x)
         loss.backward()
         optimizer.step()
 
-        print(loss)
+        # print(f"Loss at epoch{epoch}: {loss}")
 
         train_loss += loss
 
@@ -37,34 +41,37 @@ def train_step(epoch, model, train_loader,
 
 #TODO: Finish implementation
 # See: https://pytorch.org/torcheval/stable/metric_example.html
-def eval_model(epoch, model, test_loader):
+def eval_model(epoch, model, test_loader, _print=False):
     results = {}
 
-
     with torch.no_grad(): # Deactivate gradients for the following code
-        input, target = [], []
+        pred, true = [], []
         for data_inputs, data_labels in test_loader:
 
-            data_inputs, data_labels = data_inputs.to(device), data_labels.to(device)
+            # data_inputs = data_inputs.to(args.device)
             preds = model(data_inputs)
             preds = preds.squeeze(dim=1)
             preds = torch.sigmoid(preds) # Sigmoid to map predictions between 0 and 1
-            pred_labels = (preds >= 0.5).long() # Binarize predictions to 0 and 1
+            #TODO: Check this with the paper!
+            pred_labels = (preds >= 0.5).long() # Binarize predictions to 0 and 1 (normal and anomaly)
+            print(f"Pred shape: {pred_labels.shape, pred_labels[0].shape}, true shape: {len(data_labels), data_labels[0]}")
+            pred.append(pred_labels)
+            true.append(data_labels)
 
     results['AUC'] = None
     results['F1'] = None
-    results['ACC'] = None
+    results['ACC'] = torchmetrics.Accuracy(task='binary', average='none')(pred, true)
     results['SEN'] = None
     results['SPE'] = None
 
-
+    if _print: print(f"Epoch {epoch}: {results}")
     return results
 
 def main(args):
     """
     """
 
-    train_loader, _, _ = load(data_dir='data/chest_xray/',batch_size=64, num_workers=4)
+    train_loader, test_loader, _ = load(data_dir='data/chest_xray/',batch_size=64, num_workers=4)
     
 
     print(len(train_loader))
@@ -89,6 +96,7 @@ def main(args):
         train_step(epoch, model, train_loader,
                   optimizer)
 
+        eval_model(epoch, model, test_loader, _print=True)
 
 
 if __name__ == '__main__':
