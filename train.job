@@ -14,7 +14,6 @@ module load 2021
 module load Anaconda3/2021.05
 
 # Your job starts in the directory where you call sbatch
-cd $HOME
 # Activate your environment
 source activate dl2022
 # Run your code

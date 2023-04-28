@@ -54,7 +54,7 @@ def eval_model(epoch, model, test_loader, _print=False):
             preds = torch.sigmoid(preds) # Sigmoid to map predictions between 0 and 1
             #TODO: Check this with the paper!
             pred_labels = (preds >= 0.5).long() # Binarize predictions to 0 and 1 (normal and anomaly)
-            print(f"Pred shape: {pred_labels.shape, pred_labels[0].shape}, true shape: {len(data_labels), data_labels[0]}")
+            
             pred.append(pred_labels)
             true.append(data_labels)
 
