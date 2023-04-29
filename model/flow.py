@@ -9,8 +9,7 @@ class FlowModule(nn.Module):
 
     def __init__(self):
             super(FlowModule, self).__init__()
-        
-            self.inn = Ff.SequenceINN(16*16)
+            self.inn = Ff.SequenceINN(64, 1024, 16, 16)
             for k in range(8):
                 self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.subnet_conv_3x3_1x1, permute_soft=True)
 

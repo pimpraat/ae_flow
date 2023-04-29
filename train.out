@@ -18,7 +18,7 @@ Traceback (most recent call last):
     z_prime = self.flow(z)
   File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
     return forward_call(*input, **kwargs)
-  File "/home/lcur1624/ae_flow/model/flow.py", line 24, in forward
+  File "/home/lcur1624/ae_flow/model/flow.py", line 23, in forward
     z, log_jac_det = self.inn(x)
   File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
     return forward_call(*input, **kwargs)
@@ -32,5 +32,5 @@ Traceback (most recent call last):
     return tensor.split(split_size_or_sections, dim)
   File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/_tensor.py", line 788, in split
     return torch._VF.split_with_sizes(self, split_size, dim)
-RuntimeError: split_with_sizes expects split_sizes to sum exactly to 1024 (input tensor's size at dimension 1), but got split_sizes=[128, 128]
+RuntimeError: split_with_sizes expects split_sizes to sum exactly to 1024 (input tensor's size at dimension 1), but got split_sizes=[32, 32]
 srun: error: r28n2: task 0: Exited with exit code 1
