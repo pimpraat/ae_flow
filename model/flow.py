@@ -21,17 +21,16 @@ class FlowModule(nn.Module):
     #     return nn.Sequential(nn.Conv2d(c_in, 256,   3, padding=1), nn.ReLU(),
     #                         nn.Conv2d(256,  c_out, 3, padding=1))
 
-    def subnet_conv_3x3_1x1(c_in, c_out):
+    def subnet_conv_3x3_1x1(self,c_in, c_out):
         return nn.Sequential(nn.Conv2d(c_in, 256,   3, padding=1), nn.ReLU(),
                             nn.Conv2d(256,  c_out, 1))
     
     
     def forward(self, x):
-        """ 
-        Inputs:
-
-        Outputs:
-
-        """
-        x = self.inn(x)
-        return x
+        z, log_jac_det = self.inn(x)
+        return z, log_jac_det
+    
+    
+    def reverse(self,z):
+        x_rev, log_jac_det_rev = self.inn(z, rev=True)
+        return x_rev, log_jac_det_rev
