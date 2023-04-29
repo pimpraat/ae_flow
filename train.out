@@ -14,11 +14,11 @@ Traceback (most recent call last):
     reconstructed_x = model(original_x).squeeze(dim=1)
   File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
     return forward_call(*input, **kwargs)
-  File "/home/lcur1624/ae_flow/model/ae_flow_model.py", line 33, in forward
+  File "/home/lcur1624/ae_flow/model/ae_flow_model.py", line 31, in forward
     z_prime = self.flow(z)
   File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
     return forward_call(*input, **kwargs)
-  File "/home/lcur1624/ae_flow/model/flow.py", line 27, in forward
+  File "/home/lcur1624/ae_flow/model/flow.py", line 24, in forward
     z, log_jac_det = self.inn(x)
   File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
     return forward_call(*input, **kwargs)
@@ -33,4 +33,4 @@ Traceback (most recent call last):
   File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/_tensor.py", line 788, in split
     return torch._VF.split_with_sizes(self, split_size, dim)
 RuntimeError: split_with_sizes expects split_sizes to sum exactly to 1024 (input tensor's size at dimension 1), but got split_sizes=[128, 128]
-srun: error: r28n3: task 0: Exited with exit code 1
+srun: error: r28n2: task 0: Exited with exit code 1
