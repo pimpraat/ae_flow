@@ -9,10 +9,12 @@ class FlowModule(nn.Module):
     """
         Inputs:     
     """
-    def __init__(self):
-        super(FlowModule, self).__init__()
 
-        self.inn = Ff.SequenceINN(2)
+    
+    def __init__(self,subnet_conv_3x3_1x1):
+        super(FlowModule, self).__init__()
+    
+        self.inn = Ff.SequenceINN(16*16)
         for k in range(8):
             self.inn.append(Fm.AllInOneBlock, subnet_constructor=subnet_conv_3x3_1x1, permute_soft=True)
 
@@ -21,16 +23,12 @@ class FlowModule(nn.Module):
     #     return nn.Sequential(nn.Conv2d(c_in, 256,   3, padding=1), nn.ReLU(),
     #                         nn.Conv2d(256,  c_out, 3, padding=1))
 
-    def subnet_conv_3x3_1x1(self,c_in, c_out):
-        return nn.Sequential(nn.Conv2d(c_in, 256,   3, padding=1), nn.ReLU(),
-                            nn.Conv2d(256,  c_out, 1))
-    
-    
     def forward(self, x):
         z, log_jac_det = self.inn(x)
         return z, log_jac_det
     
-    
+
     def reverse(self,z):
         x_rev, log_jac_det_rev = self.inn(z, rev=True)
         return x_rev, log_jac_det_rev
+    

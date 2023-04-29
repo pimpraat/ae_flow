@@ -11,9 +11,14 @@ class AE_Flow_Model(nn.Module):
         Inputs:
               
         """
+        def subnet_conv_3x3_1x1(c_in, c_out):
+            return nn.Sequential(nn.Conv2d(c_in, 256,   3, padding=1), nn.ReLU(),
+                                nn.Conv2d(256,  c_out, 1))
+        
+        
         super(AE_Flow_Model, self).__init__()
         self.encoder = Encoder()
-        self.flow = FlowModule()
+        self.flow = FlowModule(subnet_conv_3x3_1x1)
         self.decoder = Decoder()
 
     def forward(self, x):
