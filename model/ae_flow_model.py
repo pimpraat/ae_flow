@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torchmetrics
 
 from model.decoder import Decoder
 from model.encoder import Encoder
@@ -37,3 +38,14 @@ class AE_Flow_Model(nn.Module):
     
     def get_flow_loss():
         pass
+
+    def get_anomaly_score(_beta, orignal_x, reconstructed_x):
+        
+        Sflow = 0 # negative probability density of the normalized feature
+        Srecon = - torchmetrics.functional.structural_similarity_index_measure(preds=reconstructed_x, target=orignal_x)
+ 
+        return _beta * Sflow + (1-_beta)*Srecon 
+        pass
+
+    git config --global user.email "pimpraat@gmail.com"
+    git config --global user.name "Pim Praat"
