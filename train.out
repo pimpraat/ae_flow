@@ -5,32 +5,32 @@
   warnings.warn(
 /home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=Wide_ResNet50_2_Weights.IMAGENET1K_V1`. You can also use `weights=Wide_ResNet50_2_Weights.DEFAULT` to get the most up-to-date weights.
   warnings.warn(msg)
+/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/FrEIA/modules/all_in_one_block.py:119: UserWarning: Soft permutation will take a very long time to initialize with 1024 feature channels. Consider using hard permutation instead.
+  warnings.warn(("Soft permutation will take a very long time to initialize "
+torch.Size([64, 1024, 16, 16])
+torch.Size([64, 1024, 16, 16])
+====> Epoch 0 : Average loss: 1.2643
+torch.Size([16, 1024, 16, 16])
 Traceback (most recent call last):
   File "/home/lcur1624/ae_flow/train.py", line 134, in <module>
     main(args)
-  File "/home/lcur1624/ae_flow/train.py", line 96, in main
-    train_step(epoch, model, train_loader,
-  File "/home/lcur1624/ae_flow/train.py", line 27, in train_step
-    reconstructed_x = model(original_x).squeeze(dim=1)
+  File "/home/lcur1624/ae_flow/train.py", line 99, in main
+    eval_model(epoch, model, test_loader, _print=True)
+  File "/home/lcur1624/ae_flow/train.py", line 63, in eval_model
+    results['ACC'] = torchmetrics.Accuracy(task='binary', average='none')(pred, true)
   File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
     return forward_call(*input, **kwargs)
-  File "/home/lcur1624/ae_flow/model/ae_flow_model.py", line 31, in forward
-    z_prime = self.flow(z)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
-    return forward_call(*input, **kwargs)
-  File "/home/lcur1624/ae_flow/model/flow.py", line 23, in forward
-    z, log_jac_det = self.inn(x)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
-    return forward_call(*input, **kwargs)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/FrEIA/framework/sequence_inn.py", line 104, in forward
-    x_or_z, j = self.module_list[i](x_or_z, jac=jac, rev=rev)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
-    return forward_call(*input, **kwargs)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/FrEIA/modules/all_in_one_block.py", line 240, in forward
-    x1, x2 = torch.split(x[0], self.splits, dim=1)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/functional.py", line 189, in split
-    return tensor.split(split_size_or_sections, dim)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/_tensor.py", line 788, in split
-    return torch._VF.split_with_sizes(self, split_size, dim)
-RuntimeError: split_with_sizes expects split_sizes to sum exactly to 1024 (input tensor's size at dimension 1), but got split_sizes=[32, 32]
-srun: error: r28n2: task 0: Exited with exit code 1
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchmetrics/metric.py", line 236, in forward
+    self._forward_cache = self._forward_reduce_state_update(*args, **kwargs)
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchmetrics/metric.py", line 302, in _forward_reduce_state_update
+    self.update(*args, **kwargs)
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchmetrics/metric.py", line 390, in wrapped_func
+    update(*args, **kwargs)
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchmetrics/classification/stat_scores.py", line 175, in update
+    _binary_stat_scores_tensor_validation(preds, target, self.multidim_average, self.ignore_index)
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchmetrics/functional/classification/stat_scores.py", line 61, in _binary_stat_scores_tensor_validation
+    _check_same_shape(preds, target)
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchmetrics/utilities/checks.py", line 40, in _check_same_shape
+    if preds.shape != target.shape:
+AttributeError: 'list' object has no attribute 'shape'
+srun: error: r28n3: task 0: Exited with exit code 1

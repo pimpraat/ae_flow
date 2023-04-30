@@ -29,7 +29,8 @@ class AE_Flow_Model(nn.Module):
         z = self.encoder(x)
         # print(f"Shape of input for the decoder: {x.shape}")
         z_prime = self.flow(z)
-        reconstructed_x = self.decoder(z_prime)
+        print(z_prime[0].shape)
+        reconstructed_x = self.decoder(z_prime[0])
 
         return reconstructed_x
     
