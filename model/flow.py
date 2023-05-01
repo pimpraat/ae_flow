@@ -21,6 +21,8 @@ class FlowModule(nn.Module):
 
     def forward(self, x):
         z, log_jac_det = self.inn(x)
+        self.jacob_det = log_jac_det
+        self.z = z
         return z, log_jac_det
     
 

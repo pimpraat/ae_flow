@@ -7,30 +7,76 @@
   warnings.warn(msg)
 /home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/FrEIA/modules/all_in_one_block.py:119: UserWarning: Soft permutation will take a very long time to initialize with 1024 feature channels. Consider using hard permutation instead.
   warnings.warn(("Soft permutation will take a very long time to initialize "
-torch.Size([64, 1024, 16, 16])
-torch.Size([64, 1024, 16, 16])
 ====> Epoch 0 : Average loss: 1.2643
-torch.Size([16, 1024, 16, 16])
-Traceback (most recent call last):
-  File "/home/lcur1624/ae_flow/train.py", line 134, in <module>
-    main(args)
-  File "/home/lcur1624/ae_flow/train.py", line 99, in main
-    eval_model(epoch, model, test_loader, _print=True)
-  File "/home/lcur1624/ae_flow/train.py", line 63, in eval_model
-    results['ACC'] = torchmetrics.Accuracy(task='binary', average='none')(pred, true)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
-    return forward_call(*input, **kwargs)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchmetrics/metric.py", line 236, in forward
-    self._forward_cache = self._forward_reduce_state_update(*args, **kwargs)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchmetrics/metric.py", line 302, in _forward_reduce_state_update
-    self.update(*args, **kwargs)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchmetrics/metric.py", line 390, in wrapped_func
-    update(*args, **kwargs)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchmetrics/classification/stat_scores.py", line 175, in update
-    _binary_stat_scores_tensor_validation(preds, target, self.multidim_average, self.ignore_index)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchmetrics/functional/classification/stat_scores.py", line 61, in _binary_stat_scores_tensor_validation
-    _check_same_shape(preds, target)
-  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchmetrics/utilities/checks.py", line 40, in _check_same_shape
-    if preds.shape != target.shape:
-AttributeError: 'list' object has no attribute 'shape'
-srun: error: r28n3: task 0: Exited with exit code 1
+====> Epoch 1 : Average loss: 1.2596
+====> Epoch 2 : Average loss: 1.2513
+====> Epoch 3 : Average loss: 1.2232
+====> Epoch 4 : Average loss: 1.1378
+====> Epoch 5 : Average loss: 1.0372
+====> Epoch 6 : Average loss: 0.9558
+====> Epoch 7 : Average loss: 0.8901
+====> Epoch 8 : Average loss: 0.8218
+====> Epoch 9 : Average loss: 0.7948
+====> Epoch 10 : Average loss: 0.7845
+====> Epoch 11 : Average loss: 0.7796
+====> Epoch 12 : Average loss: 0.7738
+====> Epoch 13 : Average loss: 0.7673
+====> Epoch 14 : Average loss: 0.7605
+====> Epoch 15 : Average loss: 0.7526
+====> Epoch 16 : Average loss: 0.7445
+====> Epoch 17 : Average loss: 0.7367
+====> Epoch 18 : Average loss: 0.7278
+====> Epoch 19 : Average loss: 0.7170
+====> Epoch 20 : Average loss: 0.7016
+====> Epoch 21 : Average loss: 0.6755
+====> Epoch 22 : Average loss: 0.6273
+====> Epoch 23 : Average loss: 0.5597
+====> Epoch 24 : Average loss: 0.5129
+====> Epoch 25 : Average loss: 0.4639
+====> Epoch 26 : Average loss: 0.4110
+====> Epoch 27 : Average loss: 0.3599
+====> Epoch 28 : Average loss: 0.3167
+====> Epoch 29 : Average loss: 0.2780
+====> Epoch 30 : Average loss: 0.2634
+====> Epoch 31 : Average loss: 0.2583
+====> Epoch 32 : Average loss: 0.2559
+====> Epoch 33 : Average loss: 0.2487
+====> Epoch 34 : Average loss: 0.2455
+====> Epoch 35 : Average loss: 0.2424
+====> Epoch 36 : Average loss: 0.2406
+====> Epoch 37 : Average loss: 0.2375
+====> Epoch 38 : Average loss: 0.2364
+====> Epoch 39 : Average loss: 0.2335
+====> Epoch 40 : Average loss: 0.2324
+====> Epoch 41 : Average loss: 0.2303
+====> Epoch 42 : Average loss: 0.2291
+====> Epoch 43 : Average loss: 0.2275
+====> Epoch 44 : Average loss: 0.2266
+====> Epoch 45 : Average loss: 0.2248
+====> Epoch 46 : Average loss: 0.2241
+====> Epoch 47 : Average loss: 0.2225
+====> Epoch 48 : Average loss: 0.2219
+====> Epoch 49 : Average loss: 0.2204
+====> Epoch 50 : Average loss: 0.2198
+====> Epoch 51 : Average loss: 0.2187
+====> Epoch 52 : Average loss: 0.2176
+====> Epoch 53 : Average loss: 0.2170
+====> Epoch 54 : Average loss: 0.2158
+====> Epoch 55 : Average loss: 0.2150
+====> Epoch 56 : Average loss: 0.2144
+====> Epoch 57 : Average loss: 0.2134
+====> Epoch 58 : Average loss: 0.2124
+====> Epoch 59 : Average loss: 0.2118
+====> Epoch 60 : Average loss: 0.2112
+====> Epoch 61 : Average loss: 0.2104
+====> Epoch 62 : Average loss: 0.2098
+====> Epoch 63 : Average loss: 0.2205
+====> Epoch 64 : Average loss: 0.2181
+====> Epoch 65 : Average loss: 0.2212
+====> Epoch 66 : Average loss: 0.2111
+====> Epoch 67 : Average loss: 0.2154
+====> Epoch 68 : Average loss: 0.2109
+====> Epoch 69 : Average loss: 0.2122
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 11702860 ON r28n3 CANCELLED AT 2023-04-30T16:04:38 DUE TO TIME LIMIT ***
+slurmstepd: error: *** STEP 11702860.0 ON r28n3 CANCELLED AT 2023-04-30T16:04:38 DUE TO TIME LIMIT ***

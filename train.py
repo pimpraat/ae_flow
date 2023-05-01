@@ -5,18 +5,13 @@ torch.manual_seed(42) # Setting the seed
 
 from model.ae_flow_model import AE_Flow_Model
 from dataloader import load
+from model.flow import FlowModule
+from model.encoder import Encoder
 
 
 def train_step(epoch, model, train_loader,
                   optimizer):
-    """
-    Function for training an model on a dataset for a single epoch.
-    Inputs:
-        epoch - Current epoch
-        model -  model to train
-        train_loader - Data Loader for the dataset you want to train on
-        optimizere - The optimizer used to update the parameters
-    """
+
     model.train()
     train_loss = 0
     for batch_idx, (x, _) in enumerate(train_loader):
@@ -26,15 +21,15 @@ def train_step(epoch, model, train_loader,
         # print(f"Shape of input-batch in train function: {original_x.shape}")
         reconstructed_x = model(original_x).squeeze(dim=1)
 
-
         # print(f"x shape in loss: {original_x.shape}")
         # print(f"recon_x shape in loss: {reconstructed_x.shape}")
-        loss = model.get_reconstructionloss(original_x, reconstructed_x)
+        loss_1 = model.get_reconstructionloss(original_x, reconstructed_x)
+        
+        loss_2 = model.get_flow_loss()
+
+        loss = 0.5*loss_1 + 0.5 * loss_2
         loss.backward()
         optimizer.step()
-
-        # print(f"Loss at epoch{epoch}: {loss}")
-
         train_loss += loss
 
     print('====> Epoch {} : Average loss: {:.4f}'.format(epoch, train_loss / len(train_loader)))
@@ -64,7 +59,7 @@ def eval_model(epoch, model, test_loader, _print=False):
     results['SEN'] = None
     results['SPE'] = None
 
-    if _print: print(f"Epoch {epoch}: {results}")
+    if _print: print(f"Epoch {epoch}: {results}")   
     return results
 
 def main(args):
@@ -96,7 +91,8 @@ def main(args):
         train_step(epoch, model, train_loader,
                   optimizer)
 
-        eval_model(epoch, model, test_loader, _print=True)
+        # eval_model(epoch, model, test_loader, _print=True)
+    
 
 
 if __name__ == '__main__':
