@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=3
 #SBATCH --time=04:00:00
 #SBATCH --mem=32000M
-#SBATCH --output=train.out
+#SBATCH --output=train2.out
 
 module purge
 module load 2021

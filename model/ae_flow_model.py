@@ -1,5 +1,7 @@
 import torch.nn as nn
 import torch
+from nflows.distributions import normal
+
 
 from model.decoder import Decoder
 from model.encoder import Encoder
@@ -24,6 +26,8 @@ class AE_Flow_Model(nn.Module):
         return nn.functional.mse_loss(recon_x, _x)
     
     def get_flow_loss(self):
-        loss = 0.5*torch.sum(self.z_prime**2, 1) - self.log_jac_det
-        print(loss.shape)
-        return loss.mean()
+        shape = self.z_prime.shape[1:]
+        log_z = normal.StandardNormal(shape=shape).log_prob(self.z_prime)
+        loss = log_z + self.log_jac_det
+        loss = -loss.mean()/(16 * 16 * 1024)
+        return loss

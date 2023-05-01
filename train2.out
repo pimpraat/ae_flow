@@ -1,3 +1,4 @@
+Matplotlib is building the font cache; this may take a moment.
 /home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/utils/data/dataloader.py:554: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 3, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
   warnings.warn(_create_warning_msg(
 2
@@ -5,16 +6,15 @@
   warnings.warn(
 /home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=Wide_ResNet50_2_Weights.IMAGENET1K_V1`. You can also use `weights=Wide_ResNet50_2_Weights.DEFAULT` to get the most up-to-date weights.
   warnings.warn(msg)
-/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/FrEIA/modules/all_in_one_block.py:119: UserWarning: Soft permutation will take a very long time to initialize with 1024 feature channels. Consider using hard permutation instead.
-  warnings.warn(("Soft permutation will take a very long time to initialize "
-Traceback (most recent call last):
-  File "/home/lcur1624/ae_flow/train.py", line 130, in <module>
-    main(args)
-  File "/home/lcur1624/ae_flow/train.py", line 91, in main
-    train_step(epoch, model, train_loader,
-  File "/home/lcur1624/ae_flow/train.py", line 28, in train_step
-    loss_2 = model.get_flow_loss()
-  File "/home/lcur1624/ae_flow/model/ae_flow_model.py", line 27, in get_flow_loss
-    loss = 0.5*torch.sum(self.z_prime**2, 1) - self.log_jac_det
-RuntimeError: The size of tensor a (16) must match the size of tensor b (64) at non-singleton dimension 2
-srun: error: r28n2: task 0: Exited with exit code 1
+torch.Size([64, 1024, 16, 16])
+torch.Size([64])
+torch.Size([])
+torch.Size([64, 1024, 16, 16])
+torch.Size([64])
+torch.Size([])
+====> Epoch 0 : Average loss: 1.0934
+torch.Size([64, 1024, 16, 16])
+torch.Size([64])
+torch.Size([])
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 11710319 ON r28n2 CANCELLED AT 2023-05-01T11:01:53 ***
