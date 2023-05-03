@@ -22,7 +22,7 @@ def loads(data_dir,ext,label):
     apply_greyscale = transforms.Grayscale(num_output_channels=3)
 
     image_list = []
-    for filename in glob.glob(data_dir+'*.'+ext)[0:128]: #For development limit to two batches
+    for filename in glob.glob(data_dir+'*.'+ext):
         im=Image.open(filename)
         im = resizer(im)
         im = apply_greyscale(im) #todo are all inputs greyscale/1-channel?
@@ -32,7 +32,7 @@ def loads(data_dir,ext,label):
     return image_list
 
 
-def load(data_dir,batch_size=128, num_workers=4):
+def load(data_dir,batch_size=64, num_workers=4):
 
     train_dir = data_dir+"train/NORMAL/"
     val_dir_0 = data_dir+"val/NORMAL/"
@@ -47,7 +47,7 @@ def load(data_dir,batch_size=128, num_workers=4):
 
 
     train_loader = data.DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+        train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     val_loader = data.DataLoader(
         val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers,
         drop_last=False)

@@ -26,15 +26,20 @@ class AE_Flow_Model(nn.Module):
     def get_reconstructionloss(self, _x, recon_x):
         return nn.functional.mse_loss(recon_x, _x)
     
-    def get_flow_loss(self):
+    def get_flow_loss(self, return_logz=False):
         shape = self.z_prime.shape[1:]
         log_z = normal.StandardNormal(shape=shape).log_prob(self.z_prime)
-        loss = log_z + self.log_jac_det
+        if return_logz: return log_z
+
+        loss = -log_z - self.log_jac_det
         loss = -loss.mean()/(16 * 16 * 1024)
+
+        # Jan's proposal:
+        # loss = log_z + self.log_jac_det
+        # loss = -loss.mean()/(16 * 16 * 1024)
         return loss
     
     def get_anomaly_score(self, _beta, original_x, reconstructed_x):
-        Sflow = self.get_flow_loss()
+        Sflow = - self.get_flow_loss(return_logz=True)
         Srecon = - torchmetrics.functional.structural_similarity_index_measure(reduction=None, preds=reconstructed_x, target=original_x)
-        # print(f"Sflow/Srecon: {Sflow, Srecon}")
         return _beta * Sflow + (1-_beta)*Srecon
