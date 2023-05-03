@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 from nflows.distributions import normal
+import torchmetrics
 
 
 from model.decoder import Decoder
@@ -31,3 +32,9 @@ class AE_Flow_Model(nn.Module):
         loss = log_z + self.log_jac_det
         loss = -loss.mean()/(16 * 16 * 1024)
         return loss
+    
+    def get_anomaly_score(self, _beta, original_x, reconstructed_x):
+        Sflow = self.get_flow_loss()
+        Srecon = - torchmetrics.functional.structural_similarity_index_measure(reduction=None, preds=reconstructed_x, target=original_x)
+        # print(f"Sflow/Srecon: {Sflow, Srecon}")
+        return _beta * Sflow + (1-_beta)*Srecon

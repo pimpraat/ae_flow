@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#SBATCH --partition=gpu_titanrtx_shared_course
+#SBATCH --gres=gpu:0
+#SBATCH --job-name=UpdateEnvironment
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=3
+#SBATCH --time=04:00:00
+#SBATCH --mem=32000M
+#SBATCH --output=job_files/update_environment.out
+
+module purge
+module load 2021
+module load Anaconda3/2021.05
+
+## Use the following to install the environment itself:
+conda env create -f job_files/environment.yml
+
+# Use the following to update an already installed dl2022 environment
+source activate dl2022
+conda env update --file job_files/environment.yml --prune

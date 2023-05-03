@@ -10,7 +10,7 @@ class Decoder(nn.Module):
         """
         super(Decoder, self).__init__()
 
-        _padding = 1
+        # _padding = 1
  
         self.net = nn.Sequential(
             nn.ConvTranspose2d(1024, 512, kernel_size=2, stride=2),
@@ -58,6 +58,18 @@ class Decoder(nn.Module):
             # nn.Conv2d(in_channels=3, out_channels=3, kernel_size=(2,2), padding=_padding)
         )
        
+        # self.net = nn.Sequential(
+        #     nn.ConvTranspose2d(in_channels=1024, out_channels=512, kernel_size=2, stride=2),
+        #     nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3),
+        #     act_fn(),
+        #     nn.ConvTranspose2d(in_channels=512, out_channels=256, kernel_size=2, stride=2),
+        #     nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3),
+        #     act_fn(),
+        #     nn.ConvTranspose2d(in_channels=256, out_channels=64, kernel_size=2, stride=2),
+        #     nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3),
+        #     act_fn(),
+        #     nn.ConvTranspose2d(in_channels=64, out_channels=3, kernel_size=2, stride=2),
+        # )
 
     def forward(self, x):
         """
