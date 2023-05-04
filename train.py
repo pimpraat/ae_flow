@@ -108,12 +108,12 @@ def main(args):
     """
     """
 
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    # torch.backends.cudnn.deterministic = True
+    # torch.backends.cudnn.benchmark = False
 
     #TODO: Make private!
     wandb.login(key='10f35d76229e73f4650338d78de2b411d51fa3ae')
-    wandb.name = 'testing'
+    # wandb.name = 'testing'
     # (mode="disabled")
 
     wandb.init(
@@ -147,8 +147,18 @@ def main(args):
     model = model.to(device)
 
     # Save validation images to the model for later on:
-    im, lb = next(iter(validate_loader))
-    model.sample_images = im[0:3]
+    im_normal, _ = next(iter(validate_loader[0]))
+    im_abnormal, _ = next(iter(validate_loader[1]))
+    # (img, label) = next(iter(validate_loader))
+    # i, (data, target) = enumerate(validate_loader, 0)
+    # print(target)
+
+    model.sample_images_normal = im_normal[:3]
+    model.sample_images_abnormal = im_abnormal[:3]
+    # model.sample_images_normal = [data for i, (data, target) in enumerate(validate_loader, 0) if target==0]
+    # model.sample_images_abnormal = [torch.Tensor(item[0]) for item in list(enumerate(validate_loader)) if item[1]==1]
+    # print(model.sample_images_normal)
+    # assert(False)
 
     ## Using Channels last memory (https://pytorch.org/tutorials/intermediate/memory_format_tutorial.html)
     # Does not seem to work
@@ -171,10 +181,18 @@ def main(args):
 
             eval_model(epoch, model, test_loader, threshold, _print=True)
 
+            #TODO: Extend to include 3 normal and 3 abnormal images
             device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-            grid = make_grid([model.sample_images.to(device), model(model.sample_images.to(device)).squeeze(dim=1)], nrow = 2)
-            images = torchvision.transforms.ToPILImage()(grid)
-            wandb.log({f"reconstruction images: {images}"})
+            
+            rec_images = model(model.sample_images_normal.to(device)).squeeze(dim=1)
+            grid = make_grid(model.sample_images_normal.to(device) + rec_images, nrow = 2)
+            images = wandb.Image(grid, caption="Top: Input, Middle: Reconstructed")
+            wandb.log({"normal reconstruction images": images})
+
+            rec_images = model(model.sample_images_abnormal.to(device)).squeeze(dim=1)
+            grid = make_grid(model.sample_images_abnormal.to(device) + rec_images, nrow = 2)
+            images = wandb.Image(grid, caption="Top: Input, Middle: Reconstructed")
+            wandb.log({"abnormal reconstruction images": images})
 
 
         print(f"Duration for epoch {epoch}: {time.time() - start}")

@@ -1,0 +1,14 @@
+
+21
+/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=Wide_ResNet50_2_Weights.IMAGENET1K_V1`. You can also use `weights=Wide_ResNet50_2_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+Traceback (most recent call last):
+  File "/home/lcur1708/ae_flow_git/ae_flow/train.py", line 226, in <module>
+    main(args)
+  File "/home/lcur1708/ae_flow_git/ae_flow/train.py", line 150, in main
+    model.sample_images_normal = [image for (image, label) in next(iter(validate_loader)) if label==0]
+  File "/home/lcur1708/ae_flow_git/ae_flow/train.py", line 150, in <listcomp>
+    model.sample_images_normal = [image for (image, label) in next(iter(validate_loader)) if label==0]
+ValueError: too many values to unpack (expected 2)

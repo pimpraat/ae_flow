@@ -25,3 +25,4 @@ config: {'learning_rate': 0.02, 'architecture': 'CNN', 'dataset': 'CHEST_XRAY', 
 2023-05-04 13:38:25,562 INFO    MainThread:28777 [wandb_run.py:_redirect():2077] Wrapping output streams.
 2023-05-04 13:38:25,562 INFO    MainThread:28777 [wandb_run.py:_redirect():2102] Redirects installed.
 2023-05-04 13:38:25,563 INFO    MainThread:28777 [wandb_init.py:init():824] run started, returning control to user process
+2023-05-04 13:39:44,227 WARNING MsgRouterThr:28777 [router.py:message_loop():77] message_loop has been closed

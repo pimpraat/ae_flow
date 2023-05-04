@@ -17,7 +17,8 @@ class AE_Flow_Model(nn.Module):
         self.flow = FlowModule()
         self.decoder = Decoder()
 
-        self.sample_images = [] ## Should be 3 images?
+        self.sample_images_normal = []
+        self.sample_images_abnormal = []
 
     def forward(self, x):
         
@@ -53,7 +54,7 @@ class AE_Flow_Model(nn.Module):
     # A function used to (easily) sample the same set of images. Using 
     def sample_images(self):
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        grid = make_grid([self.sample_images, self.model(self.sample_images.to(device)).squeeze(dim=1)], nrow = 2)
+        grid = make_grid(self.sample_images, nrow = 1)
         images = torchvision.transforms.ToPILImage()(grid)
         return images
     

@@ -3,8 +3,8 @@ wandb: Appending key for api.wandb.ai to your netrc file: /home/lcur1708/.netrc
 wandb: wandb version 0.15.1 is available!  To upgrade, please run:
 wandb:  $ pip install wandb --upgrade
 wandb: Tracking run with wandb version 0.15.0
-wandb: Run data is saved locally in /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_133820-zeuc3u6u
+wandb: Run data is saved locally in /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_153255-lzb1wpzs
 wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run legendary-ewok-8
+wandb: Syncing run star-bantha-26
 wandb: ⭐️ View project at https://wandb.ai/dl2_ae_flow/ae_flow
-wandb: 🚀 View run at https://wandb.ai/dl2_ae_flow/ae_flow/runs/zeuc3u6u
+wandb: 🚀 View run at https://wandb.ai/dl2_ae_flow/ae_flow/runs/lzb1wpzs
