@@ -45,7 +45,7 @@ def load(data_dir,batch_size=64, num_workers=4):
     test_set = loads(test_dir_0,"jpeg",0)+loads(test_dir_1,"jpeg",1)
 
 
-
+    ## TODO: Check shuffle + pin_memory!
     train_loader = data.DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     val_loader = data.DataLoader(

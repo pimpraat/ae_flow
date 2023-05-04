@@ -16,6 +16,8 @@ class AE_Flow_Model(nn.Module):
         self.flow = FlowModule()
         self.decoder = Decoder()
 
+        self.sample_images = [] ## Should be 3 images?
+
     def forward(self, x):
         
         z = self.encoder(x)
@@ -31,15 +33,22 @@ class AE_Flow_Model(nn.Module):
         log_z = normal.StandardNormal(shape=shape).log_prob(self.z_prime)
         if return_logz: return log_z
 
-        loss = -log_z - self.log_jac_det
-        loss = -loss.mean()/(16 * 16 * 1024)
-
-        # Jan's proposal:
-        # loss = log_z + self.log_jac_det
+        # loss = -log_z - self.log_jac_det
         # loss = -loss.mean()/(16 * 16 * 1024)
+
+        # Jan's proposal: should be fine since it is defined as the negative ll
+        loss = log_z + self.log_jac_det
+        loss = -loss.mean()/(16 * 16 * 1024)
         return loss
     
     def get_anomaly_score(self, _beta, original_x, reconstructed_x):
         Sflow = - self.get_flow_loss(return_logz=True)
         Srecon = - torchmetrics.functional.structural_similarity_index_measure(reduction=None, preds=reconstructed_x, target=original_x)
         return _beta * Sflow + (1-_beta)*Srecon
+    
+    # A function used to (easily) sample the same set of images. Using 
+    def sample_images(self):
+        pass
+
+        # now save the images to file
+
