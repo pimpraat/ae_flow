@@ -1,0 +1,197 @@
+2023-05-04 12:32:05,382 INFO    StreamThr :17516 [internal.py:wandb_internal():86] W&B internal server running at pid: 17516, started at: 2023-05-04 12:32:05.381865
+2023-05-04 12:32:05,384 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status
+2023-05-04 12:32:05,385 INFO    WriterThread:17516 [datastore.py:open_for_write():85] open: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/run-q9fziwwd.wandb
+2023-05-04 12:32:05,390 DEBUG   SenderThread:17516 [sender.py:send():375] send: header
+2023-05-04 12:32:05,429 DEBUG   SenderThread:17516 [sender.py:send():375] send: run
+2023-05-04 12:32:05,952 INFO    SenderThread:17516 [dir_watcher.py:__init__():219] watching files in: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files
+2023-05-04 12:32:05,953 INFO    SenderThread:17516 [sender.py:_start_run_threads():1124] run started: q9fziwwd with start time 1683196325.377974
+2023-05-04 12:32:05,953 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: summary_record
+2023-05-04 12:32:05,954 INFO    SenderThread:17516 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-05-04 12:32:05,959 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: check_version
+2023-05-04 12:32:05,960 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: check_version
+2023-05-04 12:32:06,019 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: run_start
+2023-05-04 12:32:06,030 DEBUG   HandlerThread:17516 [system_info.py:__init__():31] System info init
+2023-05-04 12:32:06,030 DEBUG   HandlerThread:17516 [system_info.py:__init__():46] System info init done
+2023-05-04 12:32:06,030 INFO    HandlerThread:17516 [system_monitor.py:start():181] Starting system monitor
+2023-05-04 12:32:06,030 INFO    SystemMonitor:17516 [system_monitor.py:_start():145] Starting system asset monitoring threads
+2023-05-04 12:32:06,031 INFO    HandlerThread:17516 [system_monitor.py:probe():201] Collecting system info
+2023-05-04 12:32:06,031 INFO    SystemMonitor:17516 [interfaces.py:start():190] Started cpu monitoring
+2023-05-04 12:32:06,032 INFO    SystemMonitor:17516 [interfaces.py:start():190] Started disk monitoring
+2023-05-04 12:32:06,033 INFO    SystemMonitor:17516 [interfaces.py:start():190] Started gpu monitoring
+2023-05-04 12:32:06,034 INFO    SystemMonitor:17516 [interfaces.py:start():190] Started memory monitoring
+2023-05-04 12:32:06,035 INFO    SystemMonitor:17516 [interfaces.py:start():190] Started network monitoring
+2023-05-04 12:32:06,065 DEBUG   HandlerThread:17516 [system_info.py:probe():195] Probing system
+2023-05-04 12:32:06,069 DEBUG   HandlerThread:17516 [system_info.py:_probe_git():180] Probing git
+2023-05-04 12:32:06,085 DEBUG   HandlerThread:17516 [system_info.py:_probe_git():188] Probing git done
+2023-05-04 12:32:06,085 DEBUG   HandlerThread:17516 [system_info.py:probe():240] Probing system done
+2023-05-04 12:32:06,085 DEBUG   HandlerThread:17516 [system_monitor.py:probe():210] {'os': 'Linux-4.19.0-23-amd64-x86_64-with-glibc2.28', 'python': '3.10.6', 'heartbeatAt': '2023-05-04T10:32:06.065801', 'startedAt': '2023-05-04T10:32:05.361100', 'docker': None, 'cuda': None, 'args': (), 'state': 'running', 'program': '/home/lcur1708/ae_flow_git/ae_flow/train.py', 'codePath': 'train.py', 'git': {'remote': 'https://github.com/pimpraat/ae_flow.git', 'commit': 'befb23fffd4fba9b23a55218f5b663125938c161'}, 'email': 'pimpraat@gmail.com', 'root': '/home/lcur1708/ae_flow_git/ae_flow', 'host': 'r35n2.lisa.surfsara.nl', 'username': 'lcur1708', 'executable': '/home/lcur1708/.conda/envs/dl2022/bin/python', 'cpu_count': 24, 'cpu_count_logical': 24, 'cpu_freq': {'current': 1457.6887916666667, 'min': 0.0, 'max': 0.0}, 'cpu_freq_per_core': [{'current': 2874.036, 'min': 0.0, 'max': 0.0}, {'current': 1596.708, 'min': 0.0, 'max': 0.0}, {'current': 1000.055, 'min': 0.0, 'max': 0.0}, {'current': 1000.302, 'min': 0.0, 'max': 0.0}, {'current': 2797.22, 'min': 0.0, 'max': 0.0}, {'current': 1435.521, 'min': 0.0, 'max': 0.0}, {'current': 1000.774, 'min': 0.0, 'max': 0.0}, {'current': 1000.172, 'min': 0.0, 'max': 0.0}, {'current': 2303.499, 'min': 0.0, 'max': 0.0}, {'current': 1259.114, 'min': 0.0, 'max': 0.0}, {'current': 1000.336, 'min': 0.0, 'max': 0.0}, {'current': 1000.337, 'min': 0.0, 'max': 0.0}, {'current': 2884.655, 'min': 0.0, 'max': 0.0}, {'current': 1000.041, 'min': 0.0, 'max': 0.0}, {'current': 999.983, 'min': 0.0, 'max': 0.0}, {'current': 1000.253, 'min': 0.0, 'max': 0.0}, {'current': 2272.843, 'min': 0.0, 'max': 0.0}, {'current': 1000.137, 'min': 0.0, 'max': 0.0}, {'current': 1000.782, 'min': 0.0, 'max': 0.0}, {'current': 1000.886, 'min': 0.0, 'max': 0.0}, {'current': 2555.074, 'min': 0.0, 'max': 0.0}, {'current': 1000.452, 'min': 0.0, 'max': 0.0}, {'current': 1001.015, 'min': 0.0, 'max': 0.0}, {'current': 1000.336, 'min': 0.0, 'max': 0.0}], 'disk': {'total': 914.0612754821777, 'used': 38.00187301635742}, 'gpu': 'NVIDIA TITAN RTX', 'gpu_count': 1, 'gpu_devices': [{'name': 'NVIDIA TITAN RTX', 'memory_total': 25769803776}], 'memory': {'total': 187.55839157104492}}
+2023-05-04 12:32:06,085 INFO    HandlerThread:17516 [system_monitor.py:probe():211] Finished collecting system info
+2023-05-04 12:32:06,086 INFO    HandlerThread:17516 [system_monitor.py:probe():214] Publishing system info
+2023-05-04 12:32:06,086 DEBUG   HandlerThread:17516 [system_info.py:_save_pip():51] Saving list of pip packages installed into the current environment
+2023-05-04 12:32:06,087 DEBUG   HandlerThread:17516 [system_info.py:_save_pip():67] Saving pip packages done
+2023-05-04 12:32:06,088 DEBUG   HandlerThread:17516 [system_info.py:_save_conda():74] Saving list of conda packages installed into the current environment
+2023-05-04 12:32:06,956 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_created():278] file/dir created: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/wandb-summary.json
+2023-05-04 12:32:06,957 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_created():278] file/dir created: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/requirements.txt
+2023-05-04 12:32:06,957 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_created():278] file/dir created: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/conda-environment.yaml
+2023-05-04 12:32:12,963 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/conda-environment.yaml
+2023-05-04 12:32:13,084 DEBUG   HandlerThread:17516 [system_info.py:_save_conda():86] Saving conda packages done
+2023-05-04 12:32:13,086 INFO    HandlerThread:17516 [system_monitor.py:probe():216] Finished publishing system info
+2023-05-04 12:32:13,504 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:32:13,504 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: keepalive
+2023-05-04 12:32:13,505 DEBUG   SenderThread:17516 [sender.py:send():375] send: files
+2023-05-04 12:32:13,506 INFO    SenderThread:17516 [sender.py:_save_file():1378] saving file wandb-metadata.json with policy now
+2023-05-04 12:32:13,519 DEBUG   SenderThread:17516 [sender.py:send():375] send: telemetry
+2023-05-04 12:32:13,519 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:32:13,520 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:32:13,964 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_created():278] file/dir created: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/wandb-metadata.json
+2023-05-04 12:32:13,982 INFO    wandb-upload_0:17516 [upload_job.py:push():137] Uploaded file /scratch/tmpbixeh6kpwandb/a8t82gko-wandb-metadata.json
+2023-05-04 12:32:16,667 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:32:21,668 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:32:26,668 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:32:28,518 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:32:28,518 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:32:32,639 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:32:37,643 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:32:37,977 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/config.yaml
+2023-05-04 12:32:42,864 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:32:43,518 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:32:43,518 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:32:46,983 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_created():278] file/dir created: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:32:48,820 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:32:48,985 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:32:53,822 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:32:58,519 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:32:58,520 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:32:59,651 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:33:04,652 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:33:06,035 DEBUG   SystemMonitor:17516 [system_monitor.py:_start():159] Starting system metrics aggregation loop
+2023-05-04 12:33:06,037 DEBUG   SenderThread:17516 [sender.py:send():375] send: stats
+2023-05-04 12:33:07,756 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: partial_history
+2023-05-04 12:33:07,758 DEBUG   SenderThread:17516 [sender.py:send():375] send: history
+2023-05-04 12:33:07,758 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: summary_record
+2023-05-04 12:33:07,760 INFO    SenderThread:17516 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-05-04 12:33:08,002 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/wandb-summary.json
+2023-05-04 12:33:09,003 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:33:09,864 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:33:11,006 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:33:13,009 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:33:13,518 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:33:13,519 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:33:14,899 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:33:15,026 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:33:15,034 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: partial_history
+2023-05-04 12:33:15,036 DEBUG   SenderThread:17516 [sender.py:send():375] send: history
+2023-05-04 12:33:15,037 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: summary_record
+2023-05-04 12:33:15,040 INFO    SenderThread:17516 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-05-04 12:33:16,027 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/wandb-summary.json
+2023-05-04 12:33:17,028 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:33:20,042 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:33:25,043 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:33:28,520 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:33:28,521 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:33:30,647 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:33:30,904 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: partial_history
+2023-05-04 12:33:30,905 DEBUG   SenderThread:17516 [sender.py:send():375] send: history
+2023-05-04 12:33:30,905 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: summary_record
+2023-05-04 12:33:30,908 INFO    SenderThread:17516 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-05-04 12:33:31,040 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/wandb-summary.json
+2023-05-04 12:33:33,042 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:33:35,910 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:33:36,038 DEBUG   SenderThread:17516 [sender.py:send():375] send: stats
+2023-05-04 12:33:41,039 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:33:43,519 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:33:43,519 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:33:46,642 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:33:46,844 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: partial_history
+2023-05-04 12:33:46,845 DEBUG   SenderThread:17516 [sender.py:send():375] send: history
+2023-05-04 12:33:46,845 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: summary_record
+2023-05-04 12:33:46,847 INFO    SenderThread:17516 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-05-04 12:33:47,055 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/wandb-summary.json
+2023-05-04 12:33:49,058 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:33:51,861 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:33:56,862 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:33:58,519 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:33:58,520 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:34:02,652 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:34:02,847 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: partial_history
+2023-05-04 12:34:02,848 DEBUG   SenderThread:17516 [sender.py:send():375] send: history
+2023-05-04 12:34:02,848 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: summary_record
+2023-05-04 12:34:02,850 INFO    SenderThread:17516 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-05-04 12:34:03,070 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/wandb-summary.json
+2023-05-04 12:34:05,072 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:34:06,039 DEBUG   SenderThread:17516 [sender.py:send():375] send: stats
+2023-05-04 12:34:08,040 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:34:13,041 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:34:13,521 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:34:13,522 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:34:18,657 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:34:19,044 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: partial_history
+2023-05-04 12:34:19,045 DEBUG   SenderThread:17516 [sender.py:send():375] send: history
+2023-05-04 12:34:19,046 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: summary_record
+2023-05-04 12:34:19,048 INFO    SenderThread:17516 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-05-04 12:34:19,086 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/wandb-summary.json
+2023-05-04 12:34:21,088 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:34:24,061 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:34:28,521 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:34:28,522 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:34:29,651 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:34:34,652 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:34:35,263 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: partial_history
+2023-05-04 12:34:35,264 DEBUG   SenderThread:17516 [sender.py:send():375] send: history
+2023-05-04 12:34:35,265 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: summary_record
+2023-05-04 12:34:35,266 INFO    SenderThread:17516 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-05-04 12:34:36,041 DEBUG   SenderThread:17516 [sender.py:send():375] send: stats
+2023-05-04 12:34:36,102 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/wandb-summary.json
+2023-05-04 12:34:37,103 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:34:39,106 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:34:39,678 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:34:41,109 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:34:42,908 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: partial_history
+2023-05-04 12:34:42,910 DEBUG   SenderThread:17516 [sender.py:send():375] send: history
+2023-05-04 12:34:42,910 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: summary_record
+2023-05-04 12:34:42,913 INFO    SenderThread:17516 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-05-04 12:34:43,121 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/wandb-summary.json
+2023-05-04 12:34:43,122 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:34:43,522 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:34:43,522 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:34:45,124 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:34:45,675 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:34:50,676 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:34:55,677 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:34:58,520 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:34:58,521 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:34:58,909 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: partial_history
+2023-05-04 12:34:58,910 DEBUG   SenderThread:17516 [sender.py:send():375] send: history
+2023-05-04 12:34:58,910 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: summary_record
+2023-05-04 12:34:58,912 INFO    SenderThread:17516 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-05-04 12:34:59,137 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/wandb-summary.json
+2023-05-04 12:35:00,924 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:35:01,141 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:35:05,925 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:35:06,043 DEBUG   SenderThread:17516 [sender.py:send():375] send: stats
+2023-05-04 12:35:11,044 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:35:13,521 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:35:13,522 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:35:15,225 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: partial_history
+2023-05-04 12:35:15,226 DEBUG   SenderThread:17516 [sender.py:send():375] send: history
+2023-05-04 12:35:15,227 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: summary_record
+2023-05-04 12:35:15,229 INFO    SenderThread:17516 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-05-04 12:35:16,156 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/wandb-summary.json
+2023-05-04 12:35:16,232 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:35:17,163 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:35:21,233 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:35:26,234 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:35:28,522 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:35:28,523 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
+2023-05-04 12:35:31,289 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: partial_history
+2023-05-04 12:35:31,289 DEBUG   SenderThread:17516 [sender.py:send():375] send: history
+2023-05-04 12:35:31,290 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: summary_record
+2023-05-04 12:35:31,291 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:35:31,293 INFO    SenderThread:17516 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-05-04 12:35:32,178 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/wandb-summary.json
+2023-05-04 12:35:33,179 INFO    Thread-12 :17516 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_123205-q9fziwwd/files/output.log
+2023-05-04 12:35:36,044 DEBUG   SenderThread:17516 [sender.py:send():375] send: stats
+2023-05-04 12:35:37,045 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:35:42,046 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: status_report
+2023-05-04 12:35:43,522 DEBUG   HandlerThread:17516 [handler.py:handle_request():144] handle_request: stop_status
+2023-05-04 12:35:43,523 DEBUG   SenderThread:17516 [sender.py:send_request():402] send_request: stop_status
