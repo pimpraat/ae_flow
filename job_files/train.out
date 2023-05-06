@@ -1,0 +1,221 @@
+21
+/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=Wide_ResNet50_2_Weights.IMAGENET1K_V1`. You can also use `weights=Wide_ResNet50_2_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+Recon loss: 1.280720591545105, Flow loss: 242973.953125
+Recon loss: 1.2394870519638062, Flow loss: 240617.90625
+Recon loss: 1.252784013748169, Flow loss: 238380.125
+Recon loss: 1.2341294288635254, Flow loss: 235569.375
+Recon loss: 1.2496721744537354, Flow loss: 231628.71875
+Recon loss: 1.1940845251083374, Flow loss: 226001.125
+Recon loss: 1.194632887840271, Flow loss: 218062.53125
+Recon loss: 1.20574152469635, Flow loss: 206806.359375
+Recon loss: 1.1589382886886597, Flow loss: 191729.0
+Recon loss: 1.1267660856246948, Flow loss: 172019.125
+Recon loss: 1.1619328260421753, Flow loss: 150589.21875
+Recon loss: 1.1432750225067139, Flow loss: 125117.828125
+Recon loss: 1.1495164632797241, Flow loss: 96926.125
+Recon loss: 1.1263691186904907, Flow loss: 69379.203125
+Recon loss: 1.0630855560302734, Flow loss: 40453.2578125
+Recon loss: 1.0610344409942627, Flow loss: 11890.853515625
+Recon loss: 1.0708602666854858, Flow loss: -17889.763671875
+Recon loss: 1.0671838521957397, Flow loss: -47887.32421875
+Recon loss: 1.001888394355774, Flow loss: -78772.4375
+Recon loss: 0.9879280924797058, Flow loss: -107135.6171875
+Recon loss: 0.9773077964782715, Flow loss: -137830.265625
+====> Epoch 0 : Average loss: 54967.9335
+Now moving onto finding the appropriate threshold (based on training data):
+/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1609: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 due to no true nor predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, "true nor predicted", "F-score is", len(true_sum))
+/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1609: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 due to no true nor predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, "true nor predicted", "F-score is", len(true_sum))
+Found optimal threshold: 0.0
+Epoch 0: {'AUC': 0.4375, 'ACC': 0.4375, 'SEN': 0.0, 'SPE': 0.875, 'F1': 0.0}
+Duration for epoch 0: 25.21364688873291
+Recon loss: 0.9243409037590027, Flow loss: -164792.296875
+Recon loss: 0.9363776445388794, Flow loss: -183593.109375
+Recon loss: 0.8664316534996033, Flow loss: -207551.9375
+Recon loss: 0.8847827911376953, Flow loss: -232721.671875
+Recon loss: 0.8754002451896667, Flow loss: -248213.8125
+Recon loss: 0.8716832995414734, Flow loss: -263251.25
+Recon loss: 0.8747276663780212, Flow loss: -291475.5
+Recon loss: 0.8147507905960083, Flow loss: -322292.65625
+Recon loss: 0.8512023687362671, Flow loss: -337346.1875
+Recon loss: 0.8433575630187988, Flow loss: -352217.0625
+Recon loss: 0.8326108455657959, Flow loss: -374967.21875
+Recon loss: 0.7698758840560913, Flow loss: -395978.21875
+Recon loss: 0.7968205809593201, Flow loss: -414319.6875
+Recon loss: 0.7628917694091797, Flow loss: -429961.9375
+Recon loss: 0.7092522382736206, Flow loss: -439646.53125
+Recon loss: 0.8001507520675659, Flow loss: -448203.5
+Recon loss: 0.7887169122695923, Flow loss: -453329.5
+Recon loss: 0.7894347906112671, Flow loss: -476338.1875
+Recon loss: 0.760036826133728, Flow loss: -504019.3125
+Recon loss: 0.7206411361694336, Flow loss: -515524.75
+Recon loss: 0.7402063608169556, Flow loss: -534485.3125
+====> Epoch 1 : Average loss: -180719.3438
+Duration for epoch 1: 16.026988744735718
+Recon loss: 0.744414746761322, Flow loss: -548178.25
+Recon loss: 0.7117244601249695, Flow loss: -570184.3125
+Recon loss: 0.7179597616195679, Flow loss: -584554.0
+Recon loss: 0.7593870162963867, Flow loss: -588883.5
+Recon loss: 0.7020856738090515, Flow loss: -594643.625
+Recon loss: 0.9015694856643677, Flow loss: -597452.5
+Recon loss: 0.7296940088272095, Flow loss: -607770.0
+Recon loss: 0.7091975212097168, Flow loss: -634837.9375
+Recon loss: 0.8031461238861084, Flow loss: -640262.4375
+Recon loss: 0.9846473932266235, Flow loss: -647193.375
+Recon loss: 1.0392518043518066, Flow loss: -631350.1875
+Recon loss: 1.0064433813095093, Flow loss: -636193.875
+Recon loss: 0.7110996246337891, Flow loss: -670819.3125
+Recon loss: 0.9187016487121582, Flow loss: -686365.375
+Recon loss: 1.2496731281280518, Flow loss: -688675.5
+Recon loss: 1.1989097595214844, Flow loss: -707333.75
+Recon loss: 1.241443395614624, Flow loss: -712515.375
+Recon loss: 0.8252447843551636, Flow loss: -715422.125
+Recon loss: 0.6978979110717773, Flow loss: -716995.875
+Recon loss: 0.7012855410575867, Flow loss: -730753.8125
+Recon loss: 0.8862102627754211, Flow loss: -736293.9375
+====> Epoch 2 : Average loss: -324920.4985
+Duration for epoch 2: 16.296015739440918
+Recon loss: 0.9095050692558289, Flow loss: -746870.75
+Recon loss: 0.9358361959457397, Flow loss: -756628.0
+Recon loss: 0.676520824432373, Flow loss: -775388.125
+Recon loss: 0.696279764175415, Flow loss: -779602.875
+Recon loss: 0.6950930953025818, Flow loss: -790875.625
+Recon loss: 0.901887834072113, Flow loss: -785619.25
+Recon loss: 0.6706627607345581, Flow loss: -750348.75
+Recon loss: 1.200087547302246, Flow loss: -710275.5
+Recon loss: 1.0253257751464844, Flow loss: -683904.5
+Recon loss: 0.9762012362480164, Flow loss: -689045.375
+Recon loss: 0.8791769742965698, Flow loss: -713238.8125
+Recon loss: 0.8953046202659607, Flow loss: -726299.375
+Recon loss: 0.7919637560844421, Flow loss: -748050.375
+Recon loss: 0.6869029402732849, Flow loss: -775528.25
+Recon loss: 0.723358154296875, Flow loss: -776714.5
+Recon loss: 0.6824947595596313, Flow loss: -789601.25
+Recon loss: 0.6623615026473999, Flow loss: -813231.75
+Recon loss: 0.648593544960022, Flow loss: -823225.4375
+Recon loss: 0.6455632448196411, Flow loss: -833030.3125
+Recon loss: 0.6012705564498901, Flow loss: -846247.0625
+Recon loss: 0.5899332165718079, Flow loss: -856507.6875
+====> Epoch 3 : Average loss: -385005.1682
+Duration for epoch 3: 16.20548367500305
+Recon loss: 0.6058878302574158, Flow loss: -861885.875
+Recon loss: 0.6963819265365601, Flow loss: -824356.5625
+Recon loss: 1.1271944046020508, Flow loss: -804912.625
+Recon loss: 0.6487871408462524, Flow loss: -811997.6875
+Recon loss: 0.6812317371368408, Flow loss: -811246.375
+Recon loss: 0.7438721060752869, Flow loss: -835501.0625
+Recon loss: 0.8660456538200378, Flow loss: -854729.9375
+Recon loss: 0.6050534844398499, Flow loss: -872678.25
+Recon loss: 0.5654606223106384, Flow loss: -876459.625
+Recon loss: 0.809963583946228, Flow loss: -886376.0
+Recon loss: 0.9098981618881226, Flow loss: -898992.875
+Recon loss: 0.8021849989891052, Flow loss: -898409.25
+Recon loss: 0.6180684566497803, Flow loss: -913894.875
+Recon loss: 0.7042055130004883, Flow loss: -919876.375
+Recon loss: 0.7271139025688171, Flow loss: -924025.0625
+Recon loss: 0.6385867595672607, Flow loss: -925060.8125
+Recon loss: 0.7030555009841919, Flow loss: -931058.25
+Recon loss: 0.6462737321853638, Flow loss: -949682.875
+Recon loss: 0.6532754302024841, Flow loss: -960119.25
+Recon loss: 0.6386892199516296, Flow loss: -964686.125
+Recon loss: 0.6778835654258728, Flow loss: -966501.3125
+====> Epoch 4 : Average loss: -445058.0000
+Duration for epoch 4: 16.343141555786133
+Recon loss: 0.6294268369674683, Flow loss: -952953.3125
+Recon loss: 0.6911360621452332, Flow loss: -954053.4375
+Recon loss: 0.6531854867935181, Flow loss: -947879.625
+Recon loss: 0.7253605127334595, Flow loss: -975403.0625
+Recon loss: 0.6276946067810059, Flow loss: -982682.75
+Recon loss: 0.6735509634017944, Flow loss: -989606.625
+Recon loss: 0.6770610213279724, Flow loss: -997620.5
+Recon loss: 0.6749138236045837, Flow loss: -994071.3125
+Recon loss: 0.5676344633102417, Flow loss: -1013061.1875
+Recon loss: 0.5740900039672852, Flow loss: -998496.125
+Recon loss: 0.6680283546447754, Flow loss: -996101.875
+Recon loss: 0.7635911703109741, Flow loss: -997697.625
+Recon loss: 0.6961970329284668, Flow loss: -1025246.5
+Recon loss: 0.570256233215332, Flow loss: -1024013.0
+Recon loss: 0.6100196242332458, Flow loss: -1017810.0625
+Recon loss: 0.554793655872345, Flow loss: -1040759.5625
+Recon loss: 0.7063629031181335, Flow loss: -1040863.0
+Recon loss: 0.6176765561103821, Flow loss: -1038324.5
+Recon loss: 0.5723987817764282, Flow loss: -1050942.125
+Recon loss: 0.6741858720779419, Flow loss: -1040076.875
+Recon loss: 0.6000663042068481, Flow loss: -1029351.8125
+====> Epoch 5 : Average loss: -502547.6488
+Now moving onto finding the appropriate threshold (based on training data):
+/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1609: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 due to no true nor predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, "true nor predicted", "F-score is", len(true_sum))
+/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/sklearn/metrics/_classification.py:1609: UndefinedMetricWarning: F-score is ill-defined and being set to 0.0 due to no true nor predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, "true nor predicted", "F-score is", len(true_sum))
+Found optimal threshold: 0.0
+Epoch 5: {'AUC': 0.5, 'ACC': 0.5, 'SEN': 0.0, 'SPE': 1.0, 'F1': 0.0}
+Duration for epoch 5: 23.521533012390137
+Recon loss: 0.6897498965263367, Flow loss: -1014650.8125
+Recon loss: 0.6979228854179382, Flow loss: -1042025.625
+Recon loss: 0.9867318868637085, Flow loss: -1061061.0
+Recon loss: 0.8068879842758179, Flow loss: -1043606.375
+Recon loss: 0.6765718460083008, Flow loss: -1065296.75
+Recon loss: 0.5916914939880371, Flow loss: -1059138.75
+Recon loss: 0.6217494010925293, Flow loss: -1059243.75
+Recon loss: 0.6211151480674744, Flow loss: -1076956.0
+Recon loss: 0.6410750150680542, Flow loss: -1068887.125
+Recon loss: 0.6089330911636353, Flow loss: -1058166.75
+Recon loss: 0.5927738547325134, Flow loss: -1050828.75
+Recon loss: 0.899551272392273, Flow loss: -1001494.5625
+Recon loss: 0.765871524810791, Flow loss: -1007172.625
+Recon loss: 0.6738327741622925, Flow loss: -1037062.375
+Recon loss: 0.714976966381073, Flow loss: -1000033.25
+Recon loss: 0.6625818014144897, Flow loss: -1038346.0
+Recon loss: 0.643492579460144, Flow loss: -1030432.0
+Recon loss: 0.671479344367981, Flow loss: -1060258.25
+Recon loss: 0.6119533777236938, Flow loss: -1067470.75
+Recon loss: 0.7406474947929382, Flow loss: -1073614.625
+Recon loss: 0.6409919261932373, Flow loss: -1086667.5
+====> Epoch 6 : Average loss: -523866.6458
+Duration for epoch 6: 16.34803009033203
+Recon loss: 0.7017489671707153, Flow loss: -1083684.875
+Recon loss: 0.6202481985092163, Flow loss: -1082453.25
+Recon loss: 0.6284498572349548, Flow loss: -1095804.375
+Recon loss: 0.6747546195983887, Flow loss: -1108081.5
+Recon loss: 0.7385546565055847, Flow loss: -1114144.0
+Recon loss: 0.6353895664215088, Flow loss: -1120713.125
+Recon loss: 0.6160416603088379, Flow loss: -1106319.125
+Recon loss: 0.6951795816421509, Flow loss: -1086699.75
+Recon loss: 0.6711205244064331, Flow loss: -1113543.5
+Recon loss: 0.5840222835540771, Flow loss: -1118505.5
+Recon loss: 0.6663073897361755, Flow loss: -1119476.75
+Recon loss: 0.6984922885894775, Flow loss: -1120077.5
+Recon loss: 0.6471829414367676, Flow loss: -1116893.375
+Recon loss: 0.745599627494812, Flow loss: -1106287.75
+Recon loss: 0.6996650695800781, Flow loss: -1135053.625
+Recon loss: 0.6301225423812866, Flow loss: -1130873.125
+Recon loss: 0.6201200485229492, Flow loss: -1101725.875
+Recon loss: 0.6119475364685059, Flow loss: -1104547.125
+Recon loss: 0.8055898547172546, Flow loss: -1103371.25
+Recon loss: 0.6468019485473633, Flow loss: -1089156.75
+Recon loss: 0.6576374769210815, Flow loss: -1095936.5
+====> Epoch 7 : Average loss: -553650.8244
+Duration for epoch 7: 16.581692934036255
+Recon loss: 0.6170369982719421, Flow loss: -1121737.25
+Recon loss: 0.6619669198989868, Flow loss: -1130142.125
+Recon loss: 0.6689472198486328, Flow loss: -1137445.125
+Recon loss: 0.6303694844245911, Flow loss: -1140537.0
+Recon loss: 0.7182223200798035, Flow loss: -1156198.75
+Recon loss: 0.6294108629226685, Flow loss: -1157819.5
+Recon loss: 0.629775881767273, Flow loss: -1170014.0
+Recon loss: 0.627377986907959, Flow loss: -1169424.0
+Recon loss: 0.7850396037101746, Flow loss: -1158682.25
+Recon loss: 0.6456072330474854, Flow loss: -1154365.25
+Recon loss: 0.6067101359367371, Flow loss: -1156966.75
+Recon loss: 0.7014219164848328, Flow loss: -1142426.0
+Recon loss: 0.7289820909500122, Flow loss: -1142329.5
+Recon loss: 0.6768527030944824, Flow loss: -1162596.75
+Recon loss: 0.6645749807357788, Flow loss: -1174723.375
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** STEP 11730962.0 ON r28n5 CANCELLED AT 2023-05-06T14:13:03 DUE TO TIME LIMIT ***
+slurmstepd: error: *** JOB 11730962 ON r28n5 CANCELLED AT 2023-05-06T14:13:03 DUE TO TIME LIMIT ***
