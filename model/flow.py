@@ -15,8 +15,8 @@ class FlowModule(nn.Module):
 
 
     def subnet_conv_3x3_1x1(c_in, c_out):
-        return nn.Sequential(nn.Conv2d(c_in, 256,   3, padding=1), nn.ReLU(),
-                            nn.Conv2d(256,  c_out, 1))
+        return nn.Sequential(nn.Conv2d(c_in, 128,   3, padding=1), nn.ReLU(),
+                            nn.Conv2d(128,  c_out, 1))
         
 
     def forward(self, x):
