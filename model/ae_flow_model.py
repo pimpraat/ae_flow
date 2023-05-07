@@ -35,7 +35,7 @@ class AE_Flow_Model(nn.Module):
         # Jan's proposal: should be fine since it is defined as the negative ll
         log_p = log_z + self.log_jac_det
         nll = -log_p
-        # Most people use bpp instead of nll; both UVA tutorial and every implementation I found online.
+        # Most people use bpp (bits per dimension) instead of nll; both UVA tutorial and every implementation I found online.
         bpd = nll * np.log2(np.exp(1)) / np.prod(shape)
         return nll.mean()
     
