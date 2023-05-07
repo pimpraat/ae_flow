@@ -14,17 +14,17 @@ class AE_Flow_Model(nn.Module):
     def __init__(self):
 
         super(AE_Flow_Model, self).__init__()
-        self.encoder = Encoder()
+        self.encoder = Encoder() #.to(memory_format=torch.channels_last)
         self.flow = FlowModule()
-        self.decoder = Decoder()
+        self.decoder = Decoder() #.to(memory_format=torch.channels_last)
 
         self.sample_images_normal = []
         self.sample_images_abnormal = []
 
     def forward(self, x):
-        z = self.encoder(x)
+        z = self.encoder(x.to(memory_format=torch.channels_last))
         self.z_prime, self.log_jac_det = self.flow(z)
-        reconstructed_x = self.decoder(self.z_prime)
+        reconstructed_x = self.decoder(self.z_prime.to(memory_format=torch.channels_last))
         return reconstructed_x
     
     def get_reconstructionloss(self, _x, recon_x):
@@ -32,7 +32,6 @@ class AE_Flow_Model(nn.Module):
     
     def get_flow_loss(self, return_logz=False, bpd = False):
         shape = self.z_prime.shape[1:]
-        # log_z = self.prior.log_prob(self.z_prime).sum(dim=[1,2,3])
         log_z = normal.StandardNormal(shape=shape).log_prob(self.z_prime)
         if return_logz: return log_z
         log_p = log_z + self.log_jac_det

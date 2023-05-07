@@ -24,19 +24,13 @@ def train_step(epoch, model, train_loader,
     for batch_idx, (x, _) in enumerate(train_loader):
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         original_x = x.to(device)
-        # original_x = x.to(device).to(memory_format=torch.channels_last)
 
         optimizer.zero_grad(set_to_none=True)
-        # optimizer.zero_grad()
-        # print(f"Shape of input-batch in train function: {original_x.shape}")
         reconstructed_x = model(original_x).squeeze(dim=1)
 
-        # print(f"x shape in loss: {original_x.shape}")
-        # print(f"recon_x shape in loss: {reconstructed_x.shape}")
         recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
         flow_loss = model.get_flow_loss()
         wandb.log({'recon_loss':recon_loss, 'flow loss':flow_loss})
-        # print(f"Recon loss: {recon_loss}, Flow loss: {flow_loss}")
 
         loss = args.loss_alpha * flow_loss + (1-args.loss_alpha) * recon_loss
 
@@ -53,7 +47,6 @@ def find_threshold(epoch, model, train_loader, _print=False):
     for batch_idx, (x, y) in enumerate(train_loader):
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         original_x = x.to(device)
-        # original_x = x.to(device).to(memory_format=torch.channels_last)
 
         reconstructed_x = model(original_x).squeeze(dim=1)
         anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
@@ -75,15 +68,15 @@ def eval_model(epoch, model, test_loader, threshold, _print=False):
 
         for batch_idx, (x, y) in enumerate(test_loader):
             device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-            # x,y = x.to(device).to(memory_format=torch.channels_last), y.to(device)
+
             x,y = x.to(device), y.to(device)
 
             original_x = x
             reconstructed_x = model(original_x).squeeze(dim=1)
-            # print(f"Shape of orignal/reconstructed: {original_x.shape, reconstructed_x.shape}")
+          
             anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
                                                      original_x=original_x, reconstructed_x=reconstructed_x)
-            # print(f"Shape of anomaly scores: {anomaly_score}")
+
             anomaly_scores.append(anomaly_score)
             true_labels.append(y)
 
@@ -113,19 +106,18 @@ def main(args):
 
     #TODO: Make private!
     wandb.login(key='10f35d76229e73f4650338d78de2b411d51fa3ae')
-    # wandb.name = 'testing'
-    # (mode="disabled")
 
     wandb.init(
     # set the wandb project where this run will be logged
     project="ae_flow",
     
     # track hyperparameters and run metadata
+    #TODO: Update these to be in line with the arguments
     config={
     "learning_rate": 0.02,
     "architecture": "CNN",
-    "dataset": "CHEST_XRAY",
-    "epochs": 10,
+    "dataset": args.dataset,
+    "epochs": args.epochs,
     }
 )
 
@@ -133,46 +125,25 @@ def main(args):
     train_loader, test_loader, validate_loader = load(data_dir='data/chest_xray/',batch_size=64, num_workers=3)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-    print(len(train_loader))
-    # assert(False)
-    # load_data(dataset=args.dataset, root=args.data_dir,
-                        #  batch_size=args.batch_size,
-                        #  num_workers=args.num_workers)
-
-    # args.cuda = not args.no_cuda and torch.cuda.is_available()
-    # device = torch.device("cuda:0" if args.cuda else "cpu")
-
+    print(f"Length of th train loader: {len(train_loader)} given a batch size of {args.batch_size}")
+    
     # Create model and push to the device
-    model = AE_Flow_Model()
+    if args.model == 'ae_flow': model = AE_Flow_Model()
     model = model.to(device)
 
     # Save validation images to the model for later on:
     im_normal, _ = next(iter(validate_loader[0]))
     im_abnormal, _ = next(iter(validate_loader[1]))
-    # (img, label) = next(iter(validate_loader))
-    # i, (data, target) = enumerate(validate_loader, 0)
-    # print(target)
 
     model.sample_images_normal = im_normal[:3]
     model.sample_images_abnormal = im_abnormal[:3]
-    # model.sample_images_normal = [data for i, (data, target) in enumerate(validate_loader, 0) if target==0]
-    # model.sample_images_abnormal = [torch.Tensor(item[0]) for item in list(enumerate(validate_loader)) if item[1]==1]
-    # print(model.sample_images_normal)
-    # assert(False)
-
-    ## Using Channels last memory (https://pytorch.org/tutorials/intermediate/memory_format_tutorial.html)
-    # Does not seem to work
-    # model = model.to(memory_format=torch.channels_last)
-
-    # train_loader, test_loader = train_loader.to(device), test_loader.to(device)
 # 
     optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, )
     
     # Training loop
-    # print(f"Using device {device}")
     for epoch in range(args.epochs):
         start = time.time()
-        # Training epoch
+
         train_step(epoch, model, train_loader,
                   optimizer)
 
@@ -181,9 +152,8 @@ def main(args):
 
             eval_model(epoch, model, test_loader, threshold, _print=True)
 
-            #TODO: Extend to include 3 normal and 3 abnormal images
-            device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-            
+
+            #TODO: Move to a utils function            
             rec_images = model(model.sample_images_normal.to(device)).squeeze(dim=1)
             grid = make_grid(model.sample_images_normal.to(device) + rec_images, nrow = 2)
             images = wandb.Image(grid, caption="Top: Input, Middle: Reconstructed")
@@ -198,16 +168,21 @@ def main(args):
         print(f"Duration for epoch {epoch}: {time.time() - start}")
         wandb.log({'time per epoch': time.time() - start})
     
+    # Save the current model (only after training is fully done right now):
+    # TODO: Only save best model according to validation loss loop
+    wandb.save(model.state_dict())
+
     wandb.finish()
 
 
 if __name__ == '__main__':
+    
     # Training settings
     parser = argparse.ArgumentParser(description='AE Normalized Flow')
 
     # Optimizer hyper-parameters 
     parser.add_argument('--batch_size', default=64, type=int,
-                        help='Batch size to use for training') ##TODO: Paper uses 128
+                        help='Batch size to use for training') ##TODO: Paper uses 128?
     parser.add_argument('--loss_alpha', type=float, default=0.5,
                         help='')
     parser.add_argument('--loss_beta', type=float, default=0.9,
@@ -218,8 +193,8 @@ if __name__ == '__main__':
                         help='')
     parser.add_argument('--optim_weight_decay', type=float, default=1e-5,
                         help='')
-    
     parser.add_argument('--dataset',default='OCT', type=str, help='Which dataset to run. Choose from: [OCT, XRAY, ISIC, BRATS, MIIC]')
+    parser.add_argument('--model',default='ae_flow', type=str, help='Which dataset to run. Choose from: [autoencoder, fastflow, ae_flow]')
 
     # Other hyper-parameters
     parser.add_argument('--data_dir', default='../data/', type=str,

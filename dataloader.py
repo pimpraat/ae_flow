@@ -25,7 +25,7 @@ def loads(data_dir,ext,label):
     for filename in glob.glob(data_dir+'*.'+ext):
         im=Image.open(filename)
         im = resizer(im)
-        im = apply_greyscale(im) #todo are all inputs greyscale/1-channel?
+        im = apply_greyscale(im) 
         im = convert_tensor(im)
         im = normalize(im) 
         image_list.append((im,label))
