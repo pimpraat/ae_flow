@@ -31,15 +31,16 @@ class AE_Flow_Model(nn.Module):
     def get_reconstructionloss(self, _x, recon_x):
         return nn.functional.mse_loss(recon_x, _x)
     
-    def get_flow_loss(self, return_logz=False):
+    def get_flow_loss(self, return_logz=False, bpd = False):
         shape = self.z_prime.shape[1:]
         log_z = normal.StandardNormal(shape=shape).log_prob(self.z_prime)
         if return_logz: return log_z
-        # Jan's proposal: should be fine since it is defined as the negative ll
         log_p = log_z + self.log_jac_det
         nll = -log_p
         # Most people use bpp (bits per dimension) instead of nll; both UVA tutorial and every implementation I found online.
-        bpd = nll * np.log2(np.exp(1)) / np.prod(shape)
+        if bpd:
+            return (nll * np.log2(np.exp(1)) / np.prod(shape)).mean()
+        # We don't because we're cool.
         return nll.mean()
     
     def get_anomaly_score(self, _beta, original_x, reconstructed_x):
