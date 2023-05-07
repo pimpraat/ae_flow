@@ -5,7 +5,7 @@
 #SBATCH --job-name=RunAE_Normalized_Flow_Development
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=3
-#SBATCH --time=00:03:00
+#SBATCH --time=00:04:00
 #SBATCH --mem=32000M
 #SBATCH --output=job_files/train.out
 

@@ -1,0 +1,28 @@
+2023-05-04 15:13:53,700 INFO    MainThread:24551 [wandb_setup.py:_flush():76] Configure stats pid to 24551
+2023-05-04 15:13:53,700 INFO    MainThread:24551 [wandb_setup.py:_flush():76] Loading settings from /home/lcur1708/.config/wandb/settings
+2023-05-04 15:13:53,701 INFO    MainThread:24551 [wandb_setup.py:_flush():76] Loading settings from /home/lcur1708/ae_flow_git/ae_flow/wandb/settings
+2023-05-04 15:13:53,701 INFO    MainThread:24551 [wandb_setup.py:_flush():76] Loading settings from environment variables: {}
+2023-05-04 15:13:53,701 INFO    MainThread:24551 [wandb_setup.py:_flush():76] Inferring run settings from compute environment: {'program_relpath': 'train.py', 'program': '/home/lcur1708/ae_flow_git/ae_flow/train.py'}
+2023-05-04 15:13:53,701 INFO    MainThread:24551 [wandb_setup.py:_flush():76] Applying login settings: {'api_key': '***REDACTED***'}
+2023-05-04 15:13:53,701 INFO    MainThread:24551 [wandb_setup.py:_flush():76] Applying login settings: {'api_key': '***REDACTED***'}
+2023-05-04 15:13:53,701 INFO    MainThread:24551 [wandb_init.py:_log_setup():507] Logging user logs to /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_151353-ips0apig/logs/debug.log
+2023-05-04 15:13:53,701 INFO    MainThread:24551 [wandb_init.py:_log_setup():508] Logging internal logs to /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230504_151353-ips0apig/logs/debug-internal.log
+2023-05-04 15:13:53,701 INFO    MainThread:24551 [wandb_init.py:init():547] calling init triggers
+2023-05-04 15:13:53,701 INFO    MainThread:24551 [wandb_init.py:init():554] wandb.init called with sweep_config: {}
+config: {'learning_rate': 0.02, 'architecture': 'CNN', 'dataset': 'CHEST_XRAY', 'epochs': 10}
+2023-05-04 15:13:53,701 INFO    MainThread:24551 [wandb_init.py:init():595] starting backend
+2023-05-04 15:13:53,702 INFO    MainThread:24551 [wandb_init.py:init():599] setting up manager
+2023-05-04 15:13:53,706 INFO    MainThread:24551 [backend.py:_multiprocessing_setup():106] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2023-05-04 15:13:53,711 INFO    MainThread:24551 [wandb_init.py:init():605] backend started and connected
+2023-05-04 15:13:53,713 INFO    MainThread:24551 [wandb_init.py:init():695] updated telemetry
+2023-05-04 15:13:53,725 INFO    MainThread:24551 [wandb_init.py:init():732] communicating run to backend with 60.0 second timeout
+2023-05-04 15:13:54,141 INFO    MainThread:24551 [wandb_run.py:_on_init():2176] communicating current version
+2023-05-04 15:13:54,198 INFO    MainThread:24551 [wandb_run.py:_on_init():2185] got version response upgrade_message: "wandb version 0.15.1 is available!  To upgrade, please run:\n $ pip install wandb --upgrade"
+
+2023-05-04 15:13:54,198 INFO    MainThread:24551 [wandb_init.py:init():782] starting run threads in backend
+2023-05-04 15:13:58,294 INFO    MainThread:24551 [wandb_run.py:_console_start():2157] atexit reg
+2023-05-04 15:13:58,294 INFO    MainThread:24551 [wandb_run.py:_redirect():2012] redirect: SettingsConsole.WRAP_RAW
+2023-05-04 15:13:58,294 INFO    MainThread:24551 [wandb_run.py:_redirect():2077] Wrapping output streams.
+2023-05-04 15:13:58,294 INFO    MainThread:24551 [wandb_run.py:_redirect():2102] Redirects installed.
+2023-05-04 15:13:58,295 INFO    MainThread:24551 [wandb_init.py:init():824] run started, returning control to user process
+2023-05-04 15:14:39,570 WARNING MsgRouterThr:24551 [router.py:message_loop():77] message_loop has been closed

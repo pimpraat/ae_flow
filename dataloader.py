@@ -45,15 +45,18 @@ def load(data_dir,batch_size=64, num_workers=4):
     test_set = loads(test_dir_0,"jpeg",0)+loads(test_dir_1,"jpeg",1)
 
 
-    ## TODO: Check shuffle + pin_memory!
+    ## As we use Nvidia GPU's pin_memory for speedup using pinned memmory
     train_loader = data.DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+        train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
     val_loader = data.DataLoader(
         val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers,
-        drop_last=False)
-    test_loader = data.DataLoader(
-        test_set, batch_size=batch_size, shuffle=False, num_workers=num_workers,
-        drop_last=False)
+        drop_last=False, pin_memory=False)
+    test_loader_normal = data.DataLoader(
+        loads(test_dir_0,"jpeg",0), batch_size=batch_size, shuffle=False, num_workers=num_workers,
+        drop_last=False, pin_memory=False)
+    test_loader_abnormal = data.DataLoader(
+        loads(test_dir_1,"jpeg",1), batch_size=batch_size, shuffle=False, num_workers=num_workers,
+        drop_last=False, pin_memory=False)
 
-    return train_loader, val_loader, test_loader
+    return train_loader, val_loader, [test_loader_normal, test_loader_abnormal]
 

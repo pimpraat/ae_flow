@@ -1,0 +1,43 @@
+wandb_version: 1
+
+learning_rate:
+  desc: null
+  value: 0.02
+architecture:
+  desc: null
+  value: CNN
+dataset:
+  desc: null
+  value: CHEST_XRAY
+epochs:
+  desc: null
+  value: 10
+_wandb:
+  desc: null
+  value:
+    python_version: 3.10.6
+    cli_version: 0.15.0
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    start_time: 1683196819.550516
+    t:
+      1:
+      - 1
+      - 5
+      - 41
+      - 53
+      - 55
+      2:
+      - 1
+      - 5
+      - 41
+      - 53
+      - 55
+      3:
+      - 16
+      - 23
+      4: 3.10.6
+      5: 0.15.0
+      8:
+      - 5

@@ -2,11 +2,13 @@ import torch.nn as nn
 import torch
 from nflows.distributions import normal
 import torchmetrics
-import numpy as np
+from torchvision.utils import make_grid, save_image
+import torchvision
 
 from model.decoder import Decoder
 from model.encoder import Encoder
 from model.flow import FlowModule
+import numpy as np
 
 class AE_Flow_Model(nn.Module):
     def __init__(self):
@@ -16,7 +18,8 @@ class AE_Flow_Model(nn.Module):
         self.flow = FlowModule()
         self.decoder = Decoder()
 
-        self.sample_images = [] ## Should be 3 images?
+        self.sample_images_normal = []
+        self.sample_images_abnormal = []
 
     def forward(self, x):
         
@@ -43,11 +46,21 @@ class AE_Flow_Model(nn.Module):
         log_z = self.get_flow_loss(return_logz=True)
         Sflow = - torch.exp(log_z)
         Srecon = - torchmetrics.functional.structural_similarity_index_measure(reduction=None, preds=reconstructed_x, target=original_x)
+
+        print(f"Sflow: {Sflow}, Srecon:{Srecon}")
         return _beta * Sflow + (1-_beta)*Srecon
     
+    #TODO: Finish implementation of this function
     # A function used to (easily) sample the same set of images. Using 
     def sample_images(self):
-        pass
-
-        # now save the images to file
-
+        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        grid = make_grid(self.sample_images, nrow = 1)
+        images = torchvision.transforms.ToPILImage()(grid)
+        return images
+    
+    @property
+    def device(self):
+        """
+        Property function to get the device on which the generator is
+        """
+        return next(self.parameters()).device

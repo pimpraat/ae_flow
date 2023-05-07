@@ -26,5 +26,5 @@ def optimize_threshold(anomaly_scores, true_labels):
     # print(f"Anomaly scores: {anomaly_scores}, True labels: {true_labels}")
     opt_threshold = scipy.optimize.bisect(f=calculate_given_threshold, a=0.000, b=1.000, 
                                           args=(anomaly_scores, true_labels), xtol=0.01)
-    print(f"Found optimal threshold: {opt_threshold}")
+    # print(f"Found optimal threshold: {opt_threshold}")
     return opt_threshold
