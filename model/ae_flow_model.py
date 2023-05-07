@@ -20,7 +20,6 @@ class AE_Flow_Model(nn.Module):
 
         self.sample_images_normal = []
         self.sample_images_abnormal = []
-        # self.prior = torch.distributions.normal.Normal(loc=0.0, scale=1.0)
 
     def forward(self, x):
         z = self.encoder(x)
@@ -52,17 +51,8 @@ class AE_Flow_Model(nn.Module):
         print(f"Sflow: {Sflow}, Srecon:{Srecon}")
         return _beta * Sflow + (1-_beta)*Srecon
     
-    #TODO: Finish implementation of this function
-    # A function used to (easily) sample the same set of images. Using 
     def sample_images(self):
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         grid = make_grid(self.sample_images, nrow = 1)
         images = torchvision.transforms.ToPILImage()(grid)
         return images
-    
-    @property
-    def device(self):
-        """
-        Property function to get the device on which the generator is
-        """
-        return next(self.parameters()).device
