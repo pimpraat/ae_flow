@@ -20,9 +20,9 @@ class AE_Flow_Model(nn.Module):
 
         self.sample_images_normal = []
         self.sample_images_abnormal = []
+        # self.prior = torch.distributions.normal.Normal(loc=0.0, scale=1.0)
 
     def forward(self, x):
-        
         z = self.encoder(x)
         self.z_prime, self.log_jac_det = self.flow(z)
         reconstructed_x = self.decoder(self.z_prime)
@@ -33,6 +33,7 @@ class AE_Flow_Model(nn.Module):
     
     def get_flow_loss(self, return_logz=False, bpd = False):
         shape = self.z_prime.shape[1:]
+        # log_z = self.prior.log_prob(self.z_prime).sum(dim=[1,2,3])
         log_z = normal.StandardNormal(shape=shape).log_prob(self.z_prime)
         if return_logz: return log_z
         log_p = log_z + self.log_jac_det

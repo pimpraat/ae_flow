@@ -1,0 +1,165 @@
+{
+    "os": "Linux-4.19.0-24-amd64-x86_64-with-glibc2.28",
+    "python": "3.10.6",
+    "heartbeatAt": "2023-05-07T10:53:12.016712",
+    "startedAt": "2023-05-07T10:53:11.504965",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/home/lcur1624/ae_flow/train.py",
+    "codePath": "train.py",
+    "git": {
+        "remote": "https://github.com/pimpraat/ae_flow.git",
+        "commit": "b265d00c7f465021005f303ab7dae4362ad36b7f"
+    },
+    "email": "janathmer@hotmail.com",
+    "root": "/home/lcur1624/ae_flow",
+    "host": "r28n4.lisa.surfsara.nl",
+    "username": "lcur1624",
+    "executable": "/home/lcur1624/.conda/envs/dl2022/bin/python",
+    "cpu_count": 24,
+    "cpu_count_logical": 24,
+    "cpu_freq": {
+        "current": 1465.1804583333333,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2521.409,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.148,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.059,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1001.045,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1400.362,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.066,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.128,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.35,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.351,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3044.705,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.481,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.279,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2947.843,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1635.672,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.232,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.623,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2946.563,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1717.01,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.214,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.399,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 2945.197,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.273,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.613,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 1000.309,
+            "min": 0.0,
+            "max": 0.0
+        }
+    ],
+    "disk": {
+        "total": 914.0612754821777,
+        "used": 35.01645278930664
+    },
+    "gpu": "NVIDIA TITAN RTX",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA TITAN RTX",
+            "memory_total": 25769803776
+        }
+    ],
+    "memory": {
+        "total": 187.55852127075195
+    }
+}

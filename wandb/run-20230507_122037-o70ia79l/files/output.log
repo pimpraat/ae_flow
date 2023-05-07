@@ -1,0 +1,32 @@
+
+21
+/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=Wide_ResNet50_2_Weights.IMAGENET1K_V1`. You can also use `weights=Wide_ResNet50_2_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+Traceback (most recent call last):
+  File "/home/lcur1624/ae_flow/train.py", line 236, in <module>
+    main(args)
+  File "/home/lcur1624/ae_flow/train.py", line 176, in main
+    train_step(epoch, model, train_loader,
+  File "/home/lcur1624/ae_flow/train.py", line 32, in train_step
+    reconstructed_x = model(original_x).squeeze(dim=1)
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/lcur1624/ae_flow/model/ae_flow_model.py", line 28, in forward
+    self.z_prime, self.log_jac_det = self.flow(z)
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/lcur1624/ae_flow/model/flow.py", line 23, in forward
+    z, log_jac_det = self.inn(x)
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/FrEIA/framework/sequence_inn.py", line 104, in forward
+    x_or_z, j = self.module_list[i](x_or_z, jac=jac, rev=rev)
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/FrEIA/modules/all_in_one_block.py", line 258, in forward
+    x_out, global_scaling_jac = self._permute(x_out, rev=False)
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/FrEIA/modules/all_in_one_block.py", line 195, in _permute
+    return (self.permute_function(x * scale + self.global_offset, self.w_perm),
+RuntimeError: The size of tensor a (16) must match the size of tensor b (1024) at non-singleton dimension 3
