@@ -4,13 +4,13 @@ import argparse
 torch.manual_seed(42) # Setting the seed
 
 from model.ae_flow_model import AE_Flow_Model
+from baselines.ganomaly import GanomalyModel
 from dataloader import load
 from model.flow import FlowModule
 from model.encoder import Encoder
-from model.utils import optimize_threshold
+from model.utils import optimize_threshold, sample_images
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, auc, roc_curve
 import wandb
-from torchvision.utils import make_grid, save_image
 import torchvision
 
 import time
@@ -129,15 +129,20 @@ def main(args):
     
     # Create model and push to the device
     if args.model == 'ae_flow': model = AE_Flow_Model()
+    # if args.model == 'ganomaly': model = GanomalyModel()
+    # input_size: tuple[int, int],
+    #     latent_vec_size: int,
+    #     num_input_channels: int,
+    #     n_features: int,
+
     model = model.to(device)
 
     # Save validation images to the model for later on:
     im_normal, _ = next(iter(validate_loader[0]))
     im_abnormal, _ = next(iter(validate_loader[1]))
-
     model.sample_images_normal = im_normal[:3]
     model.sample_images_abnormal = im_abnormal[:3]
-# 
+
     optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, )
     
     # Training loop
@@ -152,17 +157,7 @@ def main(args):
 
             eval_model(epoch, model, test_loader, threshold, _print=True)
 
-
-            #TODO: Move to a utils function            
-            rec_images = model(model.sample_images_normal.to(device)).squeeze(dim=1)
-            grid = make_grid(model.sample_images_normal.to(device) + rec_images, nrow = 2)
-            images = wandb.Image(grid, caption="Top: Input, Middle: Reconstructed")
-            wandb.log({"normal reconstruction images": images})
-
-            rec_images = model(model.sample_images_abnormal.to(device)).squeeze(dim=1)
-            grid = make_grid(model.sample_images_abnormal.to(device) + rec_images, nrow = 2)
-            images = wandb.Image(grid, caption="Top: Input, Middle: Reconstructed")
-            wandb.log({"abnormal reconstruction images": images})
+            wandb.log(sample_images(model, device))
 
 
         print(f"Duration for epoch {epoch}: {time.time() - start}")
@@ -182,14 +177,14 @@ if __name__ == '__main__':
 
     # Optimizer hyper-parameters 
     parser.add_argument('--batch_size', default=64, type=int,
-                        help='Batch size to use for training') ##TODO: Paper uses 128?
+                        help='Batch size to use for training')
     parser.add_argument('--loss_alpha', type=float, default=0.5,
                         help='')
     parser.add_argument('--loss_beta', type=float, default=0.9,
                         help='')
     parser.add_argument('--optim_lr', type=float, default=2e-4,
                         help='')
-    parser.add_argument('--optim_momentum', type=float, default=0.9, ## still needs to be set in the Optimizer!
+    parser.add_argument('--optim_momentum', type=float, default=0.9, 
                         help='')
     parser.add_argument('--optim_weight_decay', type=float, default=1e-5,
                         help='')
