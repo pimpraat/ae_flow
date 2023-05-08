@@ -65,15 +65,8 @@ def load(data_dir,batch_size=64, num_workers=4):
         test_dir_3 = "data/"+data_dir+"/test/DRUSEN/"
 
         train_dataset = loads(train_dir,"jpeg",0)
-        
-        val_dataset = loads(val_dir_0,"jpeg",0)
-        +loads(val_dir_1,"jpeg",1)
-        +loads(val_dir_2,"jpeg",1)
-        +loads(val_dir_3,"jpeg",1)
-
-        test_abnormal = loads(test_dir_1,"jpeg",1)
-        +loads(test_dir_2,"jpeg",1)
-        +loads(test_dir_3,"jpeg",1)
+        val_dataset = loads(val_dir_0,"jpeg",0)+loads(val_dir_1,"jpeg",1)+loads(val_dir_2,"jpeg",1)+loads(val_dir_3,"jpeg",1)
+        test_abnormal = loads(test_dir_1,"jpeg",1)+loads(test_dir_2,"jpeg",1)+loads(test_dir_3,"jpeg",1)
 
         test_loader_abnormal = data.DataLoader(
             test_abnormal, batch_size=batch_size, shuffle=False, num_workers=num_workers,
