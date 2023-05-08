@@ -4,7 +4,7 @@ import argparse
 torch.manual_seed(42) # Setting the seed
 
 from model.ae_flow_model import AE_Flow_Model
-from baselines.ganomaly import GanomalyModel
+# from baselines.ganomaly import GanomalyModel
 from dataloader import load
 from model.flow import FlowModule
 from model.encoder import Encoder
@@ -29,8 +29,9 @@ def train_step(epoch, model, train_loader,
         reconstructed_x = model(original_x).squeeze(dim=1)
 
         recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
-        flow_loss = model.get_flow_loss()
+        flow_loss = model.get_flow_loss(bpd=True)
         wandb.log({'recon_loss':recon_loss, 'flow loss':flow_loss})
+        print(f"recon_loss:{recon_loss}, 'flow loss':{flow_loss}")
 
         loss = args.loss_alpha * flow_loss + (1-args.loss_alpha) * recon_loss
 
@@ -51,6 +52,9 @@ def find_threshold(epoch, model, train_loader, _print=False):
         reconstructed_x = model(original_x).squeeze(dim=1)
         anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
                                                     original_x=original_x, reconstructed_x=reconstructed_x)
+        
+        wandb.log({'total anomaly_score':anomaly_score})
+
         anomaly_scores.append(anomaly_score)
         true_labels.append(y)
 
@@ -121,19 +125,14 @@ def main(args):
     }
 )
 
-
     train_loader, test_loader, validate_loader = load(data_dir='data/chest_xray/',batch_size=64, num_workers=3)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-    print(f"Length of th train loader: {len(train_loader)} given a batch size of {args.batch_size}")
+    print(f"Length of the train loader: {len(train_loader)} given a batch size of {args.batch_size}")
     
     # Create model and push to the device
     if args.model == 'ae_flow': model = AE_Flow_Model()
-    # if args.model == 'ganomaly': model = GanomalyModel()
-    # input_size: tuple[int, int],
-    #     latent_vec_size: int,
-    #     num_input_channels: int,
-    #     n_features: int,
+    # if args.model == 'ganomaly': model = GanomalyModel(input_size=(256,256), latent_vec_size=100, num_input_channels=3, n_features=None)
 
     model = model.to(device)
 
@@ -157,7 +156,7 @@ def main(args):
 
             eval_model(epoch, model, test_loader, threshold, _print=True)
 
-            wandb.log(sample_images(model, device))
+            if args.model == 'ae_flow': wandb.log(sample_images(model, device))
 
 
         print(f"Duration for epoch {epoch}: {time.time() - start}")

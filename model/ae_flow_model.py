@@ -33,7 +33,7 @@ class AE_Flow_Model(nn.Module):
     def get_flow_loss(self, return_logz=False, bpd = False):
         shape = self.z_prime.shape[1:]
         log_z = normal.StandardNormal(shape=shape).log_prob(self.z_prime)
-        if return_logz: return log_z
+        if return_logz: return log_z / np.prod(shape).mean()
         log_p = log_z + self.log_jac_det
         nll = -log_p
         # Most people use bpp (bits per dimension) instead of nll; both UVA tutorial and every implementation I found online.
@@ -44,10 +44,11 @@ class AE_Flow_Model(nn.Module):
     
     def get_anomaly_score(self, _beta, original_x, reconstructed_x):
         log_z = self.get_flow_loss(return_logz=True)
-        Sflow = - torch.exp(log_z)
+        # Sflow = - torch.exp(log_z)
+        Sflow = - log_z
         Srecon = - torchmetrics.functional.structural_similarity_index_measure(reduction=None, preds=reconstructed_x, target=original_x)
 
-        print(f"Sflow: {Sflow}, Srecon:{Srecon}")
+        print(f"Sflow: {Sflow}, Srecon:{Srecon} in get anomaly score")
         return _beta * Sflow + (1-_beta)*Srecon
     
     def sample_images(self):
