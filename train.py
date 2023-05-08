@@ -13,6 +13,7 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, auc, roc
 import wandb
 import torchvision
 
+import sklearn
 import time
 
 def train_step(epoch, model, train_loader,
@@ -53,14 +54,15 @@ def find_threshold(epoch, model, train_loader, _print=False):
         anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
                                                     original_x=original_x, reconstructed_x=reconstructed_x)
         
-        wandb.log({'total anomaly_score':anomaly_score})
 
         anomaly_scores.append(anomaly_score)
         true_labels.append(y)
 
+    wandb.log({'mean anomaly_score':torch.mean(anomaly_score)})
 
     print(f"Now moving onto finding the appropriate threshold (based on training data):")
     optimal_threshold = optimize_threshold(anomaly_scores, true_labels)
+    wandb.log({'optimal threshold': optimal_threshold})
     return optimal_threshold
 
 
@@ -125,7 +127,7 @@ def main(args):
     }
 )
 
-    train_loader, test_loader, validate_loader = load(data_dir='data/chest_xray/',batch_size=64, num_workers=3)
+    train_loader, test_loader, validate_loader = load(data_dir="chest_xray",batch_size=64, num_workers=3)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     print(f"Length of the train loader: {len(train_loader)} given a batch size of {args.batch_size}")
@@ -156,6 +158,7 @@ def main(args):
 
             eval_model(epoch, model, test_loader, threshold, _print=True)
 
+            # Todo: fix again that images as being pushed to w&b
             if args.model == 'ae_flow': wandb.log(sample_images(model, device))
 
 
@@ -187,8 +190,11 @@ if __name__ == '__main__':
                         help='')
     parser.add_argument('--optim_weight_decay', type=float, default=1e-5,
                         help='')
-    parser.add_argument('--dataset',default='OCT', type=str, help='Which dataset to run. Choose from: [OCT, XRAY, ISIC, BRATS, MIIC]')
+    parser.add_argument('--dataset',default='chest_xray', type=str, help='Which dataset to run. Choose from: [OCT2017, chest_xray, ISIC, BRATS, MIIC]')
     parser.add_argument('--model',default='ae_flow', type=str, help='Which dataset to run. Choose from: [autoencoder, fastflow, ae_flow]')
+
+    parser.add_argument('--subnet_architecture', default='subnet', type=str,
+                        help='Which subflow architecture to use when using the ae_flow model: subnet or resnet_like')
 
     # Other hyper-parameters
     parser.add_argument('--data_dir', default='../data/', type=str,
