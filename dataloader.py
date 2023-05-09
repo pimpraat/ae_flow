@@ -36,7 +36,8 @@ def load(data_dir,batch_size=64, num_workers=4):
 
     if data_dir == "chest_xray":
         train_dir = "data/"+data_dir+"/train/NORMAL/"
-
+        train_dir_1 = "data/"+data_dir+"/train/PNEUMONIA/"
+       
         val_dir_0 = "data/"+data_dir+"/val/NORMAL/"
         val_dir_1 = "data/"+data_dir+"/val/PNEUMONIA/"
 
@@ -49,7 +50,10 @@ def load(data_dir,batch_size=64, num_workers=4):
         #is different per dataset
         test_loader_abnormal = data.DataLoader(
             loads(test_dir_1,"jpeg",1), batch_size=batch_size, shuffle=False, num_workers=num_workers,
-            drop_last=False, pin_memory=False)        
+            drop_last=False, pin_memory=False)     
+        test_loader_complete = data.DataLoader(
+            loads(test_dir_1,"jpeg",1)+loads(test_dir_0,"jpeg",0), batch_size=batch_size, shuffle=False, num_workers=num_workers,
+            drop_last=False, pin_memory=False)
 
     elif data_dir == "OCT2017":
         train_dir = "data/"+data_dir+"/train/NORMAL/"
@@ -83,7 +87,11 @@ def load(data_dir,batch_size=64, num_workers=4):
     test_loader_normal = data.DataLoader(
         loads(test_dir_0,"jpeg",0), batch_size=batch_size, shuffle=False, num_workers=num_workers,
         drop_last=False, pin_memory=False)
+    
+    #TODO: @Jan is this correct?
+    train_complete = data.DataLoader(
+        loads(train_dir,"jpeg",0) + loads(train_dir_1, "jpeg", 1), batch_size=batch_size, shuffle=True, num_workers=num_workers,
+        drop_last=False, pin_memory=False)
 
-
-    return train_loader, val_loader, [test_loader_normal, test_loader_abnormal]
+    return train_loader, train_complete, val_loader, test_loader_complete #, [test_loader_normal, test_loader_abnormal]
 

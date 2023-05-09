@@ -87,7 +87,9 @@ def eval_model(epoch, model, test_loader, threshold, _print=False):
             anomaly_scores.append(anomaly_score)
             true_labels.append(y)
 
-    true = true_labels[0].cpu()
+    # true = true_labels[0].cpu()
+    true = [tensor.cpu().numpy() for tensor in true_labels]
+    true = [item for sublist in true for item in sublist]
 
 
     anomaly_scores = [tensor.cpu().numpy() for tensor in anomaly_scores]
@@ -126,14 +128,14 @@ def main(args):
     # track hyperparameters and run metadata
     #TODO: Update these to be in line with the arguments
     config={
-    "learning_rate": 0.02,
-    "architecture": "CNN",
+    "model": args.model,
+    "subnet_arc": args.subnet_architecture,
     "dataset": args.dataset,
-    "epochs": args.epochs,
+    "epochs": args.epochs
     }
 )
 
-    train_loader, test_loader, validate_loader = load(data_dir="chest_xray",batch_size=64, num_workers=3)
+    train_loader, train_complete, validate_loader, test_loader = load(data_dir="chest_xray",batch_size=64, num_workers=3)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     print(f"Length of the train loader: {len(train_loader)} given a batch size of {args.batch_size}")
@@ -145,10 +147,10 @@ def main(args):
     model = model.to(device)
 
     # Save validation images to the model for later on:
-    im_normal, _ = next(iter(validate_loader[0]))
-    im_abnormal, _ = next(iter(validate_loader[1]))
-    model.sample_images_normal = im_normal[:3]
-    model.sample_images_abnormal = im_abnormal[:3]
+    # im_normal, _ = next(iter(validate_loader[0]))
+    # im_abnormal, _ = next(iter(validate_loader[1]))
+    # model.sample_images_normal = im_normal[:3]
+    # model.sample_images_abnormal = im_abnormal[:3]
 
     optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, )
     
@@ -158,14 +160,14 @@ def main(args):
 
         train_step(epoch, model, train_loader,
                   optimizer)
+        
+        # TRAIN_COMPLETE
 
-        if epoch % 5 == 0:
-            threshold = find_threshold(epoch, model, train_loader, _print=True)
-
-            eval_model(epoch, model, test_loader, threshold, _print=True)
+        threshold = find_threshold(epoch, model, train_complete, _print=True)
+        eval_model(epoch, model, test_loader, threshold, _print=True)
 
             # Todo: fix again that images as being pushed to w&b
-            if args.model == 'ae_flow': wandb.log(sample_images(model, device))
+           # if args.model == 'ae_flow': wandb.log(sample_images(model, device))
 
 
         print(f"Duration for epoch {epoch}: {time.time() - start}")
@@ -205,7 +207,7 @@ if __name__ == '__main__':
     # Other hyper-parameters
     parser.add_argument('--data_dir', default='../data/', type=str,
                         help='Directory where to look for the data. For jobs on Lisa, this should be $TMPDIR.')
-    parser.add_argument('--epochs', default=100, type=int,
+    parser.add_argument('--epochs', default=40, type=int,
                         help='Number of epochs to train.')
     parser.add_argument('--seed', default=42, type=int,
                         help='Seed to use for reproducing results')
