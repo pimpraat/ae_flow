@@ -12,7 +12,7 @@ from model.utils import optimize_threshold, sample_images
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, auc, roc_curve
 import wandb
 import torchvision
-
+import numpy as np
 import sklearn
 import time
 
@@ -32,7 +32,7 @@ def train_step(epoch, model, train_loader,
         recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
         flow_loss = model.get_flow_loss(bpd=True)
         wandb.log({'recon_loss':recon_loss, 'flow loss':flow_loss})
-        print(f"recon_loss:{recon_loss}, 'flow loss':{flow_loss}")
+        # print(f"recon_loss:{recon_loss}, 'flow loss':{flow_loss}")
 
         loss = args.loss_alpha * flow_loss + (1-args.loss_alpha) * recon_loss
 
@@ -63,6 +63,7 @@ def find_threshold(epoch, model, train_loader, _print=False):
     print(f"Now moving onto finding the appropriate threshold (based on training data):")
     optimal_threshold = optimize_threshold(anomaly_scores, true_labels)
     wandb.log({'optimal threshold': optimal_threshold})
+    print(f"Optimal threshold: {optimal_threshold}")
     return optimal_threshold
 
 
@@ -87,7 +88,12 @@ def eval_model(epoch, model, test_loader, threshold, _print=False):
             true_labels.append(y)
 
     true = true_labels[0].cpu()
-    pred = [x >= threshold for x in anomaly_scores][0].cpu()
+
+
+    anomaly_scores = [tensor.cpu().numpy() for tensor in anomaly_scores]
+    anomaly_scores = [item for sublist in anomaly_scores for item in sublist]
+    pred = [x >= threshold for x in anomaly_scores]
+    print(f"Number of predicted anomalies in the test-set: {np.sum(pred)}")
 
     tn, fp, fn, tp = confusion_matrix(true, pred).ravel()
     fpr, tpr, thresholds = roc_curve(true, pred)

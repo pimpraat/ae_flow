@@ -48,7 +48,7 @@ class AE_Flow_Model(nn.Module):
         Sflow = - log_z
         Srecon = - torchmetrics.functional.structural_similarity_index_measure(reduction=None, preds=reconstructed_x, target=original_x)
 
-        print(f"Sflow: {Sflow}, Srecon:{Srecon} in get anomaly score")
+        # print(f"Sflow: {Sflow}, Srecon:{Srecon} in get anomaly score")
         return _beta * Sflow + (1-_beta)*Srecon
     
     def sample_images(self):
