@@ -1,79 +1,9 @@
-wandb: Currently logged in as: pimpraat (dl2_ae_flow). Use `wandb login --relogin` to force relogin
-wandb: Appending key for api.wandb.ai to your netrc file: /home/lcur1708/.netrc
-wandb: wandb version 0.15.2 is available!  To upgrade, please run:
-wandb:  $ pip install wandb --upgrade
-wandb: Tracking run with wandb version 0.15.0
-wandb: Run data is saved locally in /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230509_131416-bzfhm4jc
-wandb: Run `wandb offline` to turn off syncing.
-wandb: Syncing run grateful-violet-118
-wandb: ⭐️ View project at https://wandb.ai/dl2_ae_flow/ae_flow
-wandb: 🚀 View run at https://wandb.ai/dl2_ae_flow/ae_flow/runs/bzfhm4jc
-Length of the train loader: 21 given a batch size of 64
-/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
-  warnings.warn(
-/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=Wide_ResNet50_2_Weights.IMAGENET1K_V1`. You can also use `weights=Wide_ResNet50_2_Weights.DEFAULT` to get the most up-to-date weights.
-  warnings.warn(msg)
-====> Epoch 0 : Average loss: 0.8806
-Now moving onto finding the appropriate threshold (based on training data):
-Optimal threshold: 0.9209990630149841
-Number of predicted anomalies in the test-set: 16
-Epoch 0: {'AUC': 0.5, 'ACC': 0.5, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.6666666666666666}
-Duration for epoch 0: 64.71645927429199
-====> Epoch 1 : Average loss: -0.4212
-Now moving onto finding the appropriate threshold (based on training data):
-Optimal threshold: 0.976551938533783
-Number of predicted anomalies in the test-set: 16
-Epoch 1: {'AUC': 0.5, 'ACC': 0.5, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.6666666666666666}
-Duration for epoch 1: 62.86149549484253
-====> Epoch 2 : Average loss: -1.1714
-Now moving onto finding the appropriate threshold (based on training data):
-Optimal threshold: 1.0313793468475336
-Number of predicted anomalies in the test-set: 16
-Epoch 2: {'AUC': 0.5, 'ACC': 0.5, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.6666666666666666}
-Duration for epoch 2: 62.267085313797
-====> Epoch 3 : Average loss: -1.7146
-Now moving onto finding the appropriate threshold (based on training data):
-Optimal threshold: 0.9168477444648743
-Number of predicted anomalies in the test-set: 16
-Epoch 3: {'AUC': 0.5, 'ACC': 0.5, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.6666666666666666}
-Duration for epoch 3: 62.53284049034119
-====> Epoch 4 : Average loss: -2.0407
-Now moving onto finding the appropriate threshold (based on training data):
-Optimal threshold: 0.9731555690765381
-Number of predicted anomalies in the test-set: 16
-Epoch 4: {'AUC': 0.5, 'ACC': 0.5, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.6666666666666666}
-Duration for epoch 4: 62.61073279380798
-====> Epoch 5 : Average loss: -2.3509
-Now moving onto finding the appropriate threshold (based on training data):
-Optimal threshold: 1.0429049263000487
-Number of predicted anomalies in the test-set: 16
-Epoch 5: {'AUC': 0.5, 'ACC': 0.5, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.6666666666666666}
-Duration for epoch 5: 61.903093099594116
-====> Epoch 6 : Average loss: -1.9883
-Now moving onto finding the appropriate threshold (based on training data):
-Optimal threshold: 0.9876147427558899
-Number of predicted anomalies in the test-set: 16
-Epoch 6: {'AUC': 0.5, 'ACC': 0.5, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.6666666666666666}
-Duration for epoch 6: 62.38054823875427
-====> Epoch 7 : Average loss: -2.5264
-Now moving onto finding the appropriate threshold (based on training data):
-Optimal threshold: 1.08772611618042
-Number of predicted anomalies in the test-set: 16
-Epoch 7: {'AUC': 0.5, 'ACC': 0.5, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.6666666666666666}
-Duration for epoch 7: 62.124287128448486
-====> Epoch 8 : Average loss: -2.8047
-Now moving onto finding the appropriate threshold (based on training data):
-Optimal threshold: 1.141816880226135
-Number of predicted anomalies in the test-set: 16
-Epoch 8: {'AUC': 0.5, 'ACC': 0.5, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.6666666666666666}
-Duration for epoch 8: 61.94056224822998
-====> Epoch 9 : Average loss: -2.7957
-Now moving onto finding the appropriate threshold (based on training data):
-Optimal threshold: 1.0252737998962402
-Number of predicted anomalies in the test-set: 16
-Epoch 9: {'AUC': 0.5, 'ACC': 0.5, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.6666666666666666}
-Duration for epoch 9: 62.16689610481262
-====> Epoch 10 : Average loss: -2.8000
-srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
-slurmstepd: error: *** JOB 11739075 ON r28n2 CANCELLED AT 2023-05-09T13:27:11 ***
-slurmstepd: error: *** STEP 11739075.0 ON r28n2 CANCELLED AT 2023-05-09T13:27:11 ***
+Traceback (most recent call last):
+  File "/home/lcur1624/ae_flow/data/chest_xray/get_data.py", line 1, in <module>
+    import kaggle
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/kaggle/__init__.py", line 23, in <module>
+    api.authenticate()
+  File "/home/lcur1624/.conda/envs/dl2022/lib/python3.10/site-packages/kaggle/api/kaggle_api_extended.py", line 164, in authenticate
+    raise IOError('Could not find {}. Make sure it\'s located in'
+OSError: Could not find kaggle.json. Make sure it's located in /home/lcur1624/.kaggle. Or use the environment method.
+srun: error: r28n2: task 0: Exited with exit code 1
