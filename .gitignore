@@ -6,3 +6,4 @@ model/__pycache__/
 __pycache__
 models/
 wandbkey.txt
+job_files/train.out
