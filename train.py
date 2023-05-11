@@ -16,6 +16,10 @@ import numpy as np
 import sklearn
 import time
 
+# Make sure the following reads to a file with your own W&B API/Server key
+WANDBKEY = open("wandbkey.txt", "r").read()
+
+
 def train_step(epoch, model, train_loader,
                   optimizer):
 
@@ -119,7 +123,7 @@ def main(args):
     # torch.backends.cudnn.benchmark = False
 
     #TODO: Make private!
-    wandb.login(key='10f35d76229e73f4650338d78de2b411d51fa3ae')
+    wandb.login(key=WANDBKEY)
 
     wandb.init(
     # set the wandb project where this run will be logged
@@ -153,6 +157,7 @@ def main(args):
     # model.sample_images_abnormal = im_abnormal[:3]
 
     optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, )
+    current_best_score = 0.0
     
     # Training loop
     for epoch in range(args.epochs):
@@ -173,9 +178,10 @@ def main(args):
         print(f"Duration for epoch {epoch}: {time.time() - start}")
         wandb.log({'time per epoch': time.time() - start})
     
-    # Save the current model (only after training is fully done right now):
-    # TODO: Only save best model according to validation loss loop
-    wandb.save(model.state_dict())
+    # Save if best eval:
+    if results['F1'] >= current_best_score:
+        current_best_score = results['F1']
+        torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
 
     wandb.finish()
 
