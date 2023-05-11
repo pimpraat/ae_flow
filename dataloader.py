@@ -88,7 +88,7 @@ def load(data_dir,batch_size=64, num_workers=4):
         loads(test_dir_0,"jpeg",0), batch_size=batch_size, shuffle=False, num_workers=num_workers,
         drop_last=False, pin_memory=False)
     
-    #TODO: @Jan is this correct?
+    #TODO: @Jan is this correct? yes
     train_complete = data.DataLoader(
         loads(train_dir,"jpeg",0) + loads(train_dir_1, "jpeg", 1), batch_size=batch_size, shuffle=True, num_workers=num_workers,
         drop_last=False, pin_memory=False)
