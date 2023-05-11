@@ -4,3 +4,6 @@ data/__pycache__/
 model/__pycache__/
 .DS_Store
 __pycache__
+models/
+wandbkey.txt
+job_files/train.out

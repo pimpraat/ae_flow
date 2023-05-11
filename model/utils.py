@@ -13,7 +13,7 @@ def calculate_given_threshold(proposed_threshold, anomaly_scores, true_labels):
     score = -f1_score(y_true=true_labels[0].cpu(), y_pred=preds[0].cpu())
     print(f"Using threshold of {proposed_threshold} found F1 score of {score}.")
     return score
-
+        
 def thr_to_accuracy(thr, Y_test, predictions):
    sc = f1_score(Y_test, np.array(predictions>thr, dtype=np.int), average='macro')
    print(f"score: {sc}")
