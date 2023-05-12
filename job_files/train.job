@@ -19,3 +19,4 @@ source activate dl2022
 
 # Run your code
 srun python -u train.py
+
