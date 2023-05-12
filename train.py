@@ -129,7 +129,7 @@ def main(args):
     # torch.backends.cudnn.deterministic = True
     # torch.backends.cudnn.benchmark = False
 
-    if args.dataset == "chest_xray": args.optim_momentum, args.optim_lr = 0.0, 1e-3
+    if args.dataset == "chest_xray": args.optim_weight_decay, args.optim_lr = 0.0, 1e-3
 
 
     #TODO: Make private!
