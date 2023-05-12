@@ -209,7 +209,6 @@ def main(args):
     if results['F1'] >= current_best_score:
         current_best_score = results['F1']
         torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
-
     wandb.finish()
 
 
@@ -225,7 +224,7 @@ if __name__ == '__main__':
                         help='')
     parser.add_argument('--loss_beta', type=float, default=0.9,
                         help='')
-    parser.add_argument('--optim_lr', type=float, default=2e-4,
+    parser.add_argument('--optim_lr', type=float, default=2e-3,
                         help='')
     parser.add_argument('--optim_momentum', type=float, default=0.9, 
                         help='')
