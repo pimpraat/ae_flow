@@ -20,7 +20,7 @@ Exposition of its weaknesses/strengths/potential which triggered your group to c
 
 Zhao, Ding, and Zhang (2023) primarily focus on the medical applications of AE-FLOW. Their findings show that AE-FLOW has very promising anomaly detection performance for medical datasets, and for one integrated circuit dataset. The evaluation into the performance of AE-FLOW on non-medical datasets is however very limited. Given the broad range of applications for anomaly detection methods and the positive results reported by Zhao, Ding, and Zhang (2023), our goal is to evaluate the performance of AE-FLOW in a broader context. 
 
-Specifically, we aim to assess its effectiveness in the industrial domain, where anomaly detection can play a critical role in enhancing quality assurance in the manufacturing process. We do this by we training and evaluating the model on the beanTech Anomaly Detection (bTAD) dataset, which consists of real-world industrial images (cite the CEO of beans here). This will illustrate its effectiveness in novel domains, thereby providing insight into AE-FLOW's generalizability.
+Specifically, we aim to assess its effectiveness in the industrial domain, where anomaly detection can play a critical role in enhancing quality assurance in the manufacturing process. We do this by we training and evaluating the model on the beanTech Anomaly Detection (bTAD) dataset, which consists of real-world industrial images (Mishra et al., 2021). This will illustrate its effectiveness in novel domains, thereby providing insight into AE-FLOW's generalizability.
 <!-- -->
 
 ## Method
@@ -56,3 +56,4 @@ Results of your work (link that part with the code in the jupyter notebook)
 
 - AE-FLOW: AUTOENCODERS WITH NORMALIZING FLOWS FOR MEDICAL IMAGES ANOMALY DETECTION (Yuzhong Zhao, Qiaoqiao Ding, Xiaoqun Zhang, 2023)
 - Deep Learning for Anomaly Detection: A Review (Pang et al, 2020)
+- "VT-ADL: A Vision Transformer Network for Image Anomaly Detection and Localization" (P. Mishra, R. Verk, D. Fornasier, C. Piciarelli, G.L. Foresti, 2021)
