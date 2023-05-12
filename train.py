@@ -2,6 +2,7 @@ import torch
 import torchmetrics
 import argparse
 torch.manual_seed(42) # Setting the seed
+import copy
 
 from model.ae_flow_model import AE_Flow_Model
 # from baselines.ganomaly import GanomalyModel
@@ -213,13 +214,13 @@ def main(args):
         if results['F1'] >= current_best_score:
             current_best_score = results['F1']
             # torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
-            best_model = model
+            best_model = copy.deepcopy(model)
             used_thr = threshold
 
 
 
 
-    results = eval_model(epoch, model, validate_loader, threshold=used_thr, _print=True)
+    results = eval_model(epoch, best_model, validate_loader, threshold=used_thr, _print=True)
     print(f"Final results on validation dataset: {results}")
 
     wandb.finish()
