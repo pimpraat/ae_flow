@@ -16,7 +16,7 @@ def calculate_given_threshold(proposed_threshold, anomaly_scores, true_labels):
         
 def thr_to_accuracy(thr, Y_test, predictions):
    sc = f1_score(Y_test, np.array(predictions>thr, dtype=np.int), average='macro')
-   print(f"score: {sc}")
+#    print(f"score: {sc}")
    return -sc
 
 # Reason for fmin: https://www.southampton.ac.uk/~fangohr/training/python14/labs/lab_optimisation/index.html
@@ -27,25 +27,25 @@ def optimize_threshold(anomaly_scores, true_labels):
     true_labels = [tensor.cpu().numpy() for tensor in true_labels]
     true_labels = [item for sublist in true_labels for item in sublist]
 
-    threshold = np.min(anomaly_scores)
-    best_threshold = 0.0
-    best_score = 0.0
-    while threshold < np.max(anomaly_scores):
-        p = [score > threshold for score in anomaly_scores]
-        score = f1_score(true_labels, p, average='macro')
-        if score == 0: continue
-        if score >= best_score: 
-             best_threshold = threshold
-             best_score = score
-        threshold+=0.001
-    return best_threshold
+    # threshold = np.min(anomaly_scores)
+    # best_threshold = 0.0
+    # best_score = 0.0
+    # while threshold < np.max(anomaly_scores):
+    #     p = [score > threshold for score in anomaly_scores]
+    #     score = f1_score(true_labels, p, average='macro')
+    #     if score == 0: continue
+    #     if score >= best_score: 
+    #          best_threshold = threshold
+    #          best_score = score
+    #     threshold+=0.001
+    # return best_threshold
 
 
     # return scipy.optimize.minimize_scalar(thr_to_accuracy, args=(true_labels, anomaly_scores))
 
     # print(f'anomaly scores: {anomaly_scores}')
     # assert(False)
-    # best_thr = scipy.optimize.fmin(thr_to_accuracy, args=(true_labels, anomaly_scores), x0=0.5)
+    best_thr = scipy.optimize.fmin(thr_to_accuracy, args=(true_labels, anomaly_scores), x0=np.mean(anomaly_scores))
     return best_thr
 
     sc = [tensor.cpu().numpy() for tensor in anomaly_scores]

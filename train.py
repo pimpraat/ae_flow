@@ -15,6 +15,7 @@ import torchvision
 import numpy as np
 import sklearn
 import time
+import json
 
 # Make sure the following reads to a file with your own W&B API/Server key
 WANDBKEY = open("wandbkey.txt", "r").read()
@@ -70,14 +71,29 @@ def find_threshold(epoch, model, train_loader, _print=False):
     print(f"Optimal threshold: {optimal_threshold}")
     return optimal_threshold
 
-
-def eval_model(epoch, model, test_loader, threshold, _print=False):
+def calculate_metrics(true, anomaly_scores, threshold):
     results = {}
+    pred = [x >= threshold for x in anomaly_scores]
+    print(f"Number of predicted anomalies in the test-set: {np.sum(pred)}")
+
+    tn, fp, fn, tp = confusion_matrix(true, pred).ravel()
+    fpr, tpr, thresholds = roc_curve(true, pred)
+
+    results['AUC'] = auc(fpr, tpr)
+    results['ACC'] = (tp + tn)/(tp+fp+fn+tn)
+    results['SEN'] = tp / (tp+fn)
+    results['SPE'] = tn / (tn + fp)
+    results['F1'] = f1_score(true, pred)
+
+    return results
+
+
+def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_only_anomaly_scores=False):
 
     with torch.no_grad(): # Deactivate gradients for the following code
         anomaly_scores, true_labels = [], []
 
-        for batch_idx, (x, y) in enumerate(test_loader):
+        for batch_idx, (x, y) in enumerate(data_loader):
             device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
             x,y = x.to(device), y.to(device)
@@ -98,18 +114,9 @@ def eval_model(epoch, model, test_loader, threshold, _print=False):
 
     anomaly_scores = [tensor.cpu().numpy() for tensor in anomaly_scores]
     anomaly_scores = [item for sublist in anomaly_scores for item in sublist]
-    pred = [x >= threshold for x in anomaly_scores]
-    print(f"Number of predicted anomalies in the test-set: {np.sum(pred)}")
+    if return_only_anomaly_scores: true, anomaly_scores
 
-    tn, fp, fn, tp = confusion_matrix(true, pred).ravel()
-    fpr, tpr, thresholds = roc_curve(true, pred)
-
-    results['AUC'] = auc(fpr, tpr)
-    results['ACC'] = (tp + tn)/(tp+fp+fn+tn)
-    results['SEN'] = tp / (tp+fn)
-    results['SPE'] = tn / (tn + fp)
-    results['F1'] = f1_score(true, pred)
-
+    results = calculate_metrics(true, anomaly_scores, threshold)
     wandb.log(results)
 
     if _print: print(f"Epoch {epoch}: {results}")   
@@ -135,11 +142,16 @@ def main(args):
     "model": args.model,
     "subnet_arc": args.subnet_architecture,
     "dataset": args.dataset,
-    "epochs": args.epochs
+    "epochs": args.epochs,
+    'loss_alpha': args.loss_alpha,
+    'loss_beta': args.loss_beta,
+    'optim_lr': args.optim_lr,
+    'optim_momentum': args.optim_momentum,
+    'optim_weight_decay': args.optim_weight_decay
     }
 )
 
-    train_loader, train_complete, validate_loader, test_loader = load(data_dir="chest_xray",batch_size=64, num_workers=3)
+    train_loader, train_complete, validate_loader, test_loader = load(data_dir="chest_xray",batch_size=args.batch_size, num_workers=3)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     print(f"Length of the train loader: {len(train_loader)} given a batch size of {args.batch_size}")
@@ -156,7 +168,7 @@ def main(args):
     # model.sample_images_normal = im_normal[:3]
     # model.sample_images_abnormal = im_abnormal[:3]
 
-    optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, )
+    optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, momentum=args.optim_momentum)
     current_best_score = 0.0
     
     # Training loop
@@ -165,11 +177,26 @@ def main(args):
 
         train_step(epoch, model, train_loader,
                   optimizer)
-        
-        # TRAIN_COMPLETE
+
+        # If we calculate the threshold externally (removed from Lisa), 
+        # we need to save at every epoch the anomaly scores for both train_complete and test_loader
+        if args.find_threshold_externally:
+            true_label_traincomplete, anomaly_score_traincomplete = eval_model(epoch, model, train_complete, return_only_anomaly_scores=True)
+            true_label_test, anomaly_score_test = eval_model(epoch, model, test_loader, return_only_anomaly_scores=True)
+
+            data = {'0': {
+                        'true_label_traincomplete': true_label_traincomplete,
+                        'anomaly_score_traincomplete': anomaly_score_traincomplete,
+                        'true_label_test': true_label_test,
+                        'anomaly_score_test': anomaly_score_test}}
+            
+            with open(f"{str({wandb.config})}.json", "a") as outfile: json.dump(data, outfile)
+            if epoch % 10 == 0: torch.save(model.state_dict(), str(f"models/{wandb.config}_at_epoch_{epoch}.pt"))
+            continue
+
 
         threshold = find_threshold(epoch, model, train_complete, _print=True)
-        eval_model(epoch, model, test_loader, threshold, _print=True)
+        results = eval_model(epoch, model, test_loader, threshold, _print=True)
 
             # Todo: fix again that images as being pushed to w&b
            # if args.model == 'ae_flow': wandb.log(sample_images(model, device))
@@ -202,7 +229,7 @@ if __name__ == '__main__':
                         help='')
     parser.add_argument('--optim_momentum', type=float, default=0.9, 
                         help='')
-    parser.add_argument('--optim_weight_decay', type=float, default=1e-5,
+    parser.add_argument('--optim_weight_decay', type=float, default=10e-5,
                         help='')
     parser.add_argument('--dataset',default='chest_xray', type=str, help='Which dataset to run. Choose from: [OCT2017, chest_xray, ISIC, BRATS, MIIC]')
     parser.add_argument('--model',default='ae_flow', type=str, help='Which dataset to run. Choose from: [autoencoder, fastflow, ae_flow]')
@@ -213,7 +240,15 @@ if __name__ == '__main__':
     # Other hyper-parameters
     parser.add_argument('--data_dir', default='../data/', type=str,
                         help='Directory where to look for the data. For jobs on Lisa, this should be $TMPDIR.')
-    parser.add_argument('--epochs', default=40, type=int,
+    parser.add_argument('--find_threshold_externally', default=False, type=bool,
+                        help='')
+    parser.add_argument('--externally_found_threshold', default=-1.0, type=float,
+                        help='')
+    parser.add_argument('--externally_found_threshold_epoch', default=-1.0, type=float,
+                        help='')
+
+
+    parser.add_argument('--epochs', default=15, type=int,
                         help='Number of epochs to train.')
     parser.add_argument('--seed', default=42, type=int,
                         help='Seed to use for reproducing results')
