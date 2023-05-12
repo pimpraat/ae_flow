@@ -129,6 +129,9 @@ def main(args):
     # torch.backends.cudnn.deterministic = True
     # torch.backends.cudnn.benchmark = False
 
+    if args.dataset == "chest_xray": args.optim_momentum, args.optim_lr = 0.0, 1e-3
+
+
     #TODO: Make private!
     wandb.login(key=WANDBKEY)
 
@@ -168,7 +171,7 @@ def main(args):
     # model.sample_images_normal = im_normal[:3]
     # model.sample_images_abnormal = im_abnormal[:3]
 
-    optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, momentum=args.optim_momentum)
+    optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, betas=(args.optim_momentum, 0.999))
     current_best_score, used_thr = 0.0, 0.0
     best_model = None
     
