@@ -169,7 +169,8 @@ def main(args):
     # model.sample_images_abnormal = im_abnormal[:3]
 
     optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, momentum=args.optim_momentum)
-    current_best_score = 0.0
+    current_best_score, used_thr = 0.0, 0.0
+    best_model = None
     
     # Training loop
     for epoch in range(args.epochs):
@@ -205,10 +206,19 @@ def main(args):
         print(f"Duration for epoch {epoch}: {time.time() - start}")
         wandb.log({'time per epoch': time.time() - start})
     
-    # Save if best eval:
-    if results['F1'] >= current_best_score:
-        current_best_score = results['F1']
-        torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
+        # Save if best eval:
+        if results['F1'] >= current_best_score:
+            current_best_score = results['F1']
+            # torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
+            best_model = model
+            used_thr = threshold
+
+
+
+
+    results = eval_model(epoch, model, validate_loader, threshold=used_thr, _print=True)
+    print(f"Final results on validation dataset: {results}")
+
     wandb.finish()
 
 
