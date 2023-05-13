@@ -1,6 +1,12 @@
 wandb/
 __pycache__/
 data/__pycache__/
+data/BraTS2021_00495
+data/BraTS2021_00621
+data/BraTS2021_Training_Data
+data/OCT2017
+data/chest_xray
+data/chest_xray/__MAXOSX
 model/__pycache__/
 .DS_Store
 __pycache__

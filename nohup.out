@@ -1,0 +1,81 @@
+wandb: Currently logged in as: andredebrandt (dl2_ae_flow). Use `wandb login --relogin` to force relogin
+wandb: Appending key for api.wandb.ai to your netrc file: /home/andre/.netrc
+wandb: Tracking run with wandb version 0.15.2
+wandb: Run data is saved locally in /home/andre/Documents/GitHub/ae_flow/wandb/run-20230513_085925-tz5u5lu8
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run golden-puddle-199
+wandb: ⭐️ View project at https://wandb.ai/dl2_ae_flow/ae_flow
+wandb: 🚀 View run at https://wandb.ai/dl2_ae_flow/ae_flow/runs/tz5u5lu8
+/home/andre/miniconda3/envs/ae_flow/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/andre/miniconda3/envs/ae_flow/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=Wide_ResNet50_2_Weights.IMAGENET1K_V1`. You can also use `weights=Wide_ResNet50_2_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+loading data
+loading datasets
+train loaded
+val loaded
+loaded data
+Length of the train loader: 412 given a batch size of 64
+====> Epoch 0 : Average loss: 118959637.9990
+Now moving onto finding the appropriate threshold (based on training data):
+Optimization terminated successfully.
+         Current function value: -0.475580
+         Iterations: 33
+         Function evaluations: 70
+Optimal threshold: [1.0443984]
+Number of predicted anomalies in the test-set: 21
+Epoch 0: {'AUC': 0.4375, 'ACC': 0.53125, 'SEN': 0.625, 'SPE': 0.25, 'F1': 0.6666666666666666}
+Duration for epoch 0: 538.3165347576141
+Results on test set after 0 epochs
+Number of predicted anomalies in the test-set: 650
+Epoch 0: {'AUC': 0.5013774104683195, 'ACC': 0.5867768595041323, 'SEN': 0.6721763085399449, 'SPE': 0.3305785123966942, 'F1': 0.7093023255813953}
+====> Epoch 1 : Average loss: 63.7508
+Now moving onto finding the appropriate threshold (based on training data):
+Optimization terminated successfully.
+         Current function value: -0.463230
+         Iterations: 21
+         Function evaluations: 44
+Optimal threshold: [1.14447737]
+Number of predicted anomalies in the test-set: 25
+Epoch 1: {'AUC': 0.3541666666666667, 'ACC': 0.53125, 'SEN': 0.7083333333333334, 'SPE': 0.0, 'F1': 0.6938775510204083}
+Duration for epoch 1: 542.2899916172028
+====> Epoch 2 : Average loss: 11.9574
+Now moving onto finding the appropriate threshold (based on training data):
+Optimization terminated successfully.
+         Current function value: -0.454525
+         Iterations: 20
+         Function evaluations: 43
+Optimal threshold: [1.09911759]
+Number of predicted anomalies in the test-set: 24
+Epoch 2: {'AUC': 0.3333333333333333, 'ACC': 0.5, 'SEN': 0.6666666666666666, 'SPE': 0.0, 'F1': 0.6666666666666666}
+Duration for epoch 2: 543.4032573699951
+====> Epoch 3 : Average loss: 1.9750
+Now moving onto finding the appropriate threshold (based on training data):
+Optimization terminated successfully.
+         Current function value: -0.446919
+         Iterations: 15
+         Function evaluations: 33
+Optimal threshold: [1.16268899]
+Number of predicted anomalies in the test-set: 17
+Epoch 3: {'AUC': 0.27083333333333337, 'ACC': 0.34375, 'SEN': 0.4166666666666667, 'SPE': 0.125, 'F1': 0.48780487804878053}
+Duration for epoch 3: 544.6952083110809
+====> Epoch 4 : Average loss: 0.9774
+Now moving onto finding the appropriate threshold (based on training data):
+Optimization terminated successfully.
+         Current function value: -0.463921
+         Iterations: 15
+         Function evaluations: 33
+Optimal threshold: [1.08672042]
+Number of predicted anomalies in the test-set: 18
+Epoch 4: {'AUC': 0.375, 'ACC': 0.4375, 'SEN': 0.5, 'SPE': 0.25, 'F1': 0.5714285714285715}
+Duration for epoch 4: 547.8947854042053
+====> Epoch 5 : Average loss: 0.8041
+Now moving onto finding the appropriate threshold (based on training data):
+Optimization terminated successfully.
+         Current function value: -0.420313
+         Iterations: 12
+         Function evaluations: 28
+Optimal threshold: [0.98944085]
+Number of predicted anomalies in the test-set: 24
+Epoch 5: {'AUC': 0.3333333333333333, 'ACC': 0.5, 'SEN': 0.6666666666666666, 'SPE': 0.0, 'F1': 0.6666666666666666}
+Duration for epoch 5: 559.4227166175842

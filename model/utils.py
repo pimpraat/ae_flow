@@ -15,6 +15,8 @@ def calculate_given_threshold(proposed_threshold, anomaly_scores, true_labels):
     return score
         
 def thr_to_accuracy(thr, Y_test, predictions):
+   
+   #TODO: to binary
    sc = f1_score(Y_test, np.array(predictions>thr, dtype=np.int), average='macro')
 #    print(f"score: {sc}")
    return -sc

@@ -7,16 +7,16 @@ import FrEIA.modules as Fm
 
 class FlowModule(nn.Module):
 
-    def __init__(self, subnet_architecture='subnet_architecture'):
+    def __init__(self, subnet_architecture='conv_like'):
         super(FlowModule, self).__init__()
         self.inn = Ff.SequenceINN(1024, 16, 16)
         for k in range(8):
-            if subnet_architecture == 'subnet_architecture':
+            if subnet_architecture == 'conv_like':
                 self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.subnet_conv_3x3_1x1, permute_soft=False)
-            # if subnet_architecture == 'resnet_like':
-            #     self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet_type_network, permute_soft=False)
-            #     self.inn.append(Fm.AllInOneBlock, subnet_architecture=Fl)
-                  # Here just concatenat?
+            if subnet_architecture == 'resnet_like':
+                self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet_type_network, permute_soft=False)
+                self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.shortcut_connection, permute_soft=False)
+                # Here just concatenat?
 
     def subnet_conv_3x3_1x1(c_in, c_out):
         return nn.Sequential(nn.Conv2d(c_in, 256,   3, padding=1), nn.ReLU(),
@@ -24,11 +24,12 @@ class FlowModule(nn.Module):
     
     def resnet_type_network(c_in, c_out):
         return nn.Sequential(
-            nn.Conv2d(c_in, 256, kernel_size=3), nn.Batchnorm(256), nn.Relu(), 
-        )
+            nn.Conv2d(c_in, c_out, kernel_size=3, padding='same'), nn.ReLU(), 
+            nn.BatchNorm2d(c_out)
+            )
     
     def shortcut_connection(c_in, c_out):
-        return nn.Sequential(nn.Conv2d(c_in, c_in, kernel_size=1))
+        return nn.Sequential(nn.Conv2d(c_in, c_out, kernel_size=1))
         
 
     def forward(self, x):
