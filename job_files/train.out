@@ -1,5 +1,10 @@
 Traceback (most recent call last):
-  File "/home/lcur1624/ae_flow/train.py", line 20, in <module>
-    WANDBKEY = open("wandbkey.txt", "r").read()
-FileNotFoundError: [Errno 2] No such file or directory: 'wandbkey.txt'
-srun: error: r34n1: task 0: Exited with exit code 1
+  File "/home/lcur1624/ae_flow/train.py", line 7, in <module>
+    from model.ae_flow_model import AE_Flow_Model
+  File "/home/lcur1624/ae_flow/model/ae_flow_model.py", line 10, in <module>
+    from model.flow import FlowModule
+  File "/home/lcur1624/ae_flow/model/flow.py", line 17
+    in = Ff.InputNode(1024, 16, 16)
+    ^^
+SyntaxError: invalid syntax
+srun: error: r34n4: task 0: Exited with exit code 1

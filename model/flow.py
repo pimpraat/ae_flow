@@ -14,7 +14,7 @@ class FlowModule(nn.Module):
         # Most direct computation for this part can be found here:
         # https://vislearn.github.io/FrEIA/_build/html/tutorial/graph_inns.html
         if custom_computation_graph:
-            in = Ff.InputNode(1024, 16, 16)
+            self.inn = Ff.InputNode(1024, 16, 16)
             
             
 #             self.inn = Ff.GraphINN([in1, ])
