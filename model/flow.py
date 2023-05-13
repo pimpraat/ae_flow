@@ -29,7 +29,7 @@ class FlowModule(nn.Module):
             if subnet_architecture == 'resnet_like':
                 #self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet_type_network, permute_soft=False)
                 #self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.shortcut_connection, permute_soft=False)
-                self.inn.append((Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet, permute_soft=False)
+                self.inn.append((Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet, permute_soft=False))
                 # Here just concatenat?
     
     # from Pim: let's try to see if this works to have a proper shortcut conncection
