@@ -3,8 +3,8 @@ Traceback (most recent call last):
     from model.ae_flow_model import AE_Flow_Model
   File "/home/lcur1624/ae_flow/model/ae_flow_model.py", line 10, in <module>
     from model.flow import FlowModule
-  File "/home/lcur1624/ae_flow/model/flow.py", line 17
-    in = Ff.InputNode(1024, 16, 16)
-    ^^
-SyntaxError: invalid syntax
-srun: error: r34n4: task 0: Exited with exit code 1
+  File "/home/lcur1624/ae_flow/model/flow.py", line 32
+    self.inn.append((Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet, permute_soft=False))
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: invalid syntax. Maybe you meant '==' or ':=' instead of '='?
+srun: error: r28n5: task 0: Exited with exit code 1
