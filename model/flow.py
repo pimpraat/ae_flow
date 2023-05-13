@@ -14,9 +14,13 @@ class FlowModule(nn.Module):
             if subnet_architecture == 'conv_like':
                 self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.subnet_conv_3x3_1x1, permute_soft=False)
             if subnet_architecture == 'resnet_like':
-                self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet_type_network, permute_soft=False)
-                self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.shortcut_connection, permute_soft=False)
+                #self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet_type_network, permute_soft=False)
+                #self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.shortcut_connection, permute_soft=False)
                 # Here just concatenat?
+    
+    # from Pim: let's try to see if this works to have a proper shortcut conncection
+    def resnet(c_in, c_out):
+        return FlowModule.subnet_conv_3x3_1x1(c_in, c_out) + FlowModule.shortcut_connection(c_in, c_out)
 
     def subnet_conv_3x3_1x1(c_in, c_out):
         return nn.Sequential(nn.Conv2d(c_in, 256,   3, padding=1), nn.ReLU(),
