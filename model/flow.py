@@ -7,8 +7,21 @@ import FrEIA.modules as Fm
 
 class FlowModule(nn.Module):
 
-    def __init__(self, subnet_architecture='conv_like'):
+    def __init__(self, subnet_architecture='conv_like', custom_computation_graph=False):
         super(FlowModule, self).__init__()
+        
+        
+        # Most direct computation for this part can be found here:
+        # https://vislearn.github.io/FrEIA/_build/html/tutorial/graph_inns.html
+        if custom_computation_graph:
+            in = Ff.InputNode(1024, 16, 16)
+            
+            
+#             self.inn = Ff.GraphINN([in1, ])
+            
+      
+            
+        
         self.inn = Ff.SequenceINN(1024, 16, 16)
         for k in range(8):
             if subnet_architecture == 'conv_like':
@@ -16,6 +29,7 @@ class FlowModule(nn.Module):
             if subnet_architecture == 'resnet_like':
                 #self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet_type_network, permute_soft=False)
                 #self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.shortcut_connection, permute_soft=False)
+                self.inn.append((Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet, permute_soft=False)
                 # Here just concatenat?
     
     # from Pim: let's try to see if this works to have a proper shortcut conncection
