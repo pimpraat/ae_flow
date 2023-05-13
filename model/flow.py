@@ -15,12 +15,6 @@ class FlowModule(nn.Module):
         # https://vislearn.github.io/FrEIA/_build/html/tutorial/graph_inns.html
         if custom_computation_graph:
             self.inn = Ff.InputNode(1024, 16, 16)
-            
-            
-#             self.inn = Ff.GraphINN([in1, ])
-            
-      
-            
         
         self.inn = Ff.SequenceINN(1024, 16, 16)
         for k in range(8):
@@ -29,7 +23,7 @@ class FlowModule(nn.Module):
             if subnet_architecture == 'resnet_like':
                 #self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet_type_network, permute_soft=False)
                 #self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.shortcut_connection, permute_soft=False)
-                self.inn.append((Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet, permute_soft=False))
+                self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet, permute_soft=False)
                 # Here just concatenat?
     
     # from Pim: let's try to see if this works to have a proper shortcut conncection
