@@ -30,10 +30,6 @@ Fastflow
 
 -->
 
-
-
-
-
 <!-- introduce solution and broad overview of methods used -->
 
 AE-FLOW combines the autoencoder and NF anomaly detection methods by integrating a NF into the autoencoder pipeline. By doing so, Zhao et al. 2023 aim to address the limitations of each anomaly detection method. Autoencoders consist of an encoder that generates a latent representation of the input, and a decoder that reconstructs the input from the latent representation. A reconstructed image can be obtained by encoding and subsequently decoding an input. The reconstructed image fits into the distribution learned by the autoencoder, and we can compare it to the original image in order to understand if the input is out-of-distribution and therefore anomalous. The normalizing flow
@@ -42,14 +38,14 @@ AE-FLOW learns a distribution of normal images, then detects anomalies by recons
 
 
 <!-- Exposition of its weaknesses/strengths/potential which triggered your group to come up with a response. -->
-AE-FLOW's results prove it to be a promising approach to anomaly detection, with good performance on multiple medical datasets and one integrated circuit dataset. Furthermore, its approach of combining the two already established methods of anomaly detection is simple yet elegant. However, our results so far are limited to a few datasets and two fields. We need to evaluate AE-FLOW's performance with datasets from new domains in order to understand how well it is able to perform in different domains. 
+AE-FLOW's results prove it to be a promising approach to anomaly detection, with good performance on multiple medical datasets and one integrated circuit dataset. This shows that AE-FLOW can potentially be suited to perform tasks across all domains, rather than simply being a one-trick medical pony. Furthermore, its approach of combining the two previously established methods of anomaly detection is simple yet elegant. It combines two different architectures such that they compensate for each others weaknesses while avoiding the additional complications that arise when completely novel and untested architectures are introduced. Overall, AE-FLOW is an architecture that is worth investigating further.
+
+However, this architecture is quite new, and therefore we know very little about domains and applications in which it excels. We have evidence of good results in the medical domain, and some insight into its capabilities with integrated circuits. However, we have no results that prove its effectiveness in other domains, such as industrial applications. AE-FLOW needs more extensive training with datasets from other domains if we are to properly understand its strengths and limitations as an established method of anomaly detection.
 
 
 <!-- Describe your novel contribution. -->
-We have two main contributions. First, we reimplement and evaluate the AE-FLOW model in Python, which we do by closely following the specifications outlined in Section 3.2. These specifications specify the exact number of layers, layer types, and layer sizes. This allows us to reimplement the encoder, decoder, and normalizing flow with close fidelity to what we expect the authors to have originally used. The repository containing the authors' implementation is not publicly available, therefore this contribution is necessary for to reproduce the author's results.
-
+We have two main contributions. First, we implement and evaluate the AE-FLOW model in Python, which we do by closely following the specifications outlined in Section 3.2. These specifications specify the exact number of layers, layer types, and layer sizes. This allows us to reimplement the encoder, decoder, and normalizing flow with close fidelity to what we expect the authors to have originally used. The repository containing the authors' implementation is not publicly available, therefore this contribution is necessary for to reproduce the author's results. We further seek to replicate the results in the paper to ensure that our implementation is faithful to the authors' model.
 Our second contribution is testing AE-FLOW's generalizability. Zhao, Ding, and Zhang (2023) primarily focus on the medical applications of AE-FLOW. Their findings show that AE-FLOW has very promising anomaly detection performance for medical datasets, and for one integrated circuit dataset. The evaluation into the performance of AE-FLOW on non-medical datasets is however very limited. Given the broad range of applications for anomaly detection methods and the positive results reported by Zhao, Ding, and Zhang (2023), our goal is to evaluate the performance of AE-FLOW in a broader context. 
-
 Specifically, we aim to assess its effectiveness in the industrial domain, where anomaly detection can play a critical role in enhancing quality assurance in the manufacturing process. We do this by we training and evaluating the model on the beanTech Anomaly Detection (bTAD) dataset, which consists of real-world industrial images (Mishra et al., 2021). This will illustrate its effectiveness in novel domains, thereby providing insight into AE-FLOW's generalizability.
 
 
@@ -69,18 +65,16 @@ F1: 0.764, ACC: 0.6522, SEN: 0.9231, SPE: 0.2009, AUC: 0.562
  -->
 Our results show performance similar to that of Zhao et al. on the chest-XRAY dataset when using the ResNet type subnet for the normalizing flow submodule. The utilization of the alternate subnet, which comprises two convolutional layers and a ReLU activation function, resulted in a notable decrease in performance. This was evidenced by the F1-score, which ended up being 20% lower.
 
-
-
 ## Contributions
-* Jan Athmer - Project implementation
+* Jan Athmer - Project implementation, debugging
 
-* Pim Praat - Project implementation
+* Pim Praat - Project implementation, debugging
 
-* Andre de Brandt - Writing report/blogpost, debugging
+* Andre de Brandt - Writing notebook/blogpost, debugging
 
-* Farrukh Baratov - Writing report/blogpost, debugging
+* Farrukh Baratov - Writing notebook/blogpost, debugging
 
-* Thijs Wijnheijmer - Writing report/blogpost, debugging
+* Thijs Wijnheijmer - Writing notebook/blogpost, debugging
 
 
 ## Bibliography
