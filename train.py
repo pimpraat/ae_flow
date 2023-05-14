@@ -3,6 +3,7 @@ import torchmetrics
 import argparse
 import copy
 torch.manual_seed(42) # Setting the seed
+import copy
 
 from model.ae_flow_model import AE_Flow_Model
 # from baselines.ganomaly import GanomalyModel
@@ -224,7 +225,7 @@ def main(args):
     results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, validation=False)
     
     print(f"Final, best results on test dataset: {results}")
-    
+
     wandb.finish()
 
 
