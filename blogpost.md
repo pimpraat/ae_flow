@@ -11,7 +11,7 @@ TODO: Add citations
 
 -->
 
-<!-- introduce problem -->
+<!--  beginning + related work -->
 Anomaly detection has many useful applications, such as in industrial settings and medicine, primarily for detecting abnormalities in medical images. The task of anomaly detection is complicated by the low availability of abnormal images in current datasets. For the same reason, the task of anomaly detection is often considered to be either unsupervised or semi-supervised. For several decades, anomaly detection has been an active research area (Pang et al. 2020). There is a large variety of techniques, consisting of statistics-based, distance-based, clustering-based and most recently, deep learning-based methods (Zhao et al. 2023). The deep learning based methods have consistently shown the best performance in detecting anomalies. The category of deep learning based anomaly detection consists of two primary sub-categories, namely deep learning feature extraction, and deep learning feature representations (Pang et al. 2020). The latter of which describes the investigated AE-FLOW model. Auto-encoder based models such as these are reconstruction-based, meaning that the models learn to internally represent information in a structured manner, such that they can recreate a given input. 
 
 An autoencoder (AE) consists of an encoder that generates the representation, and the decoder that reconstructs the input from the latent representation. Autoencoders are often used in Generative Adversarial Networks (GAN), a model that consists of a traditional AE and an additional subnetwork known as a discriminator. GANs' key assumption is that if the AE learns the right features, then its decoder can be fed randomly generated inputs and produce outputs that appear to be drawn from the input distribution. Therefore, we can better train the AE by also training a discriminator to distinguish between real and fake inputs. This means the decoder has to learn to generate more convincing outputs, while the discriminator has to get better at telling them apart. One example is AnoGAN, a model that uses GANs and with a specialized weighted sum of the residual and discrimination score in order to detect anomalies. Another method, GANomaly detects anomalies based on the distance of inputs in the latent feature space. However, tthe standard auto-encoder's capacity to model high-dimensional data distributions is limited, which leads to inaccuracies in reconstruction. 
@@ -20,22 +20,18 @@ Likelihood-based anomaly detection models present an alternative approach. They 
 One such method is Differnet, which utilized a normalizing flow subnetwork to maximize likelihood. <!-- Maybe still discuss fastflow-->
 The limitation of NF based methods is that decisions are made based on the estimated likelihood of the extracted features, discarding any structural information the image may contain.
 
-<!-- Related work (one paragraph) TODO: 
-AnoGAN -> anomaly score
+<!-- An analysis of the paper and its key components. -->
 
-f-AnoGAN
-GANomaly
-DifferNet
-Fastflow
-
--->
-
-<!-- introduce solution and broad overview of methods used -->
-
-AE-FLOW combines the autoencoder and NF anomaly detection methods by integrating a NF into the autoencoder pipeline. By doing so, Zhao et al. 2023 aim to address the limitations of each anomaly detection method. Autoencoders consist of an encoder that generates a latent representation of the input, and a decoder that reconstructs the input from the latent representation. A reconstructed image can be obtained by encoding and subsequently decoding an input. The reconstructed image fits into the distribution learned by the autoencoder, and we can compare it to the original image in order to understand if the input is out-of-distribution and therefore anomalous. The normalizing flow
-
+AE-FLOW combines the autoencoder and NF anomaly detection methods by integrating a NF into the autoencoder pipeline. By doing so, Zhao et al. 2023 aim to address the limitations of each anomaly detection method. Autoencoders consist of an encoder that generates a latent representation of the input, and a decoder that reconstructs the input from the latent representation. A reconstructed image can be obtained by encoding and subsequently decoding an input. The reconstructed image fits into the distribution learned by the autoencoder, and we can compare it to the original image in order to understand if the input is out-of-distribution and therefore anomalous.
 AE-FLOW learns a distribution of normal images, then detects anomalies by reconstructing inputs and measuring their similarity to the original image. By learning a distribution of normal images, AE-FLOW is able to differentiate between normal images, and those with anomalies. By only utilizing normal data for training, AE-FLOW addresses the issue of limited abnormal image data availability.
 
+AE-FLOW's architecture is pictured below. It resembles a standard autoencoder, however the latent representation of the input _z_ is put through a normalizing flow to produce the normalized representation _z'_. The normalizing flows are trained with normal data to ensure that abnormal features are poorly captured in the learned distribution. This prevents the decoder from effectively reconstructing abnormal features, which enables us to detect anomalies based on the difference between the original, potentially abnormal, image and the reconstructed and normalized image.
+
+<!-- ADD A FIGURE WITH THE AE-FLOW ARCHITECTURE HERE -->
+
+AE-FLOW trains using a loss function that accounts for reconstruction accuracy at the pixel level and the distribution likelihood at the feature level. This way, it ensures that the different components are trained to perform well at the intended frame of reference. It utilizes a corresponding anomaly score function comprised of the reconstruction error and the flow likelihood to detect out-of-distribution data. 
+
+AE-FLOW's novel approach proves useful, exhibiting significant improvements with multiple metrics across all tested datasets. It is most consistent with the ISIC 2018 dataset (cite it here), where it outperforms all five tested reconstruction and likelihood-based models across five different metrics, exhibiting percentage increases of up to 40.1 points. 
 
 <!-- Exposition of its weaknesses/strengths/potential which triggered your group to come up with a response. -->
 AE-FLOW's results prove it to be a promising approach to anomaly detection, with good performance on multiple medical datasets and one integrated circuit dataset. This shows that AE-FLOW can potentially be suited to perform tasks across all domains, rather than simply being a one-trick medical pony. Furthermore, its approach of combining the two previously established methods of anomaly detection is simple yet elegant. It combines two different architectures such that they compensate for each others weaknesses while avoiding the additional complications that arise when completely novel and untested architectures are introduced. Overall, AE-FLOW is an architecture that is worth investigating further.
@@ -44,9 +40,12 @@ However, this architecture is quite new, and therefore we know very little about
 
 
 <!-- Describe your novel contribution. -->
-We have two main contributions. First, we implement and evaluate the AE-FLOW model in Python, which we do by closely following the specifications outlined in Section 3.2. These specifications specify the exact number of layers, layer types, and layer sizes. This allows us to reimplement the encoder, decoder, and normalizing flow with close fidelity to what we expect the authors to have originally used. The repository containing the authors' implementation is not publicly available, therefore this contribution is necessary for to reproduce the author's results. We further seek to replicate the results in the paper to ensure that our implementation is faithful to the authors' model.
-Our second contribution is testing AE-FLOW's generalizability. Zhao, Ding, and Zhang (2023) primarily focus on the medical applications of AE-FLOW. Their findings show that AE-FLOW has very promising anomaly detection performance for medical datasets, and for one integrated circuit dataset. The evaluation into the performance of AE-FLOW on non-medical datasets is however very limited. Given the broad range of applications for anomaly detection methods and the positive results reported by Zhao, Ding, and Zhang (2023), our goal is to evaluate the performance of AE-FLOW in a broader context. 
-Specifically, we aim to assess its effectiveness in the industrial domain, where anomaly detection can play a critical role in enhancing quality assurance in the manufacturing process. We do this by we training and evaluating the model on the beanTech Anomaly Detection (bTAD) dataset, which consists of real-world industrial images (Mishra et al., 2021). This will illustrate its effectiveness in novel domains, thereby providing insight into AE-FLOW's generalizability.
+We have two main contributions. First, we implement and evaluate the AE-FLOW model in Python, which we do by closely following the specifications outlined in Section 3.2. These specifications specify the exact number of layers, as well as their types and sizes. This allows us to reimplement the encoder, decoder, and normalizing flow with close fidelity to what we expect the authors to have originally used. The repository containing the authors' implementation is not publicly available, therefore this contribution 
+is necessary for to reproduce the author's results. We further seek to replicate the results in the paper to ensure that our implementation is faithful to the authors' model.
+
+Our second contribution is testing AE-FLOW's generalizability. Zhao, Ding, and Zhang (2023) primarily focus on the medical applications of AE-FLOW. Their findings show that AE-FLOW has very promising anomaly detection performance for medical datasets, and for one integrated circuit dataset. The evaluation into the performance of AE-FLOW on non-medical datasets is however very limited. Given the broad range of applications for anomaly detection methods and the positive results reported by Zhao, Ding, and Zhang (2023), our goal is to evaluate the performance of AE-FLOW in a broader context. Specifically, we aim to assess its effectiveness in the industrial domain, where anomaly detection can play a critical role in enhancing quality assurance in the manufacturing process. We do this by we training and evaluating the model on the beanTech Anomaly Detection (bTAD) dataset, which consists of real-world industrial images (Mishra et al., 2021). This will illustrate its effectiveness in novel domains, thereby providing insight into AE-FLOW's generalizability.
+
+We chose the bTAD dataset because it is publicly available and contains industrial images, which we would expect AE-FLOW to perform well on given the track record of similar models. If AE-FLOW performs as well as expected, then we can also be certain that it has been able to get good results in a domain that anomaly detection models performed worse at before (medical domains) while still performing well in familiar domains (industrial domains).
 
 
 
