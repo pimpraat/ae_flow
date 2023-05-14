@@ -75,10 +75,9 @@ def find_threshold(epoch, model, train_loader, _print=False):
 def calculate_metrics(true, anomaly_scores, threshold):
     results = {}
     pred = [x >= threshold for x in anomaly_scores]
-    
     print(f"Number of predicted anomalies in the test-set: {np.sum(pred)}")
-
-    tn, fp, fn, tp = confusion_matrix(true, pred).ravel()
+    
+    tn, fp, fn, tp = confusion_matrix(true, pred, labels=[0, 1]).ravel()
     fpr, tpr, thresholds = roc_curve(true, pred)
 
     results['AUC'] = auc(fpr, tpr)
@@ -160,9 +159,7 @@ def main(args):
     'optim_weight_decay': args.optim_weight_decay
     }
 )
-    print('loading data')
     train_loader, train_complete, validate_loader, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=3)
-    print('loaded data')
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     print(f"Length of the train loader: {len(train_loader)} given a batch size of {args.batch_size}")
@@ -173,18 +170,10 @@ def main(args):
 
     model = model.to(device)
 
-    # Save validation images to the model for later on:
-    # im_normal, _ = next(iter(validate_loader[0]))
-    # im_abnormal, _ = next(iter(validate_loader[1]))
-    # model.sample_images_normal = im_normal[:3]
-    # model.sample_images_abnormal = im_abnormal[:3]
-
     optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, betas=(args.optim_momentum, 0.999))
     current_best_score, used_thr = 0.0, 0.0
     best_model = None
     
-    # if find_threshold_externally, initial threshold
-
     # Training loop
     for epoch in range(args.epochs):
         start = time.time()
@@ -210,7 +199,6 @@ def main(args):
 
 
         threshold = find_threshold(epoch, model, train_complete, _print=True)
-        #results = eval_model(epoch, model, test_loader, threshold, _print=True)
         results = eval_model(epoch, model, validate_loader, threshold, _print=True)
 
         # Todo: fix again that images as being pushed to w&b
@@ -220,7 +208,7 @@ def main(args):
         print(f"Duration for epoch {epoch}: {time.time() - start}")
         wandb.log({'time per epoch': time.time() - start})
     
-        # Save if best eval:ß
+        # Save if best eval:
         if results['F1'] >= current_best_score:
             current_best_score = results['F1']
             torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
@@ -230,8 +218,9 @@ def main(args):
         if epoch % 10 == 0:
             print(f'Results on test set after {epoch} epochs')
             eval_model(epoch, best_model, test_loader, used_thr, _print=True, validation=False)
+            # save model every 10 epoch
+            torch.save(model.state_dict(), str(f'models/per_epoch/{wandb.config}_epoch_{epoch}.pt'))
 
-    #results = eval_model(epoch, best_model, validate_loader, threshold=used_thr, _print=True)
     results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, validation=False)
     
     print(f"Final, best results on test dataset: {results}")

@@ -7,9 +7,11 @@ data/BraTS2021_Training_Data
 data/OCT2017
 data/chest_xray
 data/chest_xray/__MAXOSX
+data/btech/
+data/
 model/__pycache__/
 .DS_Store
 __pycache__
-models/
+models/per_epoch
 wandbkey.txt
 job_files/train.out
