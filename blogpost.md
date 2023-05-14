@@ -61,8 +61,40 @@ results on xray-dataset
 ours on convnet like subnet
 F1: 0.764, ACC: 0.6522, SEN: 0.9231, SPE: 0.2009, AUC: 0.562
 
+
+
  -->
-Our results show performance similar to that of Zhao et al. on the chest-XRAY dataset when using the ResNet type subnet for the normalizing flow submodule. The utilization of the alternate subnet, which comprises two convolutional layers and a ReLU activation function, resulted in a notable decrease in performance. This was evidenced by the F1-score, which ended up being 20% lower.
+
+|  | dataset | subnet | F1-score | ACC | AUC | SEN | SPE | 
+| -------- | -------- | -------- | -------- | -------- | -------- | -------- | -------- |
+| AE-FLOW (Zhao et al.) | chest-XRAY | ResNet-Like | 0.88 | 0.85 | 0.92 | 0.91 | 0.76 |
+| AE-FLOW (Ours) | chest-XRAY | ResNet-Like | 0.89 | 0.86 | 0.82 | 0.98 | 0.66 |
+| AE-FLOW (Ours) | chest-XRAY | ConvNet-Like | 0.76 | 0.65 | 0.56 | 0.92 | 0.20 |
+| AE-FLOW (Zhao et al.) | OCT2017 | ConvNet-Like | 0.96 | 0.94 | 0.98 | 0.97 | 0.88 |
+| AE-FLOW (Ours) | OCT2017 | ConvNet-Like | 0.75 | 0.61 | 0.43 | 0.78 | 0.08 |
+| AE-FLOW (Ours) | OCT2017 | ResNet-Like | 0.71 | 0.59 | 0.50 | 0.67 | 0.33 |
+| AE-FLOW (Ours) | BTAD | ResNet-Like | 0.57 | 0.44 | 0.53 | 0.97 | 0.09 |
+| AE-FLOW (Ours) | BTAD | ConvNet-Like | 0.74 | 0.80 | 0.79 | 0.71 | 0.87 |
+
+
+Our results show performance similar to that of Zhao et al. on the chest-XRAY dataset when using the ResNet type subnet for the normalizing flow submodule. The utilization of the alternate subnet, which comprises two convolutional layers and a ReLU activation function, resulted in a notable decrease in performance. This was evidenced by the F1-score, which ended up being 13% lower.
+
+The resulting performance of our implemented AE-FLOW model on the OCT2017 dataset is significantly lower than the performance of the original AE-FLOW model by Zhao et al, as shown by the F1-score, which ended up being 21% lower. Additionally, the SPE metric ended up being 8%, compared to the 88% achieved by Zhao et al.
+
+The performance on the BTAD dataset is significantly worse when utilizing the ResNet-like subnet. Using the ConvNet-like subnet increases performance in terms of F1-score by 17%, at the expense of a decrease in SEN of 26%. 
+
+
+<!--
+discuss which experiments we still want to run
+which baselines we want to use
+-->
+## Discussion
+Given the experiments conducted, the reproducibility of the results of Zhao et al. seem feasible for some datasets. For large dataset such as OCT2017, performance is found to be significantly worse when compared to the original findings of Zhou et al. 
+
+The performance on BTAD, a dataset outside of the medical domain, seems to be lower than expected. These results are however obtained using the same hyperparameters as Zhao et al. specified. Therefore, an ablation study will have to be conducted in order to investigate whether the performance can be further improved. 
+
+We plan to extend the research by including an uncertainty quantification module. We intend to do so using deep ensemble methods. Furthermore, to gain more insight into the performance of the implented model relative to alternative model, we aim to implement f-AnoGAN (Schlegl et al., 2019). f-AnoGAN is an anomaly detection method, which uses a similar reconstruction based method. f-AnoGAN does not use normalizing flows, giving us valuable insights into the impacts of the normalizing flow module. 
+
 
 ## Contributions
 * Jan Athmer - Project implementation, debugging
@@ -79,6 +111,7 @@ Our results show performance similar to that of Zhao et al. on the chest-XRAY da
 ## Bibliography
 
 
-- AE-FLOW: AUTOENCODERS WITH NORMALIZING FLOWS FOR MEDICAL IMAGES ANOMALY DETECTION (Yuzhong Zhao, Qiaoqiao Ding, Xiaoqun Zhang, 2023)
-- Deep Learning for Anomaly Detection: A Review (Pang et al, 2020)
-- VT-ADL: A Vision Transformer Network for Image Anomaly Detection and Localization (Pankaj Mishra and Riccardo Verk and Daniele Fornasier and Claudio Piciarelli and Gian Luca Foresti, 2021)
+- Zhao, Y., Ding, Q., & Zhang, X. AE-FLOW: Autoencoders with Normalizing Flows for Medical Images Anomaly Detection. In The Eleventh International Conference on Learning Representations.
+- Pang, G., Shen, C., Cao, L., &amp; Hengel, A. V. (2021). Deep Learning for Anomaly Detection. ACM Computing Surveys, 54(2), 1–38. https://doi.org/10.1145/3439950 
+- Mishra, P., Verk, R., Fornasier, D., Piciarelli, C., &amp; Foresti, G. L. (2021). VT-ADL: A Vision Transformer network for IMAGE ANOMALY DETECTION and localization. 2021 IEEE 30th International Symposium on Industrial Electronics (ISIE). https://doi.org/10.1109/isie45552.2021.9576231
+- Schlegl, T., Seeböck, P., Waldstein, S. M., Langs, G., &amp; Schmidt-Erfurth, U. (2019). F-anogan: Fast unsupervised anomaly detection with generative adversarial networks. Medical Image Analysis, 54, 30–44. https://doi.org/10.1016/j.media.2019.01.010
