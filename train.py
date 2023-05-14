@@ -1,6 +1,7 @@
 import torch
 import torchmetrics
 import argparse
+import copy
 torch.manual_seed(42) # Setting the seed
 import copy
 
@@ -33,7 +34,7 @@ def train_step(epoch, model, train_loader,
         original_x = x.to(device)
 
         optimizer.zero_grad(set_to_none=True)
-        reconstructed_x = model(original_x).squeeze(dim=1)
+        reconstructed_x = model(original_x).squeeze(dim=1)  
 
         recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
         flow_loss = model.get_flow_loss(bpd=True)
@@ -76,8 +77,8 @@ def calculate_metrics(true, anomaly_scores, threshold):
     results = {}
     pred = [x >= threshold for x in anomaly_scores]
     print(f"Number of predicted anomalies in the test-set: {np.sum(pred)}")
-
-    tn, fp, fn, tp = confusion_matrix(true, pred).ravel()
+    
+    tn, fp, fn, tp = confusion_matrix(true, pred, labels=[0, 1]).ravel()
     fpr, tpr, thresholds = roc_curve(true, pred)
 
     results['AUC'] = auc(fpr, tpr)
@@ -89,7 +90,7 @@ def calculate_metrics(true, anomaly_scores, threshold):
     return results
 
 
-def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_only_anomaly_scores=False):
+def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_only_anomaly_scores=False, validation=True):
 
     with torch.no_grad(): # Deactivate gradients for the following code
         anomaly_scores, true_labels = [], []
@@ -115,10 +116,15 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
 
     anomaly_scores = [tensor.cpu().numpy() for tensor in anomaly_scores]
     anomaly_scores = [item for sublist in anomaly_scores for item in sublist]
-    if return_only_anomaly_scores: true, anomaly_scores
+    if return_only_anomaly_scores: return true, anomaly_scores
 
     results = calculate_metrics(true, anomaly_scores, threshold)
-    wandb.log(results)
+    
+    # the validation set contains very few samples
+    # only log the results on the test set (per 10 epochs)
+        # this does not influence the best model selection
+    if validation == False:
+        wandb.log(results)
 
     if _print: print(f"Epoch {epoch}: {results}")   
     return results
@@ -154,23 +160,16 @@ def main(args):
     'optim_weight_decay': args.optim_weight_decay
     }
 )
-
-    train_loader, train_complete, validate_loader, test_loader = load(data_dir="chest_xray",batch_size=args.batch_size, num_workers=3)
+    train_loader, train_complete, validate_loader, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=3)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     print(f"Length of the train loader: {len(train_loader)} given a batch size of {args.batch_size}")
     
-    # Create model and push to the device
-    if args.model == 'ae_flow': model = AE_Flow_Model()
+    # Create model and push tvco the device
+    if args.model == 'ae_flow': model = AE_Flow_Model(args.subnet_architecture)
     # if args.model == 'ganomaly': model = GanomalyModel(input_size=(256,256), latent_vec_size=100, num_input_channels=3, n_features=None)
 
     model = model.to(device)
-
-    # Save validation images to the model for later on:
-    # im_normal, _ = next(iter(validate_loader[0]))
-    # im_abnormal, _ = next(iter(validate_loader[1]))
-    # model.sample_images_normal = im_normal[:3]
-    # model.sample_images_abnormal = im_abnormal[:3]
 
     optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, betas=(args.optim_momentum, 0.999))
     current_best_score, used_thr = 0.0, 0.0
@@ -186,8 +185,8 @@ def main(args):
         # If we calculate the threshold externally (removed from Lisa), 
         # we need to save at every epoch the anomaly scores for both train_complete and test_loader
         if args.find_threshold_externally:
-            true_label_traincomplete, anomaly_score_traincomplete = eval_model(epoch, model, train_complete, return_only_anomaly_scores=True)
-            true_label_test, anomaly_score_test = eval_model(epoch, model, test_loader, return_only_anomaly_scores=True)
+            true_label_traincomplete, anomaly_score_traincomplete = eval_model(epoch, model, train_complete, threshold=used_thr, return_only_anomaly_scores=True)
+            true_label_test, anomaly_score_test = eval_model(epoch, model, test_loader, threshold=used_thr, return_only_anomaly_scores=True)
 
             data = {'0': {
                         'true_label_traincomplete': true_label_traincomplete,
@@ -201,10 +200,10 @@ def main(args):
 
 
         threshold = find_threshold(epoch, model, train_complete, _print=True)
-        results = eval_model(epoch, model, test_loader, threshold, _print=True)
+        results = eval_model(epoch, model, validate_loader, threshold, _print=True)
 
-            # Todo: fix again that images as being pushed to w&b
-           # if args.model == 'ae_flow': wandb.log(sample_images(model, device))
+        # Todo: fix again that images as being pushed to w&b
+        # if args.model == 'ae_flow': wandb.log(sample_images(model, device))
 
 
         print(f"Duration for epoch {epoch}: {time.time() - start}")
@@ -213,15 +212,19 @@ def main(args):
         # Save if best eval:
         if results['F1'] >= current_best_score:
             current_best_score = results['F1']
-            # torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
+            torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
             best_model = copy.deepcopy(model)
             used_thr = threshold
 
+        if epoch % 10 == 0:
+            print(f'Results on test set after {epoch} epochs')
+            eval_model(epoch, best_model, test_loader, used_thr, _print=True, validation=False)
+            # save model every 10 epoch
+            torch.save(model.state_dict(), str(f'models/per_epoch/{wandb.config}_epoch_{epoch}.pt'))
 
-
-
-    results = eval_model(epoch, best_model, validate_loader, threshold=used_thr, _print=True)
-    print(f"Final results on validation dataset: {results}")
+    results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, validation=False)
+    
+    print(f"Final, best results on test dataset: {results}")
 
     wandb.finish()
 
@@ -247,7 +250,7 @@ if __name__ == '__main__':
     parser.add_argument('--dataset',default='chest_xray', type=str, help='Which dataset to run. Choose from: [OCT2017, chest_xray, ISIC, BRATS, MIIC]')
     parser.add_argument('--model',default='ae_flow', type=str, help='Which dataset to run. Choose from: [autoencoder, fastflow, ae_flow]')
 
-    parser.add_argument('--subnet_architecture', default='subnet', type=str,
+    parser.add_argument('--subnet_architecture', default='conv_like', type=str,
                         help='Which subflow architecture to use when using the ae_flow model: subnet or resnet_like')
 
     # Other hyper-parameters

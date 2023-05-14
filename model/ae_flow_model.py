@@ -11,11 +11,11 @@ from model.flow import FlowModule
 import numpy as np
 
 class AE_Flow_Model(nn.Module):
-    def __init__(self):
+    def __init__(self, subnet_architecture='conv_like'):
 
         super(AE_Flow_Model, self).__init__()
         self.encoder = Encoder() #.to(memory_format=torch.channels_last)
-        self.flow = FlowModule()
+        self.flow = FlowModule(subnet_architecture)
         self.decoder = Decoder() #.to(memory_format=torch.channels_last)
 
         self.sample_images_normal = []

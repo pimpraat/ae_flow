@@ -18,5 +18,5 @@ module load Anaconda3/2021.05
 source activate dl2022
 
 # Run your code
-srun python -u train.py
+srun python -u train.py --subnet_architecture resnet_like
 
