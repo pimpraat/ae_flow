@@ -7,24 +7,36 @@ import FrEIA.modules as Fm
 
 class FlowModule(nn.Module):
 
-    def __init__(self, subnet_architecture='conv_like', custom_computation_graph=False):
+    def __init__(self, subnet_architecture='conv_like', custom_computation_graph=False, n_flowblocks):
         super(FlowModule, self).__init__()
         
         # Most direct computation for this part can be found here:
         # https://vislearn.github.io/FrEIA/_build/html/tutorial/graph_inns.html
         if custom_computation_graph:
-            self.inn = Ff.InputNode(1024, 16, 16)
-        
-        self.inn = Ff.SequenceINN(1024, 16, 16)
-        for k in range(8):
-            if subnet_architecture == 'conv_like':
-                self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.subnet_conv_3x3_1x1, permute_soft=False)
-            if subnet_architecture == 'resnet_like':
-                self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet, permute_soft=False)
-                # Here just concatenat?
-            if subnet_architecture == 'resnet_like_old':
-                self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet_type_network, permute_soft=False)
-                self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.shortcut_connection, permute_soft=False)
+            outputs = [Ff.InputNode(1024, 16, 16, name="Input at the beginning)]
+            final_nodes = []
+            
+            for k in range(n_flowblocks):
+                net = Ff.Node(ouputs[-1], Fm.AllInOneBlock, {
+                    subnet_constructor=FlowModule.resnet_type_network, permute_soft=False}
+                shortcut = Ff.Node(ouputs[-1], Fm.AllInOneBlock, {
+                    subnet_constructor=FlowModule.shortcut_connection, permute_soft=False}
+                concat = Ff.Node([actnorm.out0, in2.out0], Fm.Concat1d, {}, name=str(f'Concat with shortcut connection at block {k}'))
+                final_nodes.extend([net, shortcut, concat])
+                outputs.extend(concat)
+                
+            final_nodes.append(Ff.OutputNode(ouputs[-1], name="Final output")
+            self.inn = Ff.GraphINN(final_nodes)
+        if !custom_computation_graph:
+            for k in range(8):
+                if subnet_architecture == 'conv_like':
+                    self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.subnet_conv_3x3_1x1, permute_soft=False)
+                if subnet_architecture == 'resnet_like':
+                    self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet, permute_soft=False)
+                    # Here just concatenat?
+                if subnet_architecture == 'resnet_like_old':
+                    self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet_type_network, permute_soft=False)
+                    self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.shortcut_connection, permute_soft=False)
     
     # from Pim: let's try to see if this works to have a proper shortcut conncection
     def resnet(c_in, c_out):
