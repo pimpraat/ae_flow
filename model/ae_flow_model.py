@@ -11,7 +11,7 @@ from model.flow import FlowModule
 import numpy as np
 
 class AE_Flow_Model(nn.Module):
-    def __init__(self, subnet_architecture='conv_like'):
+    def __init__(self, subnet_architecture='conv_like', custom_comptutation_graph=False, n_flowblocks=8):
 
         super(AE_Flow_Model, self).__init__()
         self.encoder = Encoder() #.to(memory_format=torch.channels_last)

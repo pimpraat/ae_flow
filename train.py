@@ -3,7 +3,6 @@ import torchmetrics
 import argparse
 import copy
 torch.manual_seed(42) # Setting the seed
-import copy
 
 from model.ae_flow_model import AE_Flow_Model
 # from baselines.ganomaly import GanomalyModel
@@ -90,6 +89,7 @@ def calculate_metrics(true, anomaly_scores, threshold):
     return results
 
 
+# maybe at epoch as an optional argument? 
 def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_only_anomaly_scores=False, validation=True):
 
     with torch.no_grad(): # Deactivate gradients for the following code
@@ -151,6 +151,8 @@ def main(args):
     config={
     "model": args.model,
     "subnet_arc": args.subnet_architecture,
+    "custom_computation_graph": args.custom_computation_graph,
+    "n_flowblocks": args.n_flowblocks,
     "dataset": args.dataset,
     "epochs": args.epochs,
     'loss_alpha': args.loss_alpha,
@@ -160,13 +162,13 @@ def main(args):
     'optim_weight_decay': args.optim_weight_decay
     }
 )
-    train_loader, train_complete, validate_loader, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=3)
+    train_loader, train_complete, validate_loader, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     print(f"Length of the train loader: {len(train_loader)} given a batch size of {args.batch_size}")
     
     # Create model and push tvco the device
-    if args.model == 'ae_flow': model = AE_Flow_Model(args.subnet_architecture)
+    if args.model == 'ae_flow': model = AE_Flow_Model(subnet_architecture=args.subnet_architecture, custom_comptutation_graph=args.custom_computation_graph, n_flowblocks=args.n_flowblocks)
     # if args.model == 'ganomaly': model = GanomalyModel(input_size=(256,256), latent_vec_size=100, num_input_channels=3, n_features=None)
 
     model = model.to(device)
@@ -220,12 +222,13 @@ def main(args):
             print(f'Results on test set after {epoch} epochs')
             eval_model(epoch, best_model, test_loader, used_thr, _print=True, validation=False)
             # save model every 10 epoch
-            torch.save(model.state_dict(), str(f'models/per_epoch/{wandb.config}_epoch_{epoch}.pt'))
+            if not args.custom_computation_graph:
+                torch.save(model.state_dict(), str(f'models/per_epoch/{wandb.config}_epoch_{epoch}.pt'))
 
     results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, validation=False)
     
     print(f"Final, best results on test dataset: {results}")
-
+    
     wandb.finish()
 
 
@@ -262,6 +265,11 @@ if __name__ == '__main__':
                         help='')
     parser.add_argument('--externally_found_threshold_epoch', default=-1.0, type=float,
                         help='')
+    
+    # new custom computation graph
+    parser.add_argument('--custom_computation_graph', default=False, type=bool,
+                        help='')
+    parser.add_argument('--n_flowblocks', default=8, type=int, help='')
 
 
     parser.add_argument('--epochs', default=15, type=int,

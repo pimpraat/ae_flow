@@ -7,27 +7,38 @@ import FrEIA.modules as Fm
 
 class FlowModule(nn.Module):
 
-    def __init__(self, subnet_architecture='conv_like', custom_computation_graph=False, n_flowblocks):
+    def __init__(self, subnet_architecture='conv_like', custom_computation_graph=False, n_flowblocks=8):
         super(FlowModule, self).__init__()
         
         # Most direct computation for this part can be found here:
         # https://vislearn.github.io/FrEIA/_build/html/tutorial/graph_inns.html
         if custom_computation_graph:
-            outputs = [Ff.InputNode(1024, 16, 16, name="Input at the beginning)]
-            final_nodes = []
+            print('using custom computation graph')
+            outputs = [Ff.InputNode(1024, 16, 16, name="Input at the beginning")]
+            final_nodes = [outputs[0]]
             
             for k in range(n_flowblocks):
+<<<<<<< Updated upstream
                 net = Ff.Node(ouputs[-1], Fm.AllInOneBlock, {
                     subnet_constructor=FlowModule.resnet_type_network, permute_soft=False}
                 shortcut = Ff.Node(ouputs[-1], Fm.AllInOneBlock, {
                     subnet_constructor=FlowModule.shortcut_connection, permute_soft=False}
                 concat = Ff.Node([actnorm.out0, in2.out1], Fm.Concat1d, {}, name=str(f'Concat with shortcut connection at block {k}'))
+=======
+                net = Ff.Node(outputs[-1], Fm.AllInOneBlock, {'subnet_constructor': FlowModule.resnet_type_network, 'permute_soft': False})
+                shortcut = Ff.Node(outputs[-1], Fm.AllInOneBlock, {'subnet_constructor': FlowModule.shortcut_connection, 'permute_soft':False})
+                concat = Ff.Node([net.out0, shortcut.out1], Fm.Concat1d, {}, name=str(f'Concat with shortcut connection at block {k}'))
+>>>>>>> Stashed changes
                 final_nodes.extend([net, shortcut, concat])
                 outputs.extend(concat)
                 
-            final_nodes.append(Ff.OutputNode(ouputs[-1], name="Final output")
+            final_nodes.append(Ff.OutputNode(outputs[-1], name="Final output"))
             self.inn = Ff.GraphINN(final_nodes)
+<<<<<<< Updated upstream
         if !custom_computation_graph:
+=======
+        if not custom_computation_graph:
+>>>>>>> Stashed changes
             self.inn = Ff.SequenceINN(1024, 16, 16)
             for k in range(8):
                 if subnet_architecture == 'conv_like':
