@@ -28,6 +28,7 @@ class FlowModule(nn.Module):
             final_nodes.append(Ff.OutputNode(ouputs[-1], name="Final output")
             self.inn = Ff.GraphINN(final_nodes)
         if !custom_computation_graph:
+            self.inn = Ff.SequenceINN(1024, 16, 16)
             for k in range(8):
                 if subnet_architecture == 'conv_like':
                     self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.subnet_conv_3x3_1x1, permute_soft=False)
