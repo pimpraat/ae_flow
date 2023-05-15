@@ -20,9 +20,10 @@ class FlowModule(nn.Module):
             for k in range(n_flowblocks):
                 net = Ff.Node(outputs[-1], Fm.AllInOneBlock, {'subnet_constructor': FlowModule.resnet_type_network, 'permute_soft': False})
                 shortcut = Ff.Node(outputs[-1], Fm.AllInOneBlock, {'subnet_constructor': FlowModule.shortcut_connection, 'permute_soft':False})
-                concat = Ff.Node([net.out0, shortcut.out1], Fm.Concat1d, {}, name=str(f'Concat with shortcut connection at block {k}'))
+                concat = Ff.Node([net.out0, shortcut.out0], Fm.Concat1d, {'dim':0}, name=str(f'Concat with shortcut connection at block {k}'))
+                print(concat, 'concat')
                 final_nodes.extend([net, shortcut, concat])
-                outputs.extend(concat)
+                outputs.extend([concat])
                 
             final_nodes.append(Ff.OutputNode(outputs[-1], name="Final output"))
             self.inn = Ff.GraphINN(final_nodes)

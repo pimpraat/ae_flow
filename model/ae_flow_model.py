@@ -15,16 +15,16 @@ class AE_Flow_Model(nn.Module):
 
         super(AE_Flow_Model, self).__init__()
         self.encoder = Encoder() #.to(memory_format=torch.channels_last)
-        self.flow = FlowModule(subnet_architecture)
+        self.flow = FlowModule(subnet_architecture=subnet_architecture, custom_computation_graph=custom_comptutation_graph, n_flowblocks=n_flowblocks)
         self.decoder = Decoder() #.to(memory_format=torch.channels_last)
 
         self.sample_images_normal = []
         self.sample_images_abnormal = []
 
     def forward(self, x):
-        z = self.encoder(x.to(memory_format=torch.channels_last))
+        z = self.encoder(x)
         self.z_prime, self.log_jac_det = self.flow(z)
-        reconstructed_x = self.decoder(self.z_prime.to(memory_format=torch.channels_last))
+        reconstructed_x = self.decoder(self.z_prime)
         return reconstructed_x
     
     def get_reconstructionloss(self, _x, recon_x):
