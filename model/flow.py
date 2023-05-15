@@ -21,7 +21,7 @@ class FlowModule(nn.Module):
                     subnet_constructor=FlowModule.resnet_type_network, permute_soft=False}
                 shortcut = Ff.Node(ouputs[-1], Fm.AllInOneBlock, {
                     subnet_constructor=FlowModule.shortcut_connection, permute_soft=False}
-                concat = Ff.Node([actnorm.out0, in2.out0], Fm.Concat1d, {}, name=str(f'Concat with shortcut connection at block {k}'))
+                concat = Ff.Node([actnorm.out0, in2.out1], Fm.Concat1d, {}, name=str(f'Concat with shortcut connection at block {k}'))
                 final_nodes.extend([net, shortcut, concat])
                 outputs.extend(concat)
                 
