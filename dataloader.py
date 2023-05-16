@@ -77,9 +77,8 @@ class LoadDataset(Dataset):
     def _get_file_list(self):
         file_list = []
         label_list = []
-        print(self.split)
         # set split to 'train'
-        if self.split == 'train_complete':
+        if self.split == 'train_abnormal':
             split = 'train'
         else:
             split = self.split
@@ -103,6 +102,8 @@ class LoadDataset(Dataset):
         else:
             if self.split == 'train':
                 paths = [path0]
+            elif self.split == 'train_abnormal':
+                paths = [path1]
             for label, path in paths:
                 for filename in glob.glob(path+'*.'+self.ext):
                     file_list.append(filename)
@@ -139,19 +140,26 @@ def preprocess_img(img):
     img = normalize(img)
     return img
 
-def load(data_dir,batch_size=64, num_workers=4):
+def load(data_dir,batch_size=64, num_workers=4, return_dataloaders=True):
     train_dataset = LoadDataset(data_dir, split='train')
     val_dataset = LoadDataset(data_dir, split='val')
     test_dataset = LoadDataset(data_dir, split='test')
-    train_dataset_complete = LoadDataset(data_dir, split='train_complete')
+    train_abnormal = LoadDataset(data_dir, split='train_abnormal')
+    if not return_dataloaders:
+        # only the test_dataset will be a dataloader
+        test_loader = data.DataLoader(
+            test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
+
+        return train_dataset, train_abnormal, val_dataset, test_loader
 
     ## As we use Nvidia GPU's pin_memory for speedup using pinned memmory
+
     train_loader = data.DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
     val_loader = data.DataLoader(
             val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
     test_loader = data.DataLoader(
             test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
-    train_complete = data.DataLoader(
-        train_dataset_complete, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last=False, pin_memory=False)
-    return train_loader, train_complete, val_loader, test_loader
+    train_abnormal_loader = data.DataLoader(
+        train_abnormal, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last=False, pin_memory=False)
+    return train_loader, train_abnormal_loader, val_loader, test_loader

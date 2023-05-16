@@ -4,6 +4,7 @@ import argparse
 import copy
 import os
 torch.manual_seed(42) # Setting the seed
+import torch.utils.data as data
 
 from model.ae_flow_model import AE_Flow_Model
 # from baselines.ganomaly import GanomalyModel
@@ -19,6 +20,8 @@ import sklearn
 import time
 import json
 from sklearn.model_selection import KFold
+
+from tqdm import tqdm
 
 # Make sure the following reads to a file with your own W&B API/Server key
 WANDBKEY = open("wandbkey.txt", "r").read()
@@ -177,7 +180,7 @@ def main(args):
 
 
     #TODO: @Andre: train_complete should be train_abnormal
-    train_loader, train_complete, validate_loader, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers)
+    train_loader, train_abnormal, validate_loader, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, return_dataloaders=False)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     print(f"Length of the train loader: {len(train_loader)} given a batch size of {args.batch_size}")
@@ -199,34 +202,50 @@ def main(args):
         kfold_normal = KFold(n_splits=k_folds, shuffle=True)
         kfold_abormal = KFold(n_splits=k_folds, shuffle=True)
 
-        train_split_normal, test_split_normal = kfold_normal.split(train_complete)
-        train_split_abnormal, test_split_abnormal = kfold_abormal.split(train_abnormal)
+        #train_split_normal, test_split_normal
+        normal_split = list(kfold_normal.split(train_loader))
+        train_split_normal = [kfold[0] for kfold in normal_split]
+        test_split_normal = [kfold[1] for kfold in normal_split]
 
-        for fold in range(k_folds):
-            train_ids = train_split_normal[fold]
+
+        abnormal_split = list(kfold_abormal.split(train_abnormal))
+        train_split_abnormal = [kfold[0] for kfold in abnormal_split]
+        test_split_abnormal = [kfold[1] for kfold in abnormal_split]
+
+        for fold in tqdm(range(k_folds)):
+            train_ids_normal = train_split_normal[fold]
+            train_ids_abnormal = train_split_abnormal[fold]
             test_ids_normal = test_split_normal[fold]
             test_ids_abnormal = test_split_abnormal[fold]
 
-            train_loader = torch.utils.data.dataset.Subset(train_complete,train_ids)
-            train_step(epoch, model, train_loader,optimizer)
+            train_normal_dataset = torch.utils.data.dataset.Subset(train_loader,train_ids_normal)
+            train_normal_loader = data.DataLoader(train_normal_dataset, num_workers = args.num_workers, batch_size=args.batch_size)
+            train_step(epoch, model, train_normal_loader, optimizer)
 
-            b =  torch.utils.data.dataset.Subset(train_abnormal,train_split_abnormal)
-            threshold_dataset = torch.utils.data.ConcatDataset([train_loader, b])
-            threshold = find_threshold(epoch, model, threshold_dataset, _print=True)
+            train_abnormal_dataset =  torch.utils.data.dataset.Subset(train_abnormal,train_ids_abnormal)
+            threshold_dataset = torch.utils.data.ConcatDataset([train_abnormal_dataset, train_normal_dataset])
+            threshold_loader = data.DataLoader(threshold_dataset, num_workers = args.num_workers, batch_size=args.batch_size)
+            threshold = find_threshold(epoch, model, threshold_loader, _print=False)
 
-            validate_loader_normal = torch.utils.data.dataset.Subset(train_complete,test_ids_normal)
-            validate_loader_aormal = torch.utils.data.dataset.Subset(train_abnormal,test_ids_abnormal)
+            validate_loader_normal = torch.utils.data.dataset.Subset(train_loader,test_ids_normal)
+            validate_loader_abnormal = torch.utils.data.dataset.Subset(train_abnormal,test_ids_abnormal)
             
-            validate_loader_combined = torch.utils.data.ConcatDataset([validate_loader_normal, validate_loader_aormal])
+            validate_loader_combined = torch.utils.data.ConcatDataset([validate_loader_normal, validate_loader_abnormal])
 
-            results = eval_model(epoch, model, validate_loader, threshold, _print=True)
+            validate_loader_combined = data.DataLoader(validate_loader_combined, num_workers = args.num_workers, batch_size=args.batch_size)
+            
+            if fold % 5 == 0:
+                printeval=True
+            else:
+                printeval=False
+            results = eval_model(epoch, model, validate_loader_combined, threshold, _print=printeval)
             fold_metrics.append(results['F1'])
 
 
         start = time.time()
 
-        train_step(epoch, model, train_loader,
-                  optimizer)
+        #train_step(epoch, model, train_loader,
+        #          optimizer)
 
         # If we calculate the threshold externally (removed from Lisa), 
         # we need to save at every epoch the anomaly scores for both train_complete and test_loader
@@ -256,8 +275,8 @@ def main(args):
         wandb.log({'time per epoch': time.time() - start})
     
         # Save if best eval:
-        if results['F1'] >= current_best_score:
-            current_best_score = results['F1']
+        if np.mean(results['F1']) >= current_best_score:
+            current_best_score = np.mean(results['F1'])
             torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
             best_model = copy.deepcopy(model)
             used_thr = threshold

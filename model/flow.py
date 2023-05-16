@@ -121,15 +121,17 @@ class FlowModule(nn.Module):
     class Conv3x3_res_1x1(nn.Module):
         def __init__(self, size_in, size_out):
             super().__init__()
-            self.conv = nn.Conv2d(size_in, size_out, kernel_size=3, stride=1, bias=1)
+            self.conv = nn.Conv2d(size_in, size_out, kernel_size=3, padding='same', bias=1)
             self.bn = nn.BatchNorm2d(size_out)
             self.relu = nn.ReLU(inplace=True)
-            self.res = nn.Conv2d(size_in, size_out, kernel_size=1, stride=1, bias=0)
+            self.res = nn.Conv2d(size_in, size_out, kernel_size=1, bias=0)
         def forward(self, x):
             output = self.conv(x)
             output = self.bn(output)
             output = self.relu(output)
-            return output + self.res(x)
+            res = self.res(x)
+            return output + res
+
 
 
     # from Pim: let's try to see if this works to have a proper shortcut conncection
