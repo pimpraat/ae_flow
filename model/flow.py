@@ -84,19 +84,26 @@ class FlowModule(nn.Module):
         # Most direct computation for this part can be found here:
         # https://vislearn.github.io/FrEIA/_build/html/tutorial/graph_inns.html
         if custom_computation_graph:
-            print('using custom computation graph')
-            outputs = [Ff.InputNode(1024, 16, 16, name="Input at the beginning")]
-            final_nodes = [outputs[0]]
+            print('using custom computation graph, now with custom subnet constructor')
+
+            # Try this based on Cyril's answer:
+            self.inn = Ff.SequenceINN(1024, 16, 16)
+            for k in range(8):
+                self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.Conv3x3_res_1x1, permute_soft=False)
+
+
+            # outputs = [Ff.InputNode(1024, 16, 16, name="Input at the beginning")]
+            # final_nodes = [outputs[0]]
             
-            for k in range(n_flowblocks):
-                net = Ff.Node(outputs[-1], Fm.AllInOneBlock, {'subnet_constructor': FlowModule.resnet, 'permute_soft': False})
-                shortcut = Ff.Node(outputs[-1], Fm.AllInOneBlock, {'subnet_constructor': FlowModule.shortcut_connection, 'permute_soft':False})
-                concat = Ff.Node([net.out0, shortcut.out0], SumFMmodule, {'dim':1}, name=str(f'Concat with shortcut connection at block {k}'))
-                final_nodes.extend([net, shortcut, concat])
-                outputs.extend([concat])
+            # for k in range(n_flowblocks):
+            #     net = Ff.Node(outputs[-1], Fm.AllInOneBlock, {'subnet_constructor': FlowModule.resnet, 'permute_soft': False})
+            #     shortcut = Ff.Node(outputs[-1], Fm.AllInOneBlock, {'subnet_constructor': FlowModule.shortcut_connection, 'permute_soft':False})
+            #     concat = Ff.Node([net.out0, shortcut.out0], SumFMmodule, {'dim':1}, name=str(f'Concat with shortcut connection at block {k}'))
+            #     final_nodes.extend([net, shortcut, concat])
+            #     outputs.extend([concat])
                 
-            final_nodes.append(Ff.OutputNode(outputs[-1], name="Final output"))
-            self.inn = Ff.GraphINN(final_nodes)
+            # final_nodes.append(Ff.OutputNode(outputs[-1], name="Final output"))
+            # self.inn = Ff.GraphINN(final_nodes)
         if not custom_computation_graph:
             self.inn = Ff.SequenceINN(1024, 16, 16)
             for k in range(8):
@@ -108,6 +115,22 @@ class FlowModule(nn.Module):
                 if subnet_architecture == 'resnet_like_old':
                     self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet_type_network, permute_soft=False)
                     self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.shortcut_connection, permute_soft=False)
+
+
+    # Try the approach of a custom subnet_constructor
+    class Conv3x3_res_1x1(nn.Module):
+        def __init__(self, size_in, size_out):
+            super().__init__()
+            self.conv = nn.Conv2d(size_in, size_out, kernel_size=3, stride=1, bias=1)
+            self.bn = nn.BatchNorm2d(size_out)
+            self.relu = nn.ReLU(inplace=True)
+            self.res = nn.Conv2d(size_in, size_out, kernel_size=1, stride=1, bias=0)
+        def forward(self, x):
+            output = self.conv(x)
+            output = self.bn(output)
+            output = self.relu(output)
+            return output + self.res(x)
+
 
     # from Pim: let's try to see if this works to have a proper shortcut conncection
     def resnet(c_in, c_out):
