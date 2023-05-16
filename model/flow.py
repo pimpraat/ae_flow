@@ -88,11 +88,8 @@ class FlowModule(nn.Module):
 
             # Try this based on Cyril's answer:
             self.inn = Ff.SequenceINN(1024, 16, 16)
-
-            local_constr = FlowModule.Conv3x3_res_1x1()
-
-            for k in range(8):
-                self.inn.append(Fm.AllInOneBlock, subnet_constructor=local_constr, permute_soft=False)
+            for k in range(n_flowblocks):
+                self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.Conv3x3_res_1x1, permute_soft=False)
 
 
             # outputs = [Ff.InputNode(1024, 16, 16, name="Input at the beginning")]
@@ -109,7 +106,7 @@ class FlowModule(nn.Module):
             # self.inn = Ff.GraphINN(final_nodes)
         if not custom_computation_graph:
             self.inn = Ff.SequenceINN(1024, 16, 16)
-            for k in range(8):
+            for k in range(n_flowblocks):
                 if subnet_architecture == 'conv_like':
                     self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.subnet_conv_3x3_1x1, permute_soft=False)
                 if subnet_architecture == 'resnet_like':
