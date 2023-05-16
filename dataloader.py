@@ -11,6 +11,51 @@ from tqdm import tqdm
 # required for certain images in OCT2017
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+def load_btad(split):
+    file_list = []
+    label_list = []
+    datasets = ['01', '02', '03']
+    exts = ['bmp', 'png', 'bmp']
+    # if validation split: take 2 of each class for each dataset
+    if split in ['val', 'test']:
+
+        # path to dirs
+        for dataset, ext in zip(datasets, exts):
+            path0 = (0, f'data/btad/{dataset}/test/ok/')
+            path1 = (1, f'data/btad/{dataset}/test/ko/')
+            paths = [path0, path1]
+
+            # select 2 samples of each class for each dataset
+            if split == 'val':
+                for label, path in paths:
+                    # one path is one class, reset files_added
+                    files_added = 0
+                    for filename in glob.glob(path+'*.'+ext):
+                        if files_added <= 2:
+                            file_list.append(filename)
+                            label_list.append(label)
+                            files_added += 1
+            # otherwise select everything but the last 2 samples of each class of each dataset
+            else:
+                for label, path in paths:
+                    files_added = 0
+                    for filename in glob.glob(path+'*.'+ext):
+                        # only start adding to file list after the first two have
+                        if files_added > 2:
+                            file_list.append(filename)
+                            label_list.append(label)
+                        else:
+                            files_added += 1 
+    # train set
+    else:
+        for dataset, ext in zip(datasets, exts):
+            path = f'data/btad/{dataset}/train/ok/'
+            for filename in glob.glob(path+'*.'+ext):
+                file_list.append(filename)
+                label_list.append(0)
+
+    return file_list, label_list
+
 class LoadDataset(Dataset):
     def __init__(self, data_dir, split, ext='jpeg', preload=False):
         self.data_dir = data_dir
@@ -32,7 +77,7 @@ class LoadDataset(Dataset):
     def _get_file_list(self):
         file_list = []
         label_list = []
-
+        print(self.split)
         # set split to 'train'
         if self.split == 'train_complete':
             split = 'train'
@@ -47,52 +92,12 @@ class LoadDataset(Dataset):
             paths = [path0, path1, path2, path3]
         elif self.data_dir == 'chest_xray':
             path0 = (0, 'data/'+self.data_dir+'/'+split+'/NORMAL/')
-            path1 = (1, 'data/'+self.data_dir+'/'+split+'PNEUMONIA/')
+            path1 = (1, 'data/'+self.data_dir+'/'+split+'/PNEUMONIA/')
             paths = [path0, path1]
-
         # different procedure for btech
         # TODO: this needs some cleaning up
         if self.data_dir == 'btad':
-            datasets = ['01', '02', '03']
-            exts = ['bmp', 'png', 'bmp']
-            # if validation split: take 2 of each class for each dataset
-            if self.split in ['val', 'test']:
-
-                # path to dirs
-                for dataset, ext in zip(datasets, exts):
-                    path0 = (0, f'data/{self.data_dir}/{dataset}/test/ok/')
-                    path1 = (1, f'data/{self.data_dir}/{dataset}/test/ko/')
-                    paths = [path0, path1]
-
-                    # select 2 samples of each class for each dataset
-                    if self.split == 'val':
-                        for label, path in paths:
-                            # one path is one class, reset files_added
-                            files_added = 0
-                            for filename in glob.glob(path+'*.'+ext):
-                                if files_added <= 2:
-                                    file_list.append(filename)
-                                    label_list.append(label)
-                                    files_added += 1
-                    # otherwise select everything but the last 2 samples of each class of each dataset
-                    else:
-                        for label, path in paths:
-                            files_added = 0
-                            for filename in glob.glob(path+'*.'+ext):
-                                # only start adding to file list after the first two have
-                                if files_added > 2:
-                                    file_list.append(filename)
-                                    label_list.append(label)
-                                else:
-                                    files_added += 1
-                        
-            # train set
-            else:
-                for dataset, ext in zip(datasets, exts):
-                    path = f'data/{self.data_dir}/{dataset}/train/ok/'
-                    for filename in glob.glob(path+'*.'+ext):
-                        file_list.append(filename)
-                        label_list.append(0)
+            file_list, label_list = load_btad(split)
 
         # non bean tech datasets
         else:

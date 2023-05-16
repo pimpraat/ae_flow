@@ -4,6 +4,77 @@ import torch.nn.functional as F
 import torchvision
 import FrEIA.framework as Ff
 import FrEIA.modules as Fm
+import FrEIA
+
+from FrEIA.modules import InvertibleModule
+from typing import Sequence, Union
+from copy import deepcopy
+
+# FIXME: this should be put somewhere else
+class SumFMmodule(InvertibleModule):
+    """Invertible merge operation.
+
+    Concatenates a list of incoming tensors along a given dimension and passes
+    on the result. Inverse is the corresponding split operation.
+    """
+
+    def __init__(self,
+                 dims_in: Sequence[Sequence[int]],
+                 dim: int = 0,
+     ):
+        """Inits the Concat module with the attributes described above and
+        checks that all dimensions are compatible.
+
+        Args:
+          dims_in:
+            A list of tuples containing the non-batch dimensionality of all
+            incoming tensors. Handled automatically during compute graph setup.
+            Dimensionality of incoming tensors must be identical, except in the
+            merge dimension ``dim``. Concat only makes sense with multiple input
+            tensors.
+          dim:
+            Index of the dimension along which to concatenate, not counting the
+            batch dimension. Defaults to 0, i.e. the channel dimension in structured
+            data.
+        """
+        super().__init__(dims_in)
+        assert len(dims_in) > 1, ("Concatenation only makes sense for "
+                                  "multiple inputs")
+        assert len(dims_in[0]) >= dim, "Merge dimension index out of range"
+        assert all(len(dims_in[i]) == len(dims_in[0])
+                   for i in range(len(dims_in))), (
+                           "All input tensors must have same number of "
+                           "dimensions"
+                   )
+        assert all(dims_in[i][j] == dims_in[0][j] for i in range(len(dims_in))
+                   for j in range(len(dims_in[i])) if j != dim), (
+                           "All input tensor dimensions except merge "
+                           "dimension must be identical"
+                   )
+        self.dim = dim
+        self.split_size_or_sections = [dims_in[i][dim]
+                                       for i in range(len(dims_in))]
+
+    def forward(self, x, rev=False, jac=True):
+        """See super class InvertibleModule.
+        Jacobian log-det of concatenation is always zero."""
+        if rev:
+            return x[0] - x[1], 0
+            #return torch.split(x[0], self.split_size_or_sections,
+            #                   dim=self.dim+1), 0
+        else:
+            summed = x[0] + x[1]
+            return [summed], 0
+
+    def output_dims(self, input_dims):
+        """See super class InvertibleModule."""
+        assert len(input_dims) > 1, ("Concatenation only makes sense for "
+                                     "multiple inputs")
+        output_dims = deepcopy(list(input_dims[0]))
+        output_dims[self.dim] = sum(input_dim[self.dim]
+                                    for input_dim in input_dims)
+        return [tuple(output_dims)]
+    
 
 class FlowModule(nn.Module):
 
@@ -18,10 +89,9 @@ class FlowModule(nn.Module):
             final_nodes = [outputs[0]]
             
             for k in range(n_flowblocks):
-                net = Ff.Node(outputs[-1], Fm.AllInOneBlock, {'subnet_constructor': FlowModule.resnet_type_network, 'permute_soft': False})
+                net = Ff.Node(outputs[-1], Fm.AllInOneBlock, {'subnet_constructor': FlowModule.resnet, 'permute_soft': False})
                 shortcut = Ff.Node(outputs[-1], Fm.AllInOneBlock, {'subnet_constructor': FlowModule.shortcut_connection, 'permute_soft':False})
-                concat = Ff.Node([net.out0, shortcut.out0], Fm.Concat1d, {'dim':0}, name=str(f'Concat with shortcut connection at block {k}'))
-                print(concat, 'concat')
+                concat = Ff.Node([net.out0, shortcut.out0], SumFMmodule, {'dim':1}, name=str(f'Concat with shortcut connection at block {k}'))
                 final_nodes.extend([net, shortcut, concat])
                 outputs.extend([concat])
                 
@@ -38,12 +108,12 @@ class FlowModule(nn.Module):
                 if subnet_architecture == 'resnet_like_old':
                     self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet_type_network, permute_soft=False)
                     self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.shortcut_connection, permute_soft=False)
-    
+
     # from Pim: let's try to see if this works to have a proper shortcut conncection
     def resnet(c_in, c_out):
 
         # what about this? 256 or something else?
-        return FlowModule.subnet_conv_3x3_1x1(c_in, 256) + FlowModule.shortcut_connection(256, c_out)
+        return nn.Sequential(FlowModule.subnet_conv_3x3_1x1(c_in, 256), nn.ReLU(), FlowModule.shortcut_connection(256, c_out))
 
         # this doesn't work, as input and output are mismatched between the two
         #return FlowModule.subnet_conv_3x3_1x1(c_in, c_out) + FlowModule.shortcut_connection(c_in, c_out)

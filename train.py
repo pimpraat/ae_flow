@@ -2,6 +2,7 @@ import torch
 import torchmetrics
 import argparse
 import copy
+import os
 torch.manual_seed(42) # Setting the seed
 
 from model.ae_flow_model import AE_Flow_Model
@@ -21,6 +22,7 @@ import json
 # Make sure the following reads to a file with your own W&B API/Server key
 WANDBKEY = open("wandbkey.txt", "r").read()
 
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:256"
 
 def train_step(epoch, model, train_loader,
                   optimizer):
@@ -90,7 +92,7 @@ def calculate_metrics(true, anomaly_scores, threshold):
 
 
 # maybe at epoch as an optional argument? 
-def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_only_anomaly_scores=False, validation=True):
+def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_only_anomaly_scores=False, track_results=True, test_eval=False):
 
     with torch.no_grad(): # Deactivate gradients for the following code
         anomaly_scores, true_labels = [], []
@@ -120,10 +122,16 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
 
     results = calculate_metrics(true, anomaly_scores, threshold)
     
+    if test_eval and track_results:
+        test_results = {}
+        for metric in results:
+            test_results[metric+'-test'] = results[metric]
+        wandb.log(test_results) 
+
     # the validation set contains very few samples
     # only log the results on the test set (per 10 epochs)
         # this does not influence the best model selection
-    if validation == False:
+    elif track_results == True:
         wandb.log(results)
 
     if _print: print(f"Epoch {epoch}: {results}")   
@@ -220,12 +228,12 @@ def main(args):
 
         if epoch % 10 == 0:
             print(f'Results on test set after {epoch} epochs')
-            eval_model(epoch, best_model, test_loader, used_thr, _print=True, validation=False)
+            eval_model(epoch, best_model, test_loader, used_thr, _print=True, track_results=True, test_eval=True)
             # save model every 10 epoch
             if not args.custom_computation_graph:
                 torch.save(model.state_dict(), str(f'models/per_epoch/{wandb.config}_epoch_{epoch}.pt'))
 
-    results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, validation=False)
+    results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, track_results=True, test_eval=True)
     
     print(f"Final, best results on test dataset: {results}")
     
