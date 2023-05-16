@@ -18,6 +18,7 @@ import numpy as np
 import sklearn
 import time
 import json
+from sklearn.model_selection import KFold
 
 # Make sure the following reads to a file with your own W&B API/Server key
 WANDBKEY = open("wandbkey.txt", "r").read()
@@ -170,6 +171,12 @@ def main(args):
     'optim_weight_decay': args.optim_weight_decay
     }
 )
+
+    #TODO: Make args!
+    k_folds = 5
+
+
+    #TODO: @Andre: train_complete should be train_abnormal
     train_loader, train_complete, validate_loader, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -187,6 +194,35 @@ def main(args):
     
     # Training loop
     for epoch in range(args.epochs):
+        fold_metrics = []
+
+        kfold_normal = KFold(n_splits=k_folds, shuffle=True)
+        kfold_abormal = KFold(n_splits=k_folds, shuffle=True)
+
+        train_split_normal, test_split_normal = kfold_normal.split(train_complete)
+        train_split_abnormal, test_split_abnormal = kfold_abormal.split(train_abnormal)
+
+        for fold in range(k_folds):
+            train_ids = train_split_normal[fold]
+            test_ids_normal = test_split_normal[fold]
+            test_ids_abnormal = test_split_abnormal[fold]
+
+            train_loader = torch.utils.data.dataset.Subset(train_complete,train_ids)
+            train_step(epoch, model, train_loader,optimizer)
+
+            b =  torch.utils.data.dataset.Subset(train_abnormal,train_split_abnormal)
+            threshold_dataset = torch.utils.data.ConcatDataset([train_loader, b])
+            threshold = find_threshold(epoch, model, threshold_dataset, _print=True)
+
+            validate_loader_normal = torch.utils.data.dataset.Subset(train_complete,test_ids_normal)
+            validate_loader_aormal = torch.utils.data.dataset.Subset(train_abnormal,test_ids_abnormal)
+            
+            validate_loader_combined = torch.utils.data.ConcatDataset([validate_loader_normal, validate_loader_aormal])
+
+            results = eval_model(epoch, model, validate_loader, threshold, _print=True)
+            fold_metrics.append(results['F1'])
+
+
         start = time.time()
 
         train_step(epoch, model, train_loader,
@@ -194,23 +230,23 @@ def main(args):
 
         # If we calculate the threshold externally (removed from Lisa), 
         # we need to save at every epoch the anomaly scores for both train_complete and test_loader
-        if args.find_threshold_externally:
-            true_label_traincomplete, anomaly_score_traincomplete = eval_model(epoch, model, train_complete, threshold=used_thr, return_only_anomaly_scores=True)
-            true_label_test, anomaly_score_test = eval_model(epoch, model, test_loader, threshold=used_thr, return_only_anomaly_scores=True)
+        # if args.find_threshold_externally:
+        #     true_label_traincomplete, anomaly_score_traincomplete = eval_model(epoch, model, train_complete, threshold=used_thr, return_only_anomaly_scores=True)
+        #     true_label_test, anomaly_score_test = eval_model(epoch, model, test_loader, threshold=used_thr, return_only_anomaly_scores=True)
 
-            data = {'0': {
-                        'true_label_traincomplete': true_label_traincomplete,
-                        'anomaly_score_traincomplete': anomaly_score_traincomplete,
-                        'true_label_test': true_label_test,
-                        'anomaly_score_test': anomaly_score_test}}
+        #     data = {'0': {
+        #                 'true_label_traincomplete': true_label_traincomplete,
+        #                 'anomaly_score_traincomplete': anomaly_score_traincomplete,
+        #                 'true_label_test': true_label_test,
+        #                 'anomaly_score_test': anomaly_score_test}}
             
-            with open(f"{str({wandb.config})}.json", "a") as outfile: json.dump(data, outfile)
-            if epoch % 10 == 0: torch.save(model.state_dict(), str(f"models/{wandb.config}_at_epoch_{epoch}.pt"))
-            continue
+        #     with open(f"{str({wandb.config})}.json", "a") as outfile: json.dump(data, outfile)
+        #     if epoch % 10 == 0: torch.save(model.state_dict(), str(f"models/{wandb.config}_at_epoch_{epoch}.pt"))
+        #     continue
 
 
-        threshold = find_threshold(epoch, model, train_complete, _print=True)
-        results = eval_model(epoch, model, validate_loader, threshold, _print=True)
+        # threshold = find_threshold(epoch, model, train_complete, _print=True)
+        # results = eval_model(epoch, model, validate_loader, threshold, _print=True)
 
         # Todo: fix again that images as being pushed to w&b
         # if args.model == 'ae_flow': wandb.log(sample_images(model, device))

@@ -1,10 +1,55 @@
+wandb: Currently logged in as: pimpraat (dl2_ae_flow). Use `wandb login --relogin` to force relogin
+wandb: Appending key for api.wandb.ai to your netrc file: /home/lcur1708/.netrc
+wandb: wandb version 0.15.2 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.15.0
+wandb: Run data is saved locally in /home/lcur1708/ae_flow_git/ae_flow/wandb/run-20230516_131450-gc79cwz4
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run eager-forest-233
+wandb: ⭐️ View project at https://wandb.ai/dl2_ae_flow/ae_flow
+wandb: 🚀 View run at https://wandb.ai/dl2_ae_flow/ae_flow/runs/gc79cwz4
+train
+val
+test
+train_complete
+/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torch/utils/data/dataloader.py:554: UserWarning: This DataLoader will create 4 worker processes in total. Our suggested max number of worker in current system is 3, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  warnings.warn(_create_warning_msg(
+Length of the train loader: 21 given a batch size of 64
+/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=Wide_ResNet50_2_Weights.IMAGENET1K_V1`. You can also use `weights=Wide_ResNet50_2_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+using custom computation graph, now with custom subnet constructor
 Traceback (most recent call last):
-  File "/home/lcur1624/ae_flow/train.py", line 7, in <module>
-    from model.ae_flow_model import AE_Flow_Model
-  File "/home/lcur1624/ae_flow/model/ae_flow_model.py", line 10, in <module>
-    from model.flow import FlowModule
-  File "/home/lcur1624/ae_flow/model/flow.py", line 32
-    self.inn.append((Fm.AllInOneBlock, subnet_constructor=FlowModule.resnet, permute_soft=False))
-                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-SyntaxError: invalid syntax. Maybe you meant '==' or ':=' instead of '='?
+  File "/home/lcur1708/ae_flow_git/ae_flow/train.py", line 292, in <module>
+    main(args)
+  File "/home/lcur1708/ae_flow_git/ae_flow/train.py", line 192, in main
+    train_step(epoch, model, train_loader,
+  File "/home/lcur1708/ae_flow_git/ae_flow/train.py", line 38, in train_step
+    reconstructed_x = model(original_x).squeeze(dim=1)
+  File "/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/lcur1708/ae_flow_git/ae_flow/model/ae_flow_model.py", line 26, in forward
+    self.z_prime, self.log_jac_det = self.flow(z)
+  File "/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/lcur1708/ae_flow_git/ae_flow/model/flow.py", line 160, in forward
+    z, log_jac_det = self.inn(x)
+  File "/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/FrEIA/framework/sequence_inn.py", line 104, in forward
+    x_or_z, j = self.module_list[i](x_or_z, jac=jac, rev=rev)
+  File "/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/FrEIA/modules/all_in_one_block.py", line 248, in forward
+    a1 = self.subnet(x1c)
+  File "/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1190, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/lcur1708/ae_flow_git/ae_flow/model/flow.py", line 132, in forward
+    return output + self.res(x)
+RuntimeError: The size of tensor a (14) must match the size of tensor b (16) at non-singleton dimension 3
+wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
+wandb: 🚀 View run eager-forest-233 at: https://wandb.ai/dl2_ae_flow/ae_flow/runs/gc79cwz4
+wandb: Synced 6 W&B file(s), 0 media file(s), 2 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20230516_131450-gc79cwz4/logs
 srun: error: r28n5: task 0: Exited with exit code 1
