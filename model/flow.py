@@ -88,8 +88,11 @@ class FlowModule(nn.Module):
 
             # Try this based on Cyril's answer:
             self.inn = Ff.SequenceINN(1024, 16, 16)
+
+            local_constr = FlowModule.Conv3x3_res_1x1()
+
             for k in range(8):
-                self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.Conv3x3_res_1x1, permute_soft=False)
+                self.inn.append(Fm.AllInOneBlock, subnet_constructor=local_constr, permute_soft=False)
 
 
             # outputs = [Ff.InputNode(1024, 16, 16, name="Input at the beginning")]
