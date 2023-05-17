@@ -215,7 +215,7 @@ def main(args):
         # Save if best eval:
         if results['F1'] >= current_best_score:
             current_best_score = results['F1']
-            torch.save(model.state_dict(), str(f"models/title.pt"))
+            torch.save(model.state_dict(), str(f"models/{title}.pt"))
             best_model = copy.deepcopy(model)
             used_thr = threshold
 
@@ -224,7 +224,7 @@ def main(args):
             eval_model(epoch, best_model, test_loader, used_thr, _print=True, validation=False)
             # save model every 10 epoch
             
-            torch.save(model.state_dict(), str(f'models/per_epoch/title.pt'))
+            torch.save(model.state_dict(), str(f'models/per_epoch/{title}.pt'))
 
     results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, validation=False)
     
