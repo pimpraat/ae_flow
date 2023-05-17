@@ -159,6 +159,7 @@ def main(args):
     'optim_momentum': args.optim_momentum,
     'optim_weight_decay': args.optim_weight_decay
     }
+    
 )
     train_loader, train_complete, validate_loader, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=3)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -208,11 +209,13 @@ def main(args):
 
         print(f"Duration for epoch {epoch}: {time.time() - start}")
         wandb.log({'time per epoch': time.time() - start})
-    
+        
+        title = f"{args.model}_{args.subnet_arc}_{args.dataset}_a{args.loss_alpha}_b{args.loss_beta}_lr{args.optim_lr}_m{args.optim_momentum}_wd{args.optim_weight_decay}"
+
         # Save if best eval:
         if results['F1'] >= current_best_score:
             current_best_score = results['F1']
-            torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
+            torch.save(model.state_dict(), str(f"models/title.pt"))
             best_model = copy.deepcopy(model)
             used_thr = threshold
 
@@ -220,7 +223,8 @@ def main(args):
             print(f'Results on test set after {epoch} epochs')
             eval_model(epoch, best_model, test_loader, used_thr, _print=True, validation=False)
             # save model every 10 epoch
-            torch.save(model.state_dict(), str(f'models/per_epoch/{wandb.config}_epoch_{epoch}.pt'))
+            
+            torch.save(model.state_dict(), str(f'models/per_epoch/title.pt'))
 
     results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, validation=False)
     
