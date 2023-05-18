@@ -17,5 +17,7 @@ module load Anaconda3/2021.05
 # Activate your environment
 source activate dl2022
 
-# Run your code
-srun python -u train.py --subnet_architecture resnet_like --custom_computation_graph True
+# Run experiments on the X-ray dataset
+# These lines below indicate how to run an experiment
+srun python -u train.py --dataset chest_xray --subnet_architecture resnet_like --model ae_flow --final_experiments False -fully_deterministic True --epochs 100 --seed 42 
+srun python -u train.py --dataset chest_xray --loss_beta 0.0 --model ae_flow --final_experiments False -fully_deterministic True --epochs 100 --seed 42 
