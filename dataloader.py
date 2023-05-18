@@ -8,6 +8,8 @@ import glob
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
+import os
+
 # required for certain images in OCT2017
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -61,6 +63,50 @@ def load_btad(split):
                 label_list.append(0)
     return file_list, label_list
 
+def load_mvtec(split, n_abnormal_samples=20):
+    file_list = []
+    label_list = []
+    #print(os.getcwd())
+    root_dir = 'data/mvtec/'
+    subsets = os.listdir(root_dir) 
+    # each subset is a category of items in mvtec
+    for subset in subsets:
+
+        # we want to select n_abnormal_samples from each category
+        n_abnormal_samples_selected = 0
+        if split != 'train':
+            path = root_dir+subset+'/test/'
+
+            subdirs = os.listdir(path)
+            #abnormal_dirs.remove('good')
+            for dir in subdirs:
+                for filename in glob.glob(path+dir+'/*.png'):
+
+                    # for abnormal set, we check all folders except for good
+                    if (split == 'train_abnormal') and (n_abnormal_samples_selected < n_abnormal_samples) and dir != 'good':
+                        file_list.append(filename)
+                        label_list.append(1)
+                        n_abnormal_samples_selected += 1
+                    elif (split == 'test') and (n_abnormal_samples_selected >= n_abnormal_samples):
+                        file_list.append(filename)
+                        if dir != 'good':
+                            label = 1
+                        else:
+                            label = 0
+                        label_list.append(label)
+                    # when split = test, the number of abnormal samples will pass, in order to split test from train_abnormal
+                    else:
+                        n_abnormal_samples_selected += 1
+        else:
+            path = root_dir+subset+'/train/good/'
+            subdirs = os.listdir(path)
+            
+            for filename in glob.glob(path+'*.png'):
+                file_list.append(filename)
+                label_list.append(0)
+    return file_list, label_list
+    
+
 class LoadDataset(Dataset):
     def __init__(self, data_dir, split, ext='jpeg', preload=False):
         self.data_dir = data_dir
@@ -99,14 +145,19 @@ class LoadDataset(Dataset):
             path1 = (1, 'data/'+self.data_dir+'/'+split+'/PNEUMONIA/')
             paths = [path0, path1]
 
-        if self.data_dir == 'btad':
+        elif self.data_dir == 'mvtec':
+            file_list, label_list = load_mvtec(self.split)
+        elif self.data_dir == 'btad':
             file_list, label_list = load_btad(self.split)
-        # non bean tech datasets
         else:
+            # non bean tech datasets
             if self.split == 'train':
                 paths = [path0]
             elif self.split == 'train_abnormal':
-                paths = [path1]
+                if self.data_dir == 'OCT2017':
+                    paths = [path1, path2, path3]
+                else:
+                    paths = [path1]
             for label, path in paths:
                 for filename in glob.glob(path+'*.'+self.ext):
                     file_list.append(filename)
