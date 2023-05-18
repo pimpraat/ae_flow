@@ -222,7 +222,7 @@ def main(args):
 
 
         # Save reconstruction resuls every epoch for later analysis:
-        if args.model == 'ae_flow': wandb.log(sample_images(model, device))
+        #if args.model == 'ae_flow': wandb.log(sample_images(model, device))
 
 
         print(f"Duration for epoch {epoch}: {time.time() - start}")
