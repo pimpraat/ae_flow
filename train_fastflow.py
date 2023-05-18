@@ -46,11 +46,10 @@ def build_optimizer(model):
 def train_one_epoch(dataloader, model, optimizer, epoch):
     model.train()
     loss_meter = utils.AverageMeter()
-    for step, data in enumerate(dataloader):
-        data = torch.Tensor(data)
+    for step, (inputs, targets) in enumerate(dataloader):
         # forward
-        data = data.cuda()
-        ret = model(data)
+        inputs = inputs.cuda()
+        ret = model(inputs)
         loss = ret["loss"]
         # backward
         optimizer.zero_grad()
@@ -74,10 +73,10 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
 
         for batch_idx, (x, y) in enumerate(data_loader):
     
-            data = torch.Tensor(data)
-            data, targets = data.cuda(), targets.cuda()
+            x = torch.Tensor(x)
+            x, targets = x.cuda(), targets.cuda()
             
-            ret = model(data)
+            ret = model(x)
             outputs = ret["anomaly_map"].cpu().detach()
             outputs = outputs.flatten()
             targets = targets.flatten()
@@ -97,6 +96,7 @@ def eval_once(dataloader, model):
     model.eval()
 
     for data, targets in dataloader:
+
         data = torch.Tensor(data)
         data, targets = data.cuda(), targets.cuda()
         with torch.no_grad():
@@ -111,7 +111,7 @@ def eval_once(dataloader, model):
 def train(args):
 
     #TODO: Make private!
-    wandb.login(key=WANDBKEY)
+    #wandb.login(key=WANDBKEY)
 
     """wandb.init(
         # set the wandb project where this run will be logged

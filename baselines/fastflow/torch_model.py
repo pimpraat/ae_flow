@@ -94,12 +94,6 @@ class FastFlow(nn.Module):
             )
         self.input_size = input_size
 
-    def get_flow_loss(self, bpd=True):
-        return self.ret['loss']
-    
-    def get_reconstructionloss(self, original_x, reconstructed_x):
-        return 0
-
     def forward(self, x):
         self.feature_extractor.eval()
         if isinstance(
