@@ -281,7 +281,7 @@ if __name__ == '__main__':
     parser.add_argument('--n_validation_folds', default=5, type=int, help='')
     parser.add_argument('--n_flowblocks', default=8, type=int, help='')
     parser.add_argument('--fully_deterministic', default=True, type=bool, help='Whether to run with torch.backends.cudnn.deterministic')
-    parser.add_argument('--torch_benchmark', default=True, type=bool, help='Whether to run with torch.backends.cudnn.benchmark')
+    parser.add_argument('--torch_benchmark', default=False, type=bool, help='Whether to run with torch.backends.cudnn.benchmark')
 
     parser.add_argument('--epochs', default=15, type=int,
                         help='Number of epochs to train.')
