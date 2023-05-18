@@ -19,13 +19,6 @@ import sklearn
 import time
 import json
 
-from baselines.fastflow.torch_model import init_from_subnet
-
-
-# Comment these out if you have a decent GPU
-import os
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:4092"
-
 
 
 # Make sure the following reads to a file with your own W&B API/Server key
@@ -147,29 +140,28 @@ def main(args):
 
     if args.dataset == "chest_xray": args.optim_weight_decay, args.optim_lr = 0.0, 1e-3
 
-
     #TODO: Make private!
     wandb.login(key=WANDBKEY)
 
     wandb.init(
-    # set the wandb project where this run will be logged
-    project="ae_flow",
-    
-    # track hyperparameters and run metadata
-    #TODO: Update these to be in line with the arguments
-    config={
-    "model": args.model,
-    "subnet_arc": args.subnet_architecture,
-    "dataset": args.dataset,
-    "epochs": args.epochs,
-    'loss_alpha': args.loss_alpha,
-    'loss_beta': args.loss_beta,
-    'optim_lr': args.optim_lr,
-    'optim_momentum': args.optim_momentum,
-    'optim_weight_decay': args.optim_weight_decay
-    }
-    
-)
+        # set the wandb project where this run will be logged
+        project="ae_flow",
+        
+        # track hyperparameters and run metadata
+        #TODO: Update these to be in line with the arguments
+        config={
+        "model": args.model,
+        "subnet_arc": args.subnet_architecture,
+        "dataset": args.dataset,
+        "epochs": args.epochs,
+        'loss_alpha': args.loss_alpha,
+        'loss_beta': args.loss_beta,
+        'optim_lr': args.optim_lr,
+        'optim_momentum': args.optim_momentum,
+        'optim_weight_decay': args.optim_weight_decay
+        }
+    )
+
     train_loader, train_complete, validate_loader, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=3)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -178,8 +170,7 @@ def main(args):
     # Create model and push tvco the device
     if args.model == 'ae_flow': model = AE_Flow_Model(args.subnet_architecture)
     # if args.model == 'ganomaly': model = GanomalyModel(input_size=(256,256), latent_vec_size=100, num_input_channels=3, n_features=None)
-    elif args.model == 'fastflow': 
-        model = init_from_subnet(args.subnet_architecture)
+        
         
 
     model = model.to(device)
