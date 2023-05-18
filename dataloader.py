@@ -16,8 +16,11 @@ def load_btad(split):
     label_list = []
     datasets = ['01', '02', '03']
     exts = ['bmp', 'png', 'bmp']
+
+    n_abnormal_samples_per_class = 10
+
     # if validation split: take 2 of each class for each dataset
-    if split in ['val', 'test']:
+    if split in ['val', 'test', 'train_abnormal']:
 
         # path to dirs
         for dataset, ext in zip(datasets, exts):
@@ -26,34 +29,36 @@ def load_btad(split):
             paths = [path0, path1]
 
             # select 2 samples of each class for each dataset
-            if split == 'val':
+            # currently does the same for both splits (as we do not use a validation set but cross validate)
+            if split in ['val', 'train_abnormal']:
+                paths = [path1]
                 for label, path in paths:
                     # one path is one class, reset files_added
                     files_added = 0
                     for filename in glob.glob(path+'*.'+ext):
-                        if files_added <= 2:
+                        if files_added < n_abnormal_samples_per_class:
                             file_list.append(filename)
                             label_list.append(label)
                             files_added += 1
-            # otherwise select everything but the last 2 samples of each class of each dataset
+            # for the test set, select everything that has not been used in training or validation (above)
             else:
                 for label, path in paths:
                     files_added = 0
                     for filename in glob.glob(path+'*.'+ext):
                         # only start adding to file list after the first two have
-                        if files_added > 2:
+                        if files_added >= n_abnormal_samples_per_class:
                             file_list.append(filename)
                             label_list.append(label)
                         else:
                             files_added += 1 
-    # train set
+    # else train
+    # btad has no abnormal samples for train
     else:
         for dataset, ext in zip(datasets, exts):
             path = f'data/btad/{dataset}/train/ok/'
             for filename in glob.glob(path+'*.'+ext):
                 file_list.append(filename)
                 label_list.append(0)
-
     return file_list, label_list
 
 class LoadDataset(Dataset):
@@ -96,7 +101,7 @@ class LoadDataset(Dataset):
         # different procedure for btech
         # TODO: this needs some cleaning up
         if self.data_dir == 'btad':
-            file_list, label_list = load_btad(split)
+            file_list, label_list = load_btad(self.split)
 
         # non bean tech datasets
         else:
@@ -142,24 +147,26 @@ def preprocess_img(img):
 
 def load(data_dir,batch_size=64, num_workers=4, return_dataloaders=True):
     train_dataset = LoadDataset(data_dir, split='train')
-    val_dataset = LoadDataset(data_dir, split='val')
+    #val_dataset = LoadDataset(data_dir, split='val')
     test_dataset = LoadDataset(data_dir, split='test')
     train_abnormal = LoadDataset(data_dir, split='train_abnormal')
     if not return_dataloaders:
         # only the test_dataset will be a dataloader
         test_loader = data.DataLoader(
             test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
+        return train_dataset, train_abnormal, test_loader
 
-        return train_dataset, train_abnormal, val_dataset, test_loader
+        #return train_dataset, train_abnormal, val_dataset, test_loader
 
     ## As we use Nvidia GPU's pin_memory for speedup using pinned memmory
 
     train_loader = data.DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
-    val_loader = data.DataLoader(
-            val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
+    #val_loader = data.DataLoader(
+    #        val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
     test_loader = data.DataLoader(
             test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
     train_abnormal_loader = data.DataLoader(
         train_abnormal, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last=False, pin_memory=False)
-    return train_loader, train_abnormal_loader, val_loader, test_loader
+    return train_loader, train_abnormal_loader, test_loader
+    #return train_loader, train_abnormal_loader, val_loader, test_loader
