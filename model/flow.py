@@ -6,11 +6,10 @@ import FrEIA.framework as Ff
 import FrEIA.modules as Fm
 import FrEIA
 
-from FrEIA.modules import InvertibleModule
-from typing import Sequence, Union
-from copy import deepcopy
 
 class FlowModule(nn.Module):
+    """Module combining all blocks for the FlowModule
+    """
 
     def __init__(self, subnet_architecture='conv_like', n_flowblocks=8):
         super(FlowModule, self).__init__()        
@@ -23,6 +22,11 @@ class FlowModule(nn.Module):
                 
 
     class Conv3x3_res_1x1(nn.Module):
+        """ A subnet choice for the coupling layer in the flow module:
+            "ResNet-type network with one 3 × 3 convolution layer with batch normalization and ReLU function, 
+            and a shortcut connection with 1 × 1 convolution will be added as the output." (Zhao et al., 2023)
+        
+        """
         def __init__(self, size_in, size_out):
             super().__init__()
             self.conv = nn.Conv2d(size_in, size_out, kernel_size=3, padding='same', bias=1)
@@ -39,6 +43,10 @@ class FlowModule(nn.Module):
 
 
     def subnet_conv_3x3_1x1(c_in, c_out):
+        """A Subnet choice for the coupling layer in the flow module:
+        "based on (Yu et al., 2021), for which each block contains two convolutional 
+        layers with ReLU activation function, and the corresponding kernel size is 3 × 3 and 1 × 1 respectively." (Zhao et al., 2023)
+        """
         return nn.Sequential(nn.Conv2d(c_in, 256,   3, padding=1), nn.ReLU(),
                             nn.Conv2d(256,  c_out, 1))
 

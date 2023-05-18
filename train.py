@@ -222,7 +222,7 @@ def main(args):
 
 
         # Save reconstruction resuls every epoch for later analysis:
-        #if args.model == 'ae_flow': wandb.log(sample_images(model, device))
+        # if args.model == 'ae_flow': wandb.log(sample_images(model, device))
 
 
         print(f"Duration for epoch {epoch}: {time.time() - start}")
@@ -279,9 +279,6 @@ if __name__ == '__main__':
 
     parser.add_argument('--final_experiments', default=False, type=bool, help='Whether to save results as for final experiments')
 
-
-    parser.add_argument('--find_threshold_externally', default=False, type=bool,
-                        help='')
     parser.add_argument('--n_validation_folds', default=5, type=int, help='')
     parser.add_argument('--n_flowblocks', default=8, type=int, help='')
     parser.add_argument('--fully_deterministic', default=True, type=bool, help='Whether to run with torch.backends.cudnn.deterministic')
