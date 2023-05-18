@@ -12,26 +12,6 @@ import torch.nn.functional as F
 
 from . import constants as const
 
-
-def init_from_subnet(subnet_architecture):
-    if subnet_architecture == "conv_like":
-        return FastFlow(
-            input_size = 256,
-            backbone_name = const.BACKBONE_RESNET18,
-            flow_step = 8,
-            hidden_ratio = 1.0,
-            conv3x3_only = True
-        )
-    elif subnet_architecture == "resnet_like":
-        return FastFlow(
-            input_size = 256,
-            backbone_name = const.BACKBONE_WIDE_RESNET50,
-            flow_step = 8,
-            hidden_ratio = 1.0,
-            conv3x3_only = False
-        )
-
-
 def subnet_conv_func(kernel_size, hidden_ratio):
     def subnet_conv(in_channels, out_channels):
         hidden_channels = int(in_channels * hidden_ratio)
@@ -84,7 +64,7 @@ class FastFlow(nn.Module):
                 pretrained=True,
                 features_only=True,
                 out_indices=[1, 2, 3],
-            )
+            ) 
             channels = self.feature_extractor.feature_info.channels()
             scales = self.feature_extractor.feature_info.reduction()
 
@@ -113,6 +93,12 @@ class FastFlow(nn.Module):
                 )
             )
         self.input_size = input_size
+
+    def get_flow_loss(self, bpd=True):
+        return self.ret['loss']
+    
+    def get_reconstructionloss(self, original_x, reconstructed_x):
+        return 0
 
     def forward(self, x):
         self.feature_extractor.eval()
@@ -181,5 +167,7 @@ class FastFlow(nn.Module):
             anomaly_map_list = torch.stack(anomaly_map_list, dim=-1)
             anomaly_map = torch.mean(anomaly_map_list, dim=-1)
             ret["anomaly_map"] = anomaly_map
+
+        self.ret = ret
 
         return ret["anomaly_map"]
