@@ -3,7 +3,6 @@ import torchmetrics
 import argparse
 import copy
 import os
-torch.manual_seed(42) # Setting the seed
 import torch.utils.data as data
 
 from model.ae_flow_model import AE_Flow_Model
@@ -76,7 +75,7 @@ def find_threshold(epoch, model, train_loader, _print=False):
     return optimal_threshold
 
 def calculate_metrics(true, anomaly_scores, threshold):
-    pred = np.array(anomaly_scores>threshold, dtype=np.int)
+    pred = np.array(anomaly_scores>threshold, dtype=int)
     print(f"Number of predicted anomalies in the (test-)set: {np.sum(pred)}")
     
     tn, fp, fn, tp = confusion_matrix(true, pred, labels=[0, 1]).ravel()
@@ -156,7 +155,7 @@ def main(args):
     'n_validation_folds': args.n_validation_folds
     }
 )
-
+    torch.manual_seed(args.seed) # Setting the seed
 
     # Loading the data in a splitted way for later use, see the blogpost, discarding the validation set due to it's limited size
     train_loader, train_abnormal, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, return_dataloaders=False)
