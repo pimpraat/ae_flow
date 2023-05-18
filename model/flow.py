@@ -12,9 +12,9 @@ from copy import deepcopy
 
 class FlowModule(nn.Module):
 
-    def __init__(self, subnet_architecture='conv_like', custom_computation_graph=False, n_flowblocks=8):
+    def __init__(self, subnet_architecture='conv_like', n_flowblocks=8):
         super(FlowModule, self).__init__()        
-
+        self.inn = Ff.SequenceINN(1024, 16, 16)
         for k in range(n_flowblocks):
             if subnet_architecture == 'conv_like':
                 self.inn.append(Fm.AllInOneBlock, subnet_constructor=FlowModule.subnet_conv_3x3_1x1, permute_soft=False)

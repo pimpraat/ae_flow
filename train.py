@@ -145,7 +145,6 @@ def main(args):
     config={
     "model": args.model,
     "subnet_arc": args.subnet_architecture,
-    "custom_computation_graph": args.custom_computation_graph,
     "n_flowblocks": args.n_flowblocks,
     "dataset": args.dataset,
     "epochs": args.epochs,
@@ -160,7 +159,7 @@ def main(args):
 
 
     # Loading the data in a splitted way for later use, see the blogpost, discarding the validation set due to it's limited size
-    train_loader, train_abnormal, _, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, return_dataloaders=False)
+    train_loader, train_abnormal, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, return_dataloaders=False)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
     # Selecting the correct model with it's model settings specified in the experiments:
@@ -278,7 +277,7 @@ if __name__ == '__main__':
     parser.add_argument('--data_dir', default='../data/', type=str,
                         help='Directory where to look for the data. For jobs on Lisa, this should be $TMPDIR.')
 
-    parser.add_argument('--final_experiments', default=False, type=bool, hint='Whether to save results as for final experiments')
+    parser.add_argument('--final_experiments', default=False, type=bool, help='Whether to save results as for final experiments')
 
 
     parser.add_argument('--find_threshold_externally', default=False, type=bool,

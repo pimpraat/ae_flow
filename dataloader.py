@@ -20,7 +20,7 @@ def load_btad(split):
     n_abnormal_samples_per_class = 10
 
     # if validation split: take 2 of each class for each dataset
-    if split in ['val', 'test', 'train_abnormal']:
+    if split in ['test', 'train_abnormal']:
 
         # path to dirs
         for dataset, ext in zip(datasets, exts):
@@ -30,7 +30,7 @@ def load_btad(split):
 
             # select 2 samples of each class for each dataset
             # currently does the same for both splits (as we do not use a validation set but cross validate)
-            if split in ['val', 'train_abnormal']:
+            if split == 'train_abnormal':
                 paths = [path1]
                 for label, path in paths:
                     # one path is one class, reset files_added
@@ -98,11 +98,9 @@ class LoadDataset(Dataset):
             path0 = (0, 'data/'+self.data_dir+'/'+split+'/NORMAL/')
             path1 = (1, 'data/'+self.data_dir+'/'+split+'/PNEUMONIA/')
             paths = [path0, path1]
-        # different procedure for btech
-        # TODO: this needs some cleaning up
+
         if self.data_dir == 'btad':
             file_list, label_list = load_btad(self.split)
-
         # non bean tech datasets
         else:
             if self.split == 'train':
@@ -147,7 +145,6 @@ def preprocess_img(img):
 
 def load(data_dir,batch_size=64, num_workers=4, return_dataloaders=True):
     train_dataset = LoadDataset(data_dir, split='train')
-    #val_dataset = LoadDataset(data_dir, split='val')
     test_dataset = LoadDataset(data_dir, split='test')
     train_abnormal = LoadDataset(data_dir, split='train_abnormal')
     if not return_dataloaders:
@@ -156,17 +153,12 @@ def load(data_dir,batch_size=64, num_workers=4, return_dataloaders=True):
             test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
         return train_dataset, train_abnormal, test_loader
 
-        #return train_dataset, train_abnormal, val_dataset, test_loader
-
     ## As we use Nvidia GPU's pin_memory for speedup using pinned memmory
 
     train_loader = data.DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
-    #val_loader = data.DataLoader(
-    #        val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
     test_loader = data.DataLoader(
             test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
     train_abnormal_loader = data.DataLoader(
         train_abnormal, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last=False, pin_memory=False)
     return train_loader, train_abnormal_loader, test_loader
-    #return train_loader, train_abnormal_loader, val_loader, test_loader
