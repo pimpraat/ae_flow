@@ -19,6 +19,15 @@ import sklearn
 import time
 import json
 
+from baselines.fastflow.torch_model import init_from_subnet
+
+
+# Comment these out if you have a decent GPU
+import os
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:4092"
+
+
+
 # Make sure the following reads to a file with your own W&B API/Server key
 WANDBKEY = open("wandbkey.txt", "r").read()
 
@@ -169,6 +178,9 @@ def main(args):
     # Create model and push tvco the device
     if args.model == 'ae_flow': model = AE_Flow_Model(args.subnet_architecture)
     # if args.model == 'ganomaly': model = GanomalyModel(input_size=(256,256), latent_vec_size=100, num_input_channels=3, n_features=None)
+    elif args.model == 'fastflow': 
+        model = init_from_subnet(args.subnet_architecture)
+        
 
     model = model.to(device)
 

@@ -10,7 +10,26 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-import constants as const
+from . import constants as const
+
+
+def init_from_subnet(subnet_architecture):
+    if subnet_architecture == "conv_like":
+        return FastFlow(
+            input_size = 256,
+            backbone_name = const.BACKBONE_RESNET18,
+            flow_step = 8,
+            hidden_ratio = 1.0,
+            conv3x3_only = True
+        )
+    elif subnet_architecture == "resnet_like":
+        return FastFlow(
+            input_size = 256,
+            backbone_name = const.BACKBONE_WIDE_RESNET50,
+            flow_step = 8,
+            hidden_ratio = 1.0,
+            conv3x3_only = False
+        )
 
 
 def subnet_conv_func(kernel_size, hidden_ratio):
@@ -162,4 +181,5 @@ class FastFlow(nn.Module):
             anomaly_map_list = torch.stack(anomaly_map_list, dim=-1)
             anomaly_map = torch.mean(anomaly_map_list, dim=-1)
             ret["anomaly_map"] = anomaly_map
-        return ret
+
+        return ret["anomaly_map"]
