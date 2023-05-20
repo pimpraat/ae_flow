@@ -13,15 +13,21 @@ import os
 # required for certain images in OCT2017
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-def load_btad(split):
+# TODO: train per subset
+def load_btad(split, subset=None, n_abnormal_samples_per_class=10):
     file_list = []
     label_list = []
+    
     datasets = ['01', '02', '03']
     exts = ['bmp', 'png', 'bmp']
+    dataset_to_exts = {dataset:ext for dataset, ext in zip(datasets, exts)}
 
-    n_abnormal_samples_per_class = 10
+    # when we are only using a subset, filter out that subset and its corresponding ext
+    if subset != None:
+        datasets = [subset]
+        exts = [dataset_to_exts[subset]]
 
-    # if validation split: take 2 of each class for each dataset
+    # if validation split: take n_abnormal_samples of each class for each dataset
     if split in ['test', 'train_abnormal']:
 
         # path to dirs
@@ -52,7 +58,9 @@ def load_btad(split):
                             file_list.append(filename)
                             label_list.append(label)
                         else:
-                            files_added += 1 
+                            files_added += 1
+
+            
     # else train
     # btad has no abnormal samples for train
     else:
@@ -61,14 +69,21 @@ def load_btad(split):
             for filename in glob.glob(path+'*.'+ext):
                 file_list.append(filename)
                 label_list.append(0)
+
     return file_list, label_list
 
-def load_mvtec(split, n_abnormal_samples=20):
+# TODO: train per subset
+def load_mvtec(split, subset=None, n_abnormal_samples=20):
     file_list = []
     label_list = []
     #print(os.getcwd())
     root_dir = 'data/mvtec/'
     subsets = os.listdir(root_dir) 
+
+    # if we are only interested in a subset
+    if subset != None:
+        subsets = [subset]
+
     # each subset is a category of items in mvtec
     for subset in subsets:
 
@@ -108,11 +123,14 @@ def load_mvtec(split, n_abnormal_samples=20):
     
 
 class LoadDataset(Dataset):
-    def __init__(self, data_dir, split, ext='jpeg', preload=False):
+    def __init__(self, data_dir, split, ext='jpeg', preload=False, subset=None):
         self.data_dir = data_dir
         self.ext = ext
         self.split = split
         self.preload = preload
+        
+        # relevant for BTAD and MVTEC datasets
+        self.subset = subset
         self.file_list, self.labels = self._get_file_list()            
         if preload:
             self.preload_files()
@@ -146,9 +164,9 @@ class LoadDataset(Dataset):
             paths = [path0, path1]
 
         elif self.data_dir == 'mvtec':
-            file_list, label_list = load_mvtec(self.split)
+            file_list, label_list = load_mvtec(self.split, subset=self.subset)
         elif self.data_dir == 'btad':
-            file_list, label_list = load_btad(self.split)
+            file_list, label_list = load_btad(self.split, subset=self.subset)
         else:
             # non bean tech datasets
             if self.split == 'train':
@@ -162,6 +180,10 @@ class LoadDataset(Dataset):
                 for filename in glob.glob(path+'*.'+self.ext):
                     file_list.append(filename)
                     label_list.append(label)
+
+        print(self.split)
+        print(len(file_list))
+        print(len(label_list))
         return file_list, label_list
 
     def __getitem__(self, index):
@@ -194,10 +216,10 @@ def preprocess_img(img):
     img = normalize(img)
     return img
 
-def load(data_dir,batch_size=64, num_workers=4, return_dataloaders=True):
-    train_dataset = LoadDataset(data_dir, split='train')
-    test_dataset = LoadDataset(data_dir, split='test')
-    train_abnormal = LoadDataset(data_dir, split='train_abnormal')
+def load(data_dir,batch_size=64, num_workers=4, return_dataloaders=True, subset=None):
+    train_dataset = LoadDataset(data_dir, split='train', subset=subset)
+    test_dataset = LoadDataset(data_dir, split='test', subset=subset)
+    train_abnormal = LoadDataset(data_dir, split='train_abnormal', subset=subset)
     if not return_dataloaders:
         # only the test_dataset will be a dataloader
         test_loader = data.DataLoader(

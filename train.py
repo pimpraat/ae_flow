@@ -157,93 +157,123 @@ def main(args):
 )
     torch.manual_seed(args.seed) # Setting the seed
 
-    # Loading the data in a splitted way for later use, see the blogpost, discarding the validation set due to it's limited size
-    train_loader, train_abnormal, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, return_dataloaders=False)
+    # rather than training the entire model on all of the different subsets, we train and evaluate the model seperately on each subset
+    if args.dataset == 'btad':
+        subsets = ['01', '02', '03']
+    elif args.dataset == 'mvtec':
+        root_dir = 'data/mvtec/'
+        subsets = os.listdir(root_dir) 
+    else:
+        subsets = [None]
+
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-    # Selecting the correct model with it's model settings specified in the experiments:
-    if args.model == 'ae_flow': model = AE_Flow_Model(subnet_architecture=args.subnet_architecture, n_flowblocks=args.n_flowblocks)
+    # this outer loop is relevant for btad and mvtec, where we train seperate models for each class within the dataset, and average after
+    for subset in subsets:
+        if subset != None:
+            print(f'Running on subset: {subset}')
+        subset_results = []
 
+        # Selecting the correct model with it's model settings specified in the experiments:
+        if args.model == 'ae_flow': model = AE_Flow_Model(subnet_architecture=args.subnet_architecture, n_flowblocks=args.n_flowblocks)
 
-    model = model.to(device)
-    optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, betas=(args.optim_momentum, 0.999))
-    current_best_score, used_thr = 0.0, 0.0
-    best_model = None
-    
-    # Training loop
-    for epoch in range(args.epochs):
-        fold_metrics = []
+        # Loading the data in a splitted way for later use, see the blogpost, discarding the validation set due to it's limited size
+        train_loader, train_abnormal, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, return_dataloaders=False, subset=subset)
 
+        model = model.to(device)
+        optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, betas=(args.optim_momentum, 0.999))
+        current_best_score, used_thr = 0.0, 0.0
+        best_model = None
+        
+        # Training loop
+        for epoch in range(args.epochs):
+            fold_metrics = []
 
-        # Splitting all folds:
-        kfold_normal, kfold_abormal = KFold(n_splits=args.n_validation_folds, shuffle=True), KFold(n_splits=args.n_validation_folds, shuffle=True)
-        normal_split, abnormal_split = list(kfold_normal.split(train_loader)), list(kfold_abormal.split(train_abnormal))
-        train_split_normal = [kfold[0] for kfold in normal_split]
-        test_split_normal = [kfold[1] for kfold in normal_split]
-        train_split_abnormal = [kfold[0] for kfold in abnormal_split]
-        test_split_abnormal = [kfold[1] for kfold in abnormal_split]
+            # Splitting all folds:
+            kfold_normal, kfold_abormal = KFold(n_splits=args.n_validation_folds, shuffle=True), KFold(n_splits=args.n_validation_folds, shuffle=True)
+            normal_split, abnormal_split = list(kfold_normal.split(train_loader)), list(kfold_abormal.split(train_abnormal))
+            train_split_normal = [kfold[0] for kfold in normal_split]
+            test_split_normal = [kfold[1] for kfold in normal_split]
+            train_split_abnormal = [kfold[0] for kfold in abnormal_split]
+            test_split_abnormal = [kfold[1] for kfold in abnormal_split]
 
-        for fold in tqdm(range(args.n_validation_folds)):
-            train_ids_normal = train_split_normal[fold]
-            train_ids_abnormal = train_split_abnormal[fold]
-            test_ids_normal = test_split_normal[fold]
-            test_ids_abnormal = test_split_abnormal[fold]
+            for fold in tqdm(range(args.n_validation_folds)):
+                train_ids_normal = train_split_normal[fold]
+                train_ids_abnormal = train_split_abnormal[fold]
+                test_ids_normal = test_split_normal[fold]
+                test_ids_abnormal = test_split_abnormal[fold]
 
+                train_normal_dataset = torch.utils.data.dataset.Subset(train_loader,train_ids_normal)
+                train_normal_loader = data.DataLoader(train_normal_dataset, num_workers = args.num_workers, shuffle=True, batch_size=args.batch_size)
+                
+                # Performing the training step on just the normal samples:
+                train_step(epoch, model, train_normal_loader, optimizer)
             train_normal_dataset = torch.utils.data.dataset.Subset(train_loader,train_ids_normal)
             train_normal_loader = data.DataLoader(train_normal_dataset, num_workers = args.num_workers, batch_size=args.batch_size, shuffle=True)
             
             # Performing the training step on just the normal samples:
             train_step(epoch, model, train_normal_loader, optimizer)
 
-            train_abnormal_dataset =  torch.utils.data.dataset.Subset(train_abnormal,train_ids_abnormal)
-            threshold_dataset = torch.utils.data.ConcatDataset([train_abnormal_dataset, train_normal_dataset])
-            threshold_loader = data.DataLoader(threshold_dataset, num_workers = args.num_workers, batch_size=args.batch_size)
-            
-            # Finding the threshold with the training data complemented with abnormal training samples in order to be able to calculate the F1-score
-            threshold = find_threshold(epoch, model, threshold_loader, _print=False)
+                train_abnormal_dataset =  torch.utils.data.dataset.Subset(train_abnormal,train_ids_abnormal)
+                threshold_dataset = torch.utils.data.ConcatDataset([train_abnormal_dataset, train_normal_dataset])
+                threshold_loader = data.DataLoader(threshold_dataset, num_workers = args.num_workers, batch_size=args.batch_size)
+                
+                # Finding the threshold with the training data complemented with abnormal training samples in order to be able to calculate the F1-score
+                threshold = find_threshold(epoch, model, threshold_loader, _print=False)
 
-            validate_loader_normal = torch.utils.data.dataset.Subset(train_loader,test_ids_normal)
-            validate_loader_abnormal = torch.utils.data.dataset.Subset(train_abnormal,test_ids_abnormal)
-            
-            validate_loader_combined = torch.utils.data.ConcatDataset([validate_loader_normal, validate_loader_abnormal])
+                validate_loader_normal = torch.utils.data.dataset.Subset(train_loader,test_ids_normal)
+                validate_loader_abnormal = torch.utils.data.dataset.Subset(train_abnormal,test_ids_abnormal)
+                
+                validate_loader_combined = torch.utils.data.ConcatDataset([validate_loader_normal, validate_loader_abnormal])
 
-            validate_loader_combined = data.DataLoader(validate_loader_combined, num_workers = args.num_workers, batch_size=args.batch_size)
-            
-            if fold % 5 == 0:
-                printeval=True
-            else:
-                printeval=False
-            results = eval_model(epoch, model, validate_loader_combined, threshold, _print=printeval)
-            fold_metrics.append(results['F1'])
-
-
-        start = time.time()
+                validate_loader_combined = data.DataLoader(validate_loader_combined, num_workers = args.num_workers, batch_size=args.batch_size)
+                
+                if fold % 5 == 0:
+                    printeval=True
+                else:
+                    printeval=False
+                results = eval_model(epoch, model, validate_loader_combined, threshold, _print=printeval)
+                fold_metrics.append(results['F1'])
 
 
-        # Save reconstruction resuls every epoch for later analysis:
-        # if args.model == 'ae_flow': wandb.log(sample_images(model, device))
+            start = time.time()
 
 
-        print(f"Duration for epoch {epoch}: {time.time() - start}")
-        wandb.log({'time per epoch': time.time() - start})
+            # Save reconstruction resuls every epoch for later analysis:
+            # if args.model == 'ae_flow': wandb.log(sample_images(model, device))
+
+
+            print(f"Duration for epoch {epoch}: {time.time() - start}")
+            wandb.log({'time per epoch': time.time() - start})
+        
+            # Save if best evaluation according to the cross validation:
+            # dont save if the model is subset specific
+            if (np.mean(results['F1']) >= current_best_score):
+                current_best_score = np.mean(results['F1'])
+                
+                best_model = copy.deepcopy(model)
+                used_thr = threshold
+
+                if subset == None:
+                    torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
+                else:
+                    torch.save(model.state_dict(), str(f"models/{wandb.config}_{subset}.pt"))
+
+
+            track_test_performance = True
+            if (epoch % 10 == 0) and (epoch != 0) and (track_test_performance == True):
+                print(f'Results on test set after {epoch} epochs')
+                eval_model(epoch, best_model, test_loader, used_thr, _print=True, track_results=True, test_eval=True)
+        results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, track_results=True, test_eval=True)
+        subset_results.append(results)
     
-        # Save if best evaluation according to the cross validation:
-        if np.mean(results['F1']) >= current_best_score:
-            current_best_score = np.mean(results['F1'])
-            torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
-            best_model = copy.deepcopy(model)
-            used_thr = threshold
+    # average the subset results for the btad and mvtec datasets
+    if subsets != [None]:
+        result_metrics = results.keys()
+        final_results = {key+'-subsets-avg': np.mean([d[key] for d in subset_results]) for key in result_metrics}
+        wandb.log(final_results) 
 
-        # if epoch % 10 == 0:
-        #     print(f'Results on test set after {epoch} epochs')
-        #     eval_model(epoch, best_model, test_loader, used_thr, _print=True, track_results=True, test_eval=True)
-        #     # save model every 10 epoch
-        #     if not args.custom_computation_graph:
-        #         torch.save(model.state_dict(), str(f'models/per_epoch/{wandb.config}_epoch_{epoch}.pt'))
-
-    results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, track_results=True, test_eval=True)
-    
-    print(f"Final, best results on test dataset: {results}")
+    print(f"Final, best results on test dataset: {final_results}")
     
     wandb.finish()
 
