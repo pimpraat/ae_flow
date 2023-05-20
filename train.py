@@ -208,11 +208,6 @@ def main(args):
                 
                 # Performing the training step on just the normal samples:
                 train_step(epoch, model, train_normal_loader, optimizer)
-            train_normal_dataset = torch.utils.data.dataset.Subset(train_loader,train_ids_normal)
-            train_normal_loader = data.DataLoader(train_normal_dataset, num_workers = args.num_workers, batch_size=args.batch_size, shuffle=True)
-            
-            # Performing the training step on just the normal samples:
-            train_step(epoch, model, train_normal_loader, optimizer)
 
                 train_abnormal_dataset =  torch.utils.data.dataset.Subset(train_abnormal,train_ids_abnormal)
                 threshold_dataset = torch.utils.data.ConcatDataset([train_abnormal_dataset, train_normal_dataset])

@@ -180,10 +180,6 @@ class LoadDataset(Dataset):
                 for filename in glob.glob(path+'*.'+self.ext):
                     file_list.append(filename)
                     label_list.append(label)
-
-        print(self.split)
-        print(len(file_list))
-        print(len(label_list))
         return file_list, label_list
 
     def __getitem__(self, index):
