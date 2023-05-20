@@ -158,11 +158,10 @@ def main(args):
     torch.manual_seed(args.seed) # Setting the seed
 
     # rather than training the entire model on all of the different subsets, we train and evaluate the model seperately on each subset
-    if args.dataset == 'btad':
+    if args.dataset == 'btech':
         subsets = ['01', '02', '03']
     elif args.dataset == 'mvtec':
-        root_dir = 'data/mvtec/'
-        subsets = os.listdir(root_dir) 
+        subsets = ['pill', 'toothbrush', 'wood', 'grid', 'capsule', 'transistor', 'screw', 'carpet', 'cable', 'bottle', 'tile', 'metal_nut', 'hazelnut', 'leather', 'zipper']
     else:
         subsets = [None]
 
@@ -178,7 +177,8 @@ def main(args):
         if args.model == 'ae_flow': model = AE_Flow_Model(subnet_architecture=args.subnet_architecture, n_flowblocks=args.n_flowblocks)
 
         # Loading the data in a splitted way for later use, see the blogpost, discarding the validation set due to it's limited size
-        train_loader, train_abnormal, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, return_dataloaders=False, subset=subset)
+        # NOTE: for MVTEC or BTECH the train_abnormal loader will be a validation loader
+        train_loader, train_abnormal, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, subset=subset)
 
         model = model.to(device)
         optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, betas=(args.optim_momentum, 0.999))
@@ -218,9 +218,7 @@ def main(args):
 
                 validate_loader_normal = torch.utils.data.dataset.Subset(train_loader,test_ids_normal)
                 validate_loader_abnormal = torch.utils.data.dataset.Subset(train_abnormal,test_ids_abnormal)
-                
                 validate_loader_combined = torch.utils.data.ConcatDataset([validate_loader_normal, validate_loader_abnormal])
-
                 validate_loader_combined = data.DataLoader(validate_loader_combined, num_workers = args.num_workers, batch_size=args.batch_size)
                 
                 if fold % 5 == 0:

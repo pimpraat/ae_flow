@@ -10,138 +10,100 @@ from tqdm import tqdm
 
 import os
 
+from pathlib import Path
+
+from anomalib.data import TaskType
+from anomalib.data.btech import BTech
+from anomalib.data.mvtec import MVTec
+from anomalib.data.utils import InputNormalizationMethod
+
 # required for certain images in OCT2017
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 # TODO: train per subset
-def load_btad(split, subset=None, n_abnormal_samples_per_class=10):
-    file_list = []
-    label_list = []
-    
-    datasets = ['01', '02', '03']
-    exts = ['bmp', 'png', 'bmp']
-    dataset_to_exts = {dataset:ext for dataset, ext in zip(datasets, exts)}
+def load_btad(split, subset, batch_size=64, num_workers=8):
+    dataset_root = Path.cwd().parent / "datasets" / "BTech"
 
-    # when we are only using a subset, filter out that subset and its corresponding ext
-    if subset != None:
-        datasets = [subset]
-        exts = [dataset_to_exts[subset]]
-
-    # if validation split: take n_abnormal_samples of each class for each dataset
-    if split in ['test', 'train_abnormal']:
-
-        # path to dirs
-        for dataset, ext in zip(datasets, exts):
-            path0 = (0, f'data/btad/{dataset}/test/ok/')
-            path1 = (1, f'data/btad/{dataset}/test/ko/')
-            paths = [path0, path1]
-
-            # select 2 samples of each class for each dataset
-            # currently does the same for both splits (as we do not use a validation set but cross validate)
-            if split == 'train_abnormal':
-                paths = [path1]
-                for label, path in paths:
-                    # one path is one class, reset files_added
-                    files_added = 0
-                    for filename in glob.glob(path+'*.'+ext):
-                        if files_added < n_abnormal_samples_per_class:
-                            file_list.append(filename)
-                            label_list.append(label)
-                            files_added += 1
-            # for the test set, select everything that has not been used in training or validation (above)
-            else:
-                for label, path in paths:
-                    files_added = 0
-                    for filename in glob.glob(path+'*.'+ext):
-                        # only start adding to file list after the first two have
-                        if files_added >= n_abnormal_samples_per_class:
-                            file_list.append(filename)
-                            label_list.append(label)
-                        else:
-                            files_added += 1
-
-            
-    # else train
-    # btad has no abnormal samples for train
+    btech_datamodule = BTech(
+        root=dataset_root,
+        category=subset,
+        image_size=256,
+        train_batch_size=batch_size,
+        eval_batch_size=batch_size,
+        num_workers=num_workers,
+        task=TaskType.CLASSIFICATION,
+        normalization=InputNormalizationMethod.NONE,  # don't apply normalization, as we want to visualize the images
+    )
+    # check if the data is available and setup
+    btech_datamodule.prepare_data()
+    btech_datamodule.setup()
+    if split == 'train':
+        return btech_datamodule.train_data
+    elif split == 'test':
+        return btech_datamodule.test_data
+    elif split == 'val':
+        return btech_datamodule.val_data
     else:
-        for dataset, ext in zip(datasets, exts):
-            path = f'data/btad/{dataset}/train/ok/'
-            for filename in glob.glob(path+'*.'+ext):
-                file_list.append(filename)
-                label_list.append(0)
+        raise NotImplementedError
 
-    return file_list, label_list
 
 # TODO: train per subset
-def load_mvtec(split, subset=None, n_abnormal_samples=20):
-    file_list = []
-    label_list = []
-    #print(os.getcwd())
-    root_dir = 'data/mvtec/'
-    subsets = os.listdir(root_dir) 
-
-    # if we are only interested in a subset
-    if subset != None:
-        subsets = [subset]
-
-    # each subset is a category of items in mvtec
-    for subset in subsets:
-
-        # we want to select n_abnormal_samples from each category
-        n_abnormal_samples_selected = 0
-        if split != 'train':
-            path = root_dir+subset+'/test/'
-
-            subdirs = os.listdir(path)
-            #abnormal_dirs.remove('good')
-            for dir in subdirs:
-                for filename in glob.glob(path+dir+'/*.png'):
-
-                    # for abnormal set, we check all folders except for good
-                    if (split == 'train_abnormal') and (n_abnormal_samples_selected < n_abnormal_samples) and dir != 'good':
-                        file_list.append(filename)
-                        label_list.append(1)
-                        n_abnormal_samples_selected += 1
-                    elif (split == 'test') and (n_abnormal_samples_selected >= n_abnormal_samples):
-                        file_list.append(filename)
-                        if dir != 'good':
-                            label = 1
-                        else:
-                            label = 0
-                        label_list.append(label)
-                    # when split = test, the number of abnormal samples will pass, in order to split test from train_abnormal
-                    else:
-                        n_abnormal_samples_selected += 1
-        else:
-            path = root_dir+subset+'/train/good/'
-            subdirs = os.listdir(path)
-            
-            for filename in glob.glob(path+'*.png'):
-                file_list.append(filename)
-                label_list.append(0)
-    return file_list, label_list
-    
+def load_mvtec(split, subset, batch_size=64, num_workers=8):
+    dataset_root = Path.cwd().parent / "datasets" / "MVTec"
+    # MVTec Classification Train Set
+    mvtec_datamodule = MVTec(
+        root=dataset_root,
+        category=subset,
+        image_size=256,
+        train_batch_size=batch_size,
+        eval_batch_size=batch_size,
+        num_workers=num_workers,
+        task="classification",
+        normalization=InputNormalizationMethod.NONE,  # don't apply normalization, as we want to visualize the images
+    )
+    # check if the data is available and setup
+    mvtec_datamodule.prepare_data()
+    mvtec_datamodule.setup()
+    if split == 'train':
+        return mvtec_datamodule.train_data
+    elif split == 'test':
+        return mvtec_datamodule.test_data
+    elif split == 'val':
+        return mvtec_datamodule.val_data
+    else:
+        raise NotImplementedError
 
 class LoadDataset(Dataset):
-    def __init__(self, data_dir, split, ext='jpeg', preload=False, subset=None):
+    def __init__(self, data_dir, split, ext='jpeg', subset=None, batch_size=64, num_workers=8):
         self.data_dir = data_dir
         self.ext = ext
         self.split = split
-        self.preload = preload
-        
+        self.num_workers = num_workers
+    
+
         # relevant for BTAD and MVTEC datasets
         self.subset = subset
-        self.file_list, self.labels = self._get_file_list()            
-        if preload:
+        self.batch_size = batch_size
+
+        if (data_dir == 'btech') or (data_dir == 'mvtec'):
             self.preload_files()
+            self.preload = True
+        else:
+            self.file_list, self.labels = self._get_file_list()            
+            self.preload = False
 
     def preload_files(self):
-        image_list = []
-        for label, path in zip(self.labels, self.file_list):
-            img = Image.open(path)
-            img = preprocess_img(img)
-            image_list.append((img, label))
-        self.image_list = image_list
+        if self.data_dir == 'btech':
+            self.image_list = load_btad(self.split, self.subset, batch_size=self.batch_size, num_workers=self.num_workers)
+        elif self.data_dir == 'mvtec':
+            self.image_list = load_mvtec(self.split, self.subset, batch_size=self.batch_size, num_workers=self.num_workers)
+        else:
+            image_list = []
+            for label, path in zip(self.labels, self.file_list):
+                img = Image.open(path)
+                img = preprocess_img(img)
+                image_list.append((img, label))
+            self.image_list = image_list
 
     def _get_file_list(self):
         file_list = []
@@ -163,12 +125,12 @@ class LoadDataset(Dataset):
             path1 = (1, 'data/'+self.data_dir+'/'+split+'/PNEUMONIA/')
             paths = [path0, path1]
 
-        elif self.data_dir == 'mvtec':
-            file_list, label_list = load_mvtec(self.split, subset=self.subset)
-        elif self.data_dir == 'btad':
-            file_list, label_list = load_btad(self.split, subset=self.subset)
+        if self.data_dir == 'mvtec':
+            file_list, label_list = load_mvtec(self.split, subset=self.subset, batch_size=self.batch_size)
+        elif self.data_dir == 'btech':
+            file_list, label_list = load_btad(self.split, subset=self.subset, batch_size=self.batch_size)
         else:
-            # non bean tech datasets
+            # OCT or chest_xray
             if self.split == 'train':
                 paths = [path0]
             elif self.split == 'train_abnormal':
@@ -184,8 +146,13 @@ class LoadDataset(Dataset):
 
     def __getitem__(self, index):
         if self.preload:
-            img = self.image_list[index][0]
-            label = self.image_list[index][1]
+            img = self.image_list[index]['image']
+            label = self.image_list[index]['label']
+
+            # an extra check for when loading in data with anomalib
+            # we need to make sure the train set only contains normal samples
+            if (self.split == 'train') and (label != 0):
+                raise Exception('Train contains non 0 labels. The train set should not contain any samples considered abnormal.')
         else:
             file_path = self.file_list[index]
             img = Image.open(file_path)
@@ -194,6 +161,8 @@ class LoadDataset(Dataset):
         return img, label
     
     def __len__(self):
+        if self.preload:
+            return len(self.image_list) 
         return len(self.file_list)
 
 def preprocess_img(img):
@@ -212,22 +181,18 @@ def preprocess_img(img):
     img = normalize(img)
     return img
 
-def load(data_dir,batch_size=64, num_workers=4, return_dataloaders=True, subset=None):
-    train_dataset = LoadDataset(data_dir, split='train', subset=subset)
-    test_dataset = LoadDataset(data_dir, split='test', subset=subset)
-    train_abnormal = LoadDataset(data_dir, split='train_abnormal', subset=subset)
-    if not return_dataloaders:
-        # only the test_dataset will be a dataloader
-        test_loader = data.DataLoader(
-            test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
-        return train_dataset, train_abnormal, test_loader
+def load(data_dir,batch_size=64, num_workers=4, subset=None):
+    train_dataset = LoadDataset(data_dir, split='train', subset=subset, num_workers=num_workers)
+    test_dataset = LoadDataset(data_dir, split='test', subset=subset, num_workers=num_workers)
 
-    ## As we use Nvidia GPU's pin_memory for speedup using pinned memmory
-
-    train_loader = data.DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+    # only the test set is loaded into the dataloader
     test_loader = data.DataLoader(
-            test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
-    train_abnormal_loader = data.DataLoader(
-        train_abnormal, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last=False, pin_memory=False)
-    return train_loader, train_abnormal_loader, test_loader
+        test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
+   
+
+    if data_dir in ['btech', 'mvtec']:
+        train_abnormal = LoadDataset(data_dir, split='val', subset=subset)
+        return train_dataset, train_abnormal, test_loader
+    else:
+        train_abnormal = LoadDataset(data_dir, split='train_abnormal', subset=subset)
+        return train_dataset, train_abnormal, test_loader
