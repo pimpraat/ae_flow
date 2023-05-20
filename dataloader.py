@@ -31,7 +31,7 @@ def load_btad(split, subset, batch_size=64, num_workers=8):
         train_batch_size=batch_size,
         eval_batch_size=batch_size,
         num_workers=num_workers,
-        task=TaskType.CLASSIFICATION,
+        task='classification',
         normalization=InputNormalizationMethod.NONE,  # don't apply normalization, as we want to visualize the images
     )
     # check if the data is available and setup
@@ -74,7 +74,7 @@ def load_mvtec(split, subset, batch_size=64, num_workers=8):
         raise NotImplementedError
 
 class LoadDataset(Dataset):
-    def __init__(self, data_dir, split, ext='jpeg', subset=None, batch_size=64, num_workers=8):
+    def __init__(self, data_dir, split, ext='jpeg', subset=None, batch_size=64, num_workers=8, baseline=False):
         self.data_dir = data_dir
         self.ext = ext
         self.split = split
@@ -84,12 +84,16 @@ class LoadDataset(Dataset):
         # relevant for BTAD and MVTEC datasets
         self.subset = subset
         self.batch_size = batch_size
-
+        
+        # relevant for fastflow
+        self.baseline = baseline
         if (data_dir == 'btech') or (data_dir == 'mvtec'):
             self.preload_files()
+            # preload relavant at the get_item function
             self.preload = True
+        
         else:
-            self.file_list, self.labels = self._get_file_list()            
+            self.file_list, self.labels = self._get_file_list()
             self.preload = False
 
     def preload_files(self):
@@ -146,13 +150,17 @@ class LoadDataset(Dataset):
 
     def __getitem__(self, index):
         if self.preload:
-            img = self.image_list[index]['image']
-            label = self.image_list[index]['label']
+            if self.baseline:
+                data = {'image':self.image_list[index]['image'], 'label':self.image_list[index]['label']}
+                return data
+            else:
+                img = self.image_list[index][0]
+                label = self.image_list[index][1]
 
             # an extra check for when loading in data with anomalib
             # we need to make sure the train set only contains normal samples
             if (self.split == 'train') and (label != 0):
-                raise Exception('Train contains non 0 labels. The train set should not contain any samples considered abnormal.')
+                raise ValueError('Train contains non-zero labels. The train set should not contain any samples considered abnormal.')
         else:
             file_path = self.file_list[index]
             img = Image.open(file_path)
@@ -181,9 +189,9 @@ def preprocess_img(img):
     img = normalize(img)
     return img
 
-def load(data_dir,batch_size=64, num_workers=4, subset=None):
-    train_dataset = LoadDataset(data_dir, split='train', subset=subset, num_workers=num_workers)
-    test_dataset = LoadDataset(data_dir, split='test', subset=subset, num_workers=num_workers)
+def load(data_dir,batch_size=64, num_workers=4, subset=None, baseline=False):
+    train_dataset = LoadDataset(data_dir, split='train', subset=subset, num_workers=num_workers, baseline=baseline)
+    test_dataset = LoadDataset(data_dir, split='test', subset=subset, num_workers=num_workers, baseline=baseline)
 
     # only the test set is loaded into the dataloader
     test_loader = data.DataLoader(
@@ -191,8 +199,8 @@ def load(data_dir,batch_size=64, num_workers=4, subset=None):
    
 
     if data_dir in ['btech', 'mvtec']:
-        train_abnormal = LoadDataset(data_dir, split='val', subset=subset)
+        train_abnormal = LoadDataset(data_dir, split='val', subset=subset, baseline=baseline)
         return train_dataset, train_abnormal, test_loader
     else:
-        train_abnormal = LoadDataset(data_dir, split='train_abnormal', subset=subset)
+        train_abnormal = LoadDataset(data_dir, split='train_abnormal', subset=subset, baseline=baseline)
         return train_dataset, train_abnormal, test_loader
