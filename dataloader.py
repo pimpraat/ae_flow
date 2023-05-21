@@ -74,7 +74,7 @@ def load_mvtec(split, subset, batch_size=64, num_workers=8):
         raise NotImplementedError
 
 class LoadDataset(Dataset):
-    def __init__(self, data_dir, split, ext='jpeg', subset=None, batch_size=64, num_workers=8, baseline=False):
+    def __init__(self, data_dir, split, ext='jpeg', subset=None, batch_size=64, num_workers=8, anomalib_dataset=False):
         self.data_dir = data_dir
         self.ext = ext
         self.split = split
@@ -86,7 +86,7 @@ class LoadDataset(Dataset):
         self.batch_size = batch_size
         
         # relevant for fastflow
-        self.baseline = baseline
+        self.anomalib_dataset = anomalib_dataset
         if (data_dir == 'btech') or (data_dir == 'mvtec'):
             self.preload_files()
             # preload relavant at the get_item function
@@ -150,7 +150,7 @@ class LoadDataset(Dataset):
 
     def __getitem__(self, index):
         if self.preload:
-            if self.baseline:
+            if self.anomalib_dataset:
                 data = {'image':self.image_list[index]['image'], 'label':self.image_list[index]['label']}
                 return data
             else:
@@ -189,9 +189,9 @@ def preprocess_img(img):
     img = normalize(img)
     return img
 
-def load(data_dir,batch_size=64, num_workers=4, subset=None, baseline=False):
-    train_dataset = LoadDataset(data_dir, split='train', subset=subset, num_workers=num_workers, baseline=baseline)
-    test_dataset = LoadDataset(data_dir, split='test', subset=subset, num_workers=num_workers, baseline=baseline)
+def load(data_dir,batch_size=64, num_workers=4, subset=None, anomalib_dataset=False):
+    train_dataset = LoadDataset(data_dir, split='train', subset=subset, num_workers=num_workers, anomalib_dataset=anomalib_dataset)
+    test_dataset = LoadDataset(data_dir, split='test', subset=subset, num_workers=num_workers, anomalib_dataset=anomalib_dataset)
 
     # only the test set is loaded into the dataloader
     test_loader = data.DataLoader(
@@ -199,8 +199,8 @@ def load(data_dir,batch_size=64, num_workers=4, subset=None, baseline=False):
    
 
     if data_dir in ['btech', 'mvtec']:
-        train_abnormal = LoadDataset(data_dir, split='val', subset=subset, baseline=baseline)
+        train_abnormal = LoadDataset(data_dir, split='val', subset=subset, anomalib_dataset=anomalib_dataset)
         return train_dataset, train_abnormal, test_loader
     else:
-        train_abnormal = LoadDataset(data_dir, split='train_abnormal', subset=subset, baseline=baseline)
+        train_abnormal = LoadDataset(data_dir, split='train_abnormal', subset=subset, anomalib_dataset=anomalib_dataset)
         return train_dataset, train_abnormal, test_loader

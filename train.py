@@ -64,13 +64,47 @@ def train_fastflow_step(model, dataloader, optimizer, device, anomalib_dataset=F
         train_loss_epoch += flow_loss.item()
     wandb.log({'Train loss per epoch:': train_loss_epoch / len(dataloader)})
 
+def train_ganomaly_step(model, dataloader, optimizer, device, anomalib_dataset=False):
+    model.train()
+    train_loss_epoch = 0
+
+    for batch_idx, data in enumerate(dataloader):
+    #for batch_idx, (x, y) in enumerate(dataloader):
+        if anomalib_dataset:
+            x = data['image']
+            y = data['label']
+        else:
+            x = data[0]
+            y = data[1]    
+
+        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        original_x = x.to(device)#data['image'].to(device)
+
+        optimizer.zero_grad(set_to_none=True)
+        
+        # fake is the reconstruction
+        padded_batch, fake, latent_i, latent_o = model(original_x)
+        recon_loss = nn.functional.mse_loss(padded_batch, fake)
+
+        wandb.log({'recon loss (train)':recon_loss})
+        recon_loss.backward()
+        optimizer.step()
+        train_loss_epoch += recon_loss.item()
+    wandb.log({'Train loss per epoch:': train_loss_epoch / len(dataloader)})
+
 def train_step(epoch, model, train_loader,
-                  optimizer):
+                  optimizer, anomalib_dataset=False):
 
     model.train()
     train_loss_epoch = 0
 
-    for batch_idx, (x, _) in enumerate(train_loader):
+    for batch_idx, data in enumerate(train_loader):
+        if anomalib_dataset:
+            x = data['image']
+            y = data['label']
+        else:
+            x = data[0]
+            y = data[1]   
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         original_x = x.to(device)
 
@@ -106,14 +140,18 @@ def find_threshold(epoch, model, train_loader, _print=False, baseline=False, ano
 
             device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
             x, y = x.to(device), y.to(device)
-            #y = data['label'].to(device)
-            #x = data['image'].to(device)
 
-            anomaly_mapping = model(x).squeeze(dim=1)
+            if type(model) == FastflowModel:
+                anomaly_mapping = model(x).squeeze(dim=1)
 
-            # mean over all dimensions, but the batch dimension
-            # this gives an average anomaly score for each image
-            anomaly_score = torch.mean(anomaly_mapping, axis=(1, 2))
+                # mean over all dimensions, but the batch dimension
+                # this gives an average anomaly score for each image
+                anomaly_score = torch.mean(anomaly_mapping, axis=(1, 2))
+            
+            # TODO: is this the appropriate way to retreive the anomaly score? 
+            # https://github.com/openvinotoolkit/anomalib/blob/main/src/anomalib/models/ganomaly/torch_model.py
+            elif type(model) == GanomalyModel:
+                anomaly_score = model(x)
 
             anomaly_scores.append(anomaly_score)
             true_labels.append(y)
@@ -175,24 +213,25 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
         model.training = False
 
         for batch_idx, data in enumerate(data_loader):
-        #for batch_idx, (x, y) in enumerate(data_loader):
             if anomalib_dataset:
                 x = data['image']
                 y = data['label']
             else:
                 x = data[0]
                 y = data[1]    
-            #y = data['label'].to(device)
-            #x = data['image'].to(device)
             x, y = x.to(device), y.to(device)
 
-            anomaly_mapping = model(x).squeeze(dim=1)
-            anomaly_score = torch.mean(anomaly_mapping, axis=(1, 2))
+            if type(model) == FastflowModel:
+                anomaly_mapping = model(x).squeeze(dim=1)
+                anomaly_score = torch.mean(anomaly_mapping, axis=(1, 2))
+            # TODO: is this the appropriate way to retreive the anomaly score? 
+            # https://github.com/openvinotoolkit/anomalib/blob/main/src/anomalib/models/ganomaly/torch_model.py
+            elif type(model) == GanomalyModel:
+                anomaly_score = model(x)
 
             anomaly_scores.append(anomaly_score)
             true_labels.append(y)
     else:
-        #for batch_idx, (x, y) in enumerate(data_loader):
         for batch_idx, data in enumerate(data_loader):
             if anomalib_dataset:
                 x = data['image']
@@ -281,14 +320,21 @@ def main(args):
 
         # Selecting the correct model with it's model settings specified in the experiments:
         if args.model == 'ae_flow': model = AE_Flow_Model(subnet_architecture=args.subnet_architecture, n_flowblocks=args.n_flowblocks)
-        if args.model == 'fastflow':
-            model = FastflowModel(input_size=(256, 256), backbone="resnet18", flow_steps=8, pre_trained=False)
+        elif args.model == 'fastflow':
+            model = FastflowModel(input_size=(256, 256), backbone="wide_resnet50_2", flow_steps=8, pre_trained=False)
+            model.training = True
+            baseline = True
+
+        # TODO: are these the correct parameters?
+        elif args.model == 'ganomaly':
+            model = GanomalyModel(input_size=(256, 256), num_input_channels=3, n_features=1, latent_vec_size=1024)
             model.training = True
             baseline = True
 
         # Loading the data in a splitted way for later use, see the blogpost, discarding the validation set due to it's limited size
         # NOTE: for MVTEC or BTECH the train_abnormal loader will be a validation loader
-        train_loader, train_abnormal, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, subset=subset, baseline=baseline)
+        train_loader, train_abnormal, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, subset=subset, anomalib_dataset=anomalib_dataset)
+   
 
         model = model.to(device)
         optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, betas=(args.optim_momentum, 0.999))
@@ -306,8 +352,12 @@ def main(args):
             test_split_normal = [kfold[1] for kfold in normal_split]
             train_split_abnormal = [kfold[0] for kfold in abnormal_split]
             test_split_abnormal = [kfold[1] for kfold in abnormal_split]
+            start = time.time()
 
             for fold in tqdm(range(args.n_validation_folds)):
+                if args.model in ['fastflow', 'ganomaly']:
+                    model.training = True
+
                 train_ids_normal = train_split_normal[fold]
                 train_ids_abnormal = train_split_abnormal[fold]
                 test_ids_normal = test_split_normal[fold]
@@ -319,17 +369,14 @@ def main(args):
                 threshold_dataset = torch.utils.data.ConcatDataset([train_abnormal_dataset, train_normal_dataset])
                 threshold_loader = data.DataLoader(threshold_dataset, num_workers = args.num_workers, batch_size=args.batch_size)
                 
-                
                 # Performing the training step on just the normal samples:
                 if args.model == 'fastflow':
                     train_fastflow_step(model, train_normal_loader, optimizer, device, anomalib_dataset=anomalib_dataset)
-                    #model.training_step(train_normal_loader)
-                    # no threshold for fastflow
+                elif args.model == 'ganomaly':
+                    train_ganomaly_step(model, train_normal_loader, optimizer, device, anomalib_dataset=anomalib_dataset)
                 else:
-                    train_step(epoch, model, train_normal_loader, optimizer)
+                    train_step(epoch, model, train_normal_loader, optimizer, anomalib_dataset=anomalib_dataset)
 
-                # Finding the threshold with the training data complemented with abnormal training samples in order to be able to calculate the F1-score
-                # threshold finding not necessary for fastflow
                 threshold = find_threshold(epoch, model, threshold_loader, _print=False, baseline=baseline, anomalib_dataset=anomalib_dataset)
 
                 validate_loader_normal = torch.utils.data.dataset.Subset(train_loader,test_ids_normal)
@@ -337,21 +384,15 @@ def main(args):
                 validate_loader_combined = torch.utils.data.ConcatDataset([validate_loader_normal, validate_loader_abnormal])
                 validate_loader_combined = data.DataLoader(validate_loader_combined, num_workers = args.num_workers, batch_size=args.batch_size)
                 
-                if fold % 5 == 0:
+                if fold % 1 == 0:
                     printeval=True
                 else:
                     printeval=False
                 results = eval_model(epoch, model, validate_loader_combined, threshold, _print=printeval, baseline=baseline, anomalib_dataset=anomalib_dataset)
                 fold_metrics.append(results['F1'])
 
-
-            start = time.time()
-
-
             # Save reconstruction resuls every epoch for later analysis:
             # if args.model == 'ae_flow': wandb.log(sample_images(model, device))
-
-
             print(f"Duration for epoch {epoch}: {time.time() - start}")
             wandb.log({'time per epoch': time.time() - start})
         
@@ -372,8 +413,11 @@ def main(args):
             track_test_performance = True
             if (epoch % 10 == 0) and (epoch != 0) and (track_test_performance == True):
                 print(f'Results on test set after {epoch} epochs')
-                eval_model(epoch, best_model, test_loader, used_thr, _print=True, track_results=True, test_eval=True, baseline=baseline)
-        results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, track_results=True, test_eval=True, baseline=baseline)
+                eval_model(epoch, best_model, test_loader, used_thr, _print=True, track_results=True, test_eval=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
+        results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, track_results=True, test_eval=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
+        if subset != None:
+            results = {key+f'-{subset}': results[key] for key in results}
+        wandb.log(results)
         subset_results.append(results)
     
     # average the subset results for the btad and mvtec datasets
@@ -413,7 +457,7 @@ if __name__ == '__main__':
     parser.add_argument('--model',default='ae_flow', type=str, help='Which dataset to run. Choose from: [autoencoder, fastflow, ae_flow]')
 
     parser.add_argument('--subnet_architecture', default='conv_like', type=str,
-                        help='Which subflow architecture to use when using the ae_flow model: subnet or resnet_like')
+                        help='Which subflow architecture to use when using the ae_flow model: conv_like or resnet_like')
 
     # Other hyper-parameters
     parser.add_argument('--data_dir', default='../data/', type=str,
