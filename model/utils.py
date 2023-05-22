@@ -22,7 +22,7 @@ def optimize_threshold(anomaly_scores, true_labels):
     """
     anomaly_scores = [item for sublist in [tensor.cpu().numpy() for tensor in anomaly_scores] for item in sublist]
     true_labels = [item for sublist in [tensor.cpu().numpy() for tensor in true_labels] for item in sublist]
-    return scipy.optimize.fmin(thr_to_f1, args=(true_labels, anomaly_scores), x0=np.mean(anomaly_scores)+np.std(anomaly_scores))
+    return scipy.optimize.fmin(thr_to_f1, args=(true_labels, anomaly_scores), x0=np.mean(anomaly_scores)+np.std(anomaly_scores), disp=0)
 
 #TODO: Do we want to keep this function?
 def sample_images(model, device):

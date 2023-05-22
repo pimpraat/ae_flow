@@ -184,7 +184,9 @@ def preprocess_img(img):
                                  std=[0.229, 0.224, 0.225])
     apply_greyscale = transforms.Grayscale(num_output_channels=3)
     img = resizer(img)
-    img = apply_greyscale(img) 
+    img = apply_greyscale(img)
+    center_crop = transforms.CenterCrop(224)
+    img = center_crop(img)
     img = convert_tensor(img)
     img = normalize(img)
     return img

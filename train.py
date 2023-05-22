@@ -93,7 +93,7 @@ def train_ganomaly_step(model, dataloader, optimizer, device, anomalib_dataset=F
     wandb.log({'Train loss per epoch:': train_loss_epoch / len(dataloader)})
 
 def train_step(epoch, model, train_loader,
-                  optimizer, anomalib_dataset=False):
+                  optimizer, anomalib_dataset=False, _print=False):
 
     model.train()
     train_loss_epoch = 0
@@ -121,7 +121,7 @@ def train_step(epoch, model, train_loader,
         optimizer.step()
         train_loss_epoch += loss.item()
     wandb.log({'Train loss per epoch:': train_loss_epoch / len(train_loader)})
-    print('====> Epoch {} : Average loss: {:.4f}'.format(epoch, train_loss_epoch / len(train_loader)))
+    if _print: print('====> Epoch {} : Average loss: {:.4f}'.format(epoch, train_loss_epoch / len(train_loader)))
 
 @torch.no_grad()
 def find_threshold(epoch, model, train_loader, _print=False, baseline=False, anomalib_dataset=False):
@@ -175,21 +175,15 @@ def find_threshold(epoch, model, train_loader, _print=False, baseline=False, ano
             true_labels.append(y)
 
     wandb.log({'std anomaly_score of all (training) samples':torch.std(anomaly_score)})
-
-    print(f"Now moving onto finding the appropriate threshold (based on training data including abnormal samples):")
+    if _print: print(f"Now moving onto finding the appropriate threshold (based on training data including abnormal samples):")
     optimal_threshold = optimize_threshold(anomaly_scores, true_labels)
     wandb.log({'optimal (selection) threshold': optimal_threshold})
-    print(f"Optimal threshold: {optimal_threshold}")
+    if _print: print(f"Optimal threshold: {optimal_threshold}")
     return optimal_threshold
 
-def calculate_metrics(true, anomaly_scores, threshold):
-    # when utilizing fastflow, no threshold is passed
-    # the 'anomaly_scores' will already represent the classified label
-    if threshold == None:
-        pred = anomaly_scores
-    else:
-        pred = np.array(anomaly_scores>threshold, dtype=int)
-    print(f"Number of predicted anomalies in the (test-)set: {np.sum(pred)}")
+def calculate_metrics(true, anomaly_scores, threshold, _print=False):
+    pred = np.array(anomaly_scores>threshold, dtype=int)
+    if _print: print(f"Number of predicted anomalies in the (test-)set: {np.sum(pred)}")
     
     tn, fp, fn, tp = confusion_matrix(true, pred, labels=[0, 1]).ravel()
     fpr, tpr, _ = roc_curve(true, pred)
@@ -223,6 +217,8 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
 
             if type(model) == FastflowModel:
                 anomaly_mapping = model(x).squeeze(dim=1)
+
+                # try sum
                 anomaly_score = torch.mean(anomaly_mapping, axis=(1, 2))
             # TODO: is this the appropriate way to retreive the anomaly score? 
             # https://github.com/openvinotoolkit/anomalib/blob/main/src/anomalib/models/ganomaly/torch_model.py
@@ -254,7 +250,7 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
     if return_only_anomaly_scores: return true, anomaly_scores
 
 
-    results = calculate_metrics(true, anomaly_scores, threshold)
+    results = calculate_metrics(true, anomaly_scores, threshold, _print=_print)
     if test_eval and track_results:
         test_results = {}
         for metric in results:
@@ -265,7 +261,7 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
     # only log the results on the test set (per 10 epochs)
         # this does not influence the best model selection
     elif track_results: wandb.log(results)
-    if _print: print(f"Epoch {epoch}: {results}")   
+    if _print: print(f"Epoch {epoch}: {results}")
     return results
 
 def main(args):
@@ -296,7 +292,7 @@ def main(args):
     'optim_weight_decay': args.optim_weight_decay,
     'n_validation_folds': args.n_validation_folds
     }
-)
+    )
     torch.manual_seed(args.seed) # Setting the seed
 
     # rather than training the entire model on all of the different subsets, we train and evaluate the model seperately on each subset
@@ -353,7 +349,6 @@ def main(args):
             train_split_abnormal = [kfold[0] for kfold in abnormal_split]
             test_split_abnormal = [kfold[1] for kfold in abnormal_split]
             start = time.time()
-
             for fold in tqdm(range(args.n_validation_folds)):
                 if args.model in ['fastflow', 'ganomaly']:
                     model.training = True
@@ -384,11 +379,7 @@ def main(args):
                 validate_loader_combined = torch.utils.data.ConcatDataset([validate_loader_normal, validate_loader_abnormal])
                 validate_loader_combined = data.DataLoader(validate_loader_combined, num_workers = args.num_workers, batch_size=args.batch_size)
                 
-                if fold % 1 == 0:
-                    printeval=True
-                else:
-                    printeval=False
-                results = eval_model(epoch, model, validate_loader_combined, threshold, _print=printeval, baseline=baseline, anomalib_dataset=anomalib_dataset)
+                results = eval_model(epoch, model, validate_loader_combined, threshold, _print=False, baseline=baseline, anomalib_dataset=anomalib_dataset)
                 fold_metrics.append(results['F1'])
 
             # Save reconstruction resuls every epoch for later analysis:
@@ -398,7 +389,7 @@ def main(args):
         
             # Save if best evaluation according to the cross validation:
             # dont save if the model is subset specific
-            if (np.mean(results['F1']) >= current_best_score):
+            if (np.mean(fold_metrics) >= current_best_score):
                 current_best_score = np.mean(results['F1'])
                 
                 best_model = copy.deepcopy(model)
