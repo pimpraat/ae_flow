@@ -182,7 +182,7 @@ def find_threshold(epoch, model, train_loader, _print=False, baseline=False, ano
     return optimal_threshold
 
 def calculate_metrics(true, anomaly_scores, threshold, _print=False):
-    pred = np.array(anomaly_scores>threshold, dtype=int)
+    pred = np.array(anomaly_scores>=threshold, dtype=int)
     if _print: print(f"Number of predicted anomalies in the (test-)set: {np.sum(pred)}")
     
     tn, fp, fn, tp = confusion_matrix(true, pred, labels=[0, 1]).ravel()
