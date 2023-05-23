@@ -209,9 +209,13 @@ def find_threshold(epoch, model, train_loader, _print=False, baseline=False, ano
             device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
             original_x = x.to(device)
             reconstructed_x = model(original_x).squeeze(dim=1)
-            anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
-                                                        original_x=original_x, reconstructed_x=reconstructed_x)
-            
+
+            if type(model) == AE_Flow_Model:
+                anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
+                                                            original_x=original_x, reconstructed_x=reconstructed_x)
+            else:
+                anomaly_score = model.get_anomaly_score(original_x=original_x, reconstructed_x=reconstructed_x)
+                                
 
             anomaly_scores.append(anomaly_score)
             true_labels.append(y)
@@ -281,15 +285,18 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
                 y = data[1]    
             original_x,y = x.to(device), y.to(device)
             reconstructed_x = model(original_x).squeeze(dim=1)
+
+            if type(model) == AE_Flow_Model:
+                # Start implementation of early stopping:
+                v_recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
+                v_flow_loss = model.get_flow_loss(bpd=True)
+                v_loss = args.loss_alpha * v_flow_loss + (1-args.loss_alpha) * v_recon_loss
+                validation_losses.append(v_loss)
             
-            # Start implementation of early stopping:
-            v_recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
-            v_flow_loss = model.get_flow_loss(bpd=True)
-            v_loss = args.loss_alpha * flow_loss + (1-args.loss_alpha) * recon_loss
-            validation_losses.append(v_loss)
-            
-            anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
+                anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
                                                         original_x=original_x, reconstructed_x=reconstructed_x)
+            else:
+                anomaly_score = model.get_anomaly_score(original_x=original_x, reconstructed_x=reconstructed_x)
             anomaly_scores.append(anomaly_score)
 
             true_labels.append(y)
@@ -447,8 +454,8 @@ def main(args):
             validation_losses_per_epoch.append(np.mean(fold_validation_losses))
             
             # Do we want early cutoff here?
-            if np.all(validation_losses_per_epoch[-5] <= np.mean(fold_validation_losses)):
-                print(f"Suggest early cutoff!")
+            #if np.all(validation_losses_per_epoch[-5] <= np.mean(fold_validation_losses)):
+            #    print(f"Suggest early cutoff!")
                 #TODO: Implement early stopping function
                 
 
