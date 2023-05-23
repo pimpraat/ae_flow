@@ -208,7 +208,9 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
     
     anomaly_scores, true_labels = [], []
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-
+    
+    validation_losses = []
+    
     if baseline:
         model.training = False
 
@@ -244,6 +246,12 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
             original_x,y = x.to(device), y.to(device)
             reconstructed_x = model(original_x).squeeze(dim=1)
             
+            # Start implementation of early stopping:
+            v_recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
+            v_flow_loss = model.get_flow_loss(bpd=True)
+            v_loss = args.loss_alpha * flow_loss + (1-args.loss_alpha) * recon_loss
+            validation_losses.append(v_loss)
+            
             anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
                                                         original_x=original_x, reconstructed_x=reconstructed_x)
             anomaly_scores.append(anomaly_score)
@@ -252,6 +260,8 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
 
     true = [item for sublist in [tensor.cpu().numpy() for tensor in true_labels] for item in sublist]
     anomaly_scores = [item for sublist in [tensor.cpu().numpy() for tensor in anomaly_scores] for item in sublist]
+    
+#     wandb.log({'mean validation loss': np.mean(validation_losses})
 
     if return_only_anomaly_scores: return true, anomaly_scores
 
@@ -268,7 +278,7 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
         # this does not influence the best model selection
     elif track_results: wandb.log(results)
     if _print: print(f"Epoch {epoch}: {results}")
-    return results
+    return results, validation_losses
 
 def main(args):
     """
@@ -280,7 +290,8 @@ def main(args):
 
     # In the paper (Section 3.2) the authors mention other hyperparameters for the chest-xray set, so we enforce it:
     if args.dataset == "chest_xray": args.optim_weight_decay, args.optim_lr = 0.0, 1e-3
-
+        
+    if args.model == 'autoencoder': args.loss_alpha, args.loss_beta = 0,0
 
     wandb.login(key=WANDBKEY)
     wandb.init(
@@ -341,10 +352,12 @@ def main(args):
         optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, betas=(args.optim_momentum, 0.999))
         current_best_score, used_thr = 0.0, 0.0
         best_model = None
+        validation_losses_per_epoch = []
 
         # Training loop
         for epoch in range(args.epochs):
             fold_metrics = []
+            fold_validation_losses = []
 
             # Splitting all folds:
             kfold_normal, kfold_abormal = KFold(n_splits=args.n_validation_folds, shuffle=True), KFold(n_splits=args.n_validation_folds, shuffle=True)
@@ -383,8 +396,18 @@ def main(args):
                 validate_loader_combined = torch.utils.data.ConcatDataset([validate_loader_normal, validate_loader_abnormal])
                 validate_loader_combined = data.DataLoader(validate_loader_combined, num_workers = args.num_workers, batch_size=args.batch_size)
                 
-                results = eval_model(epoch, model, validate_loader_combined, threshold, _print=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
+                results, validation_loss = eval_model(epoch, model, validate_loader_combined, threshold, _print=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
                 fold_metrics.append(results['F1'])
+                fold_validation_losses.extend(validation_loss)
+            
+            wandb.log({'mean validation loss' : np.mean(fold_validation_losses)})
+            validation_losses_per_epoch.append(np.mean(fold_validation_losses))
+            
+            # Do we want early cutoff here?
+            if np.all(validation_losses_per_epoch[-5] <= np.mean(fold_validation_losses)):
+                print(f"Suggest early cutoff!")
+                #TODO: Implement early stopping function
+                
 
             # Save reconstruction resuls every epoch for later analysis:
             # if args.model == 'ae_flow': wandb.log(sample_images(model, device))
