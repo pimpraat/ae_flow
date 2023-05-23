@@ -8,6 +8,7 @@ import torch.nn as nn
 from nflows.distributions import normal
 
 from model.ae_flow_model import AE_Flow_Model
+from model.Auto_encoder_seperate import AE_Model
 # from baselines.ganomaly import GanomalyModel
 from dataloader import load
 from model.flow import FlowModule
@@ -127,6 +128,41 @@ def train_step(epoch, model, train_loader,
     wandb.log({'Train loss per epoch:': train_loss_epoch / len(train_loader)})
     if _print: print('====> Epoch {} : Average loss: {:.4f}'.format(epoch, train_loss_epoch / len(train_loader)))
     return model
+
+
+def train_step_AE(epoch, model, train_loader,
+                  optimizer, anomalib_dataset=False, _print=False):
+    
+    model.train()
+    for name, param in model.named_parameters():
+        if param.requires_grad == False:
+            print(f'Param does not require grad !! \n {name}')
+            param.requires_grad = True
+
+    train_loss_epoch = 0
+    for batch_idx, data in enumerate(train_loader):
+        if anomalib_dataset:
+            x = data['image']
+        else:
+            x = data[0]
+        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        original_x = x.to(device)
+
+        optimizer.zero_grad(set_to_none=True)
+        reconstructed_x = model(original_x).squeeze(dim=1)  
+        
+        recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
+        wandb.log({'recon_loss (train)':recon_loss})
+
+        loss = recon_loss
+
+        loss.backward()
+        optimizer.step()
+        train_loss_epoch += loss.item()
+    wandb.log({'Train loss per epoch:': train_loss_epoch / len(train_loader)})
+    if _print: print('====> Epoch {} : Average loss: {:.4f}'.format(epoch, train_loss_epoch / len(train_loader)))
+    return model  
+
 
 @torch.no_grad()
 def find_threshold(epoch, model, train_loader, _print=False, baseline=False, anomalib_dataset=False):
@@ -333,6 +369,11 @@ def main(args):
             model.training = True
             baseline = True
 
+        elif args.model == 'autoencoder':
+            model = AE_Model()
+        else:
+            print("Model not supported")
+
         # Loading the data in a splitted way for later use, see the blogpost, discarding the validation set due to it's limited size
         # NOTE: for MVTEC or BTECH the train_abnormal loader will be a validation loader
         train_loader, train_abnormal, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, subset=subset, anomalib_dataset=anomalib_dataset)
@@ -373,6 +414,8 @@ def main(args):
                     train_fastflow_step(model, train_normal_loader, optimizer, device, anomalib_dataset=anomalib_dataset)
                 elif args.model == 'ganomaly':
                     train_ganomaly_step(model, train_normal_loader, optimizer, device, anomalib_dataset=anomalib_dataset)
+                elif args.model == 'autoencoder':
+                    train_step_AE(epoch,model,train_normal_loader,optimizer,anomalib_dataset=anomalib_dataset)
                 else:
                     train_step(epoch, model, train_normal_loader, optimizer, anomalib_dataset=anomalib_dataset)
 
