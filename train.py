@@ -394,11 +394,14 @@ def main(args):
                 
                 best_model = copy.deepcopy(model)
                 used_thr = threshold
-
-                if subset == None:
-                    torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
-                else:
-                    torch.save(model.state_dict(), str(f"models/{wandb.config}_{subset}.pt"))
+                
+                if args.ue_model: torch.save(model.state_dict(), str(f"models/model_seed/{args.seed}.pt"))
+                
+                if !args.ue_model:
+                    if subset == None:
+                        torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
+                    else:
+                        torch.save(model.state_dict(), str(f"models/{wandb.config}_{subset}.pt"))
 
 
             track_test_performance = True
@@ -455,6 +458,8 @@ if __name__ == '__main__':
                         help='Directory where to look for the data. For jobs on Lisa, this should be $TMPDIR.')
 
     parser.add_argument('--final_experiments', default=False, type=bool, help='Whether to save results as for final experiments')
+    
+    parser.add_argument('--ue_model', default=False, type=bool, help='Whether to just train a model with a specific seed and save it.')
 
     parser.add_argument('--n_validation_folds', default=5, type=int, help='')
     parser.add_argument('--n_flowblocks', default=8, type=int, help='')
