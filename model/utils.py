@@ -7,7 +7,7 @@ import numpy as np
 def thr_to_f1(thr, Y_test, predictions):
    """Calculating the negative (binary) F1 score for a set of predictions and true values using a proposed threshold 
    to minimize using fmin"""
-   return - f1_score(Y_test, np.array(predictions>thr, dtype=np.int), average='binary')
+   return - f1_score(Y_test, np.array(predictions>=thr, dtype=np.int), average='binary')
 
 def optimize_threshold(anomaly_scores, true_labels):
     """Optimizing the threshold used to classify a anomaly score as an anomaly. We use fmin for this with
