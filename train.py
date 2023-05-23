@@ -96,8 +96,12 @@ def train_step(epoch, model, train_loader,
                   optimizer, anomalib_dataset=False, _print=False):
 
     model.train()
-    train_loss_epoch = 0
+    for name, param in model.named_parameters():
+        if param.requires_grad == False:
+            print(f'Param does not require grad !! \n {name}')
+            param.requires_grad = True
 
+    train_loss_epoch = 0
     for batch_idx, data in enumerate(train_loader):
         if anomalib_dataset:
             x = data['image']
@@ -122,14 +126,16 @@ def train_step(epoch, model, train_loader,
         train_loss_epoch += loss.item()
     wandb.log({'Train loss per epoch:': train_loss_epoch / len(train_loader)})
     if _print: print('====> Epoch {} : Average loss: {:.4f}'.format(epoch, train_loss_epoch / len(train_loader)))
+    return model
 
 @torch.no_grad()
 def find_threshold(epoch, model, train_loader, _print=False, baseline=False, anomalib_dataset=False):
     anomaly_scores, true_labels = [], []
-    model.training = False
     # e.g. fastflow
     if baseline:
+        model.training = False
         for batch_idx, data in enumerate(train_loader):
+            
         #for batch_idx, (x, y) in enumerate(train_loader):
             if anomalib_dataset:
                 x = data['image']
@@ -219,7 +225,7 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
                 anomaly_mapping = model(x).squeeze(dim=1)
 
                 # try sum
-                anomaly_score = torch.mean(anomaly_mapping, axis=(1, 2))
+                anomaly_score = torch.sum(anomaly_mapping, axis=(1, 2))
             # TODO: is this the appropriate way to retreive the anomaly score? 
             # https://github.com/openvinotoolkit/anomalib/blob/main/src/anomalib/models/ganomaly/torch_model.py
             elif type(model) == GanomalyModel:
@@ -331,12 +337,11 @@ def main(args):
         # NOTE: for MVTEC or BTECH the train_abnormal loader will be a validation loader
         train_loader, train_abnormal, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, subset=subset, anomalib_dataset=anomalib_dataset)
    
-
         model = model.to(device)
         optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, betas=(args.optim_momentum, 0.999))
         current_best_score, used_thr = 0.0, 0.0
         best_model = None
-        
+
         # Training loop
         for epoch in range(args.epochs):
             fold_metrics = []
@@ -351,8 +356,7 @@ def main(args):
             start = time.time()
             for fold in tqdm(range(args.n_validation_folds)):
                 if args.model in ['fastflow', 'ganomaly']:
-                    model.training = True
-
+                    model.training = True 
                 train_ids_normal = train_split_normal[fold]
                 train_ids_abnormal = train_split_abnormal[fold]
                 test_ids_normal = test_split_normal[fold]
@@ -379,7 +383,7 @@ def main(args):
                 validate_loader_combined = torch.utils.data.ConcatDataset([validate_loader_normal, validate_loader_abnormal])
                 validate_loader_combined = data.DataLoader(validate_loader_combined, num_workers = args.num_workers, batch_size=args.batch_size)
                 
-                results = eval_model(epoch, model, validate_loader_combined, threshold, _print=False, baseline=baseline, anomalib_dataset=anomalib_dataset)
+                results = eval_model(epoch, model, validate_loader_combined, threshold, _print=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
                 fold_metrics.append(results['F1'])
 
             # Save reconstruction resuls every epoch for later analysis:
@@ -389,15 +393,17 @@ def main(args):
         
             # Save if best evaluation according to the cross validation:
             # dont save if the model is subset specific
-            if (np.mean(fold_metrics) >= current_best_score):
-                current_best_score = np.mean(results['F1'])
-                
+            current_score = np.mean(fold_metrics)
+            print(f'epoch {epoch} F1 score over folds = {current_score}')
+            if (current_score >= current_best_score):
+                print(f'Current best score: {current_best_score}')
+                current_best_score = current_score
+                print(f'New best score: {current_best_score}')
                 best_model = copy.deepcopy(model)
                 used_thr = threshold
-                
+
                 if args.ue_model: torch.save(model.state_dict(), str(f"models/model_seed/{args.seed}.pt"))
-                
-                if !args.ue_model:
+                if not args.ue_model:
                     if subset == None:
                         torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
                     else:
@@ -425,6 +431,7 @@ def main(args):
     wandb.log(final_results) 
 
     print(f"Final, best results on test dataset: {final_results}")
+    print(f'Final results using last model: {results}')
     
     wandb.finish()
 
