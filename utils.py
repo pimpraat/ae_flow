@@ -1,10 +1,11 @@
 import scipy
 from torchvision.utils import make_grid
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, auc, roc_curve
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, auc, roc_curve, precision_recall_curve
 import numpy as np
 from sklearn.model_selection import KFold
-  
-
+from torchmetrics.classification import BinaryPrecisionRecallCurve
+import time
+import torch
 def thr_to_f1(thr, Y_test, predictions):
    """Calculating the negative (binary) F1 score for a set of predictions and true values using a proposed threshold 
    to minimize using fmin"""
@@ -21,8 +22,30 @@ def optimize_threshold(anomaly_scores, true_labels):
     Returns:
         threshold (float): the found optimal threshold
     """
+    # bprc = BinaryPrecisionRecallCurve()
+    # p,r, thr = bprc(anomaly_scores, true_labels)
+    # f1_scores_torch = 2*r*p/(r+p)
     anomaly_scores = [item for sublist in [tensor.cpu().numpy() for tensor in anomaly_scores] for item in sublist]
     true_labels = [item for sublist in [tensor.cpu().numpy() for tensor in true_labels] for item in sublist]
+
+    # t1 = time.time()
+    precision, recall, thresholds = precision_recall_curve(true_labels, anomaly_scores)
+    f1_scores = 2*recall*precision/(recall+precision)
+    # weights = confusion_matrix(true_labels, anomaly_scores).sum(axis=1)
+    # weighted_f1_scores = np.average(f1_scores, weights=weights)
+    # print('Best threshold: ', thresholds[np.argmax(f1_scores)])
+    # print(f"Approach 1: {time.time() - t1}")
+    # print(np.argmax(f1_scores), torch.argmax(f1_scores_torch))
+
+
+    return thresholds[np.argmax(f1_scores)]
+    t1 = time.time()
+    print('Best F1-Score: ', np.max(f1_scores))
+    print('VS:')
+    print(scipy.optimize.fmin(thr_to_f1, args=(true_labels, anomaly_scores), x0=np.mean(anomaly_scores), disp=0))
+    print(f"Approach 2: {time.time() - t1}")
+    assert False
+
     return scipy.optimize.fmin(thr_to_f1, args=(true_labels, anomaly_scores), x0=np.mean(anomaly_scores)+np.std(anomaly_scores), disp=0)
 
 #TODO: Do we want to keep this function?

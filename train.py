@@ -74,8 +74,8 @@ def train_step(epoch, model, train_loader,
     train_loss_epoch = 0
     for batch_idx, data in enumerate(train_loader):
         if anomalib_dataset:
-            x = data['image']
-            y = data['label']
+            x,y = data['image'],data['label']
+    
         else:
             x = data[0]
             y = data[1]   
