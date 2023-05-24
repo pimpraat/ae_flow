@@ -73,7 +73,33 @@ def load_mvtec(split, subset, batch_size=64, num_workers=8):
         return mvtec_datamodule.val_data
     else:
         raise NotImplementedError
+    
+def load_miic(split):
+    file_list, label_list = [], []
+    data_dir = f'data/miic/{split}/'
+    paths = []
+    # only normal samples
+    if split == 'train':
+        path = (0, data_dir+'test_normal_*.jpg')
+        paths.append(path)
+    # only abnormal
+    elif split == 'train_abnormal':
+        data_dir = data_dir = f'data/miic/train/'
+        path = (1, data_dir+'test_abnormal_*.jpg')
+        paths.append(path)
+    # abnormal and normal
+    # ignore any masks or paddings
+    elif split == 'test':
+        path_normal = (0, data_dir+'*normal_[0-9][0-9][0-9][0-9][0-9].jpg')
+        path_abnormal = (1, data_dir+'*abnormal_[0-9][0-9][0-9][0-9][0-9].jpg')
+        paths.append(path_normal)
+        paths.append(path_abnormal)
+    for label, path in paths:
+        for filename in glob.glob(path):
+            file_list.append(filename)
+            label_list.append(label)
 
+    return file_list, label_list
 class LoadDataset(Dataset):
     def __init__(self, data_dir, split, ext='jpeg', subset=None, batch_size=64, num_workers=8, anomalib_dataset=False):
         self.data_dir = data_dir
@@ -113,6 +139,9 @@ class LoadDataset(Dataset):
     def _get_file_list(self):
         file_list = []
         label_list = []
+
+        if self.data_dir == 'miic':
+            return load_miic(self.split)
         # set split to 'train'
         if self.split == 'train_abnormal':
             split = 'train'
