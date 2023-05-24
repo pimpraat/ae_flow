@@ -1,7 +1,8 @@
 import scipy
-from sklearn.metrics import f1_score
 from torchvision.utils import make_grid
+from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, auc, roc_curve
 import numpy as np
+from sklearn.model_selection import KFold
   
 
 def thr_to_f1(thr, Y_test, predictions):
@@ -32,3 +33,19 @@ def sample_images(model, device):
         grid2 = make_grid(model.sample_images_abnormal.to(device) + rec_images, nrow = 2)
 
         return {"abnormal reconstruction images": grid1, "normal reconstruction images": grid2}
+
+def calculate_metrics(true, anomaly_scores, threshold, _print=False):
+    pred = np.array(anomaly_scores>=threshold, dtype=int)
+    if _print: print(f"Number of predicted anomalies in the (test-)set: {np.sum(pred)}")
+    
+    tn, fp, fn, tp = confusion_matrix(true, pred, labels=[0, 1]).ravel()
+    fpr, tpr, _ = roc_curve(true, pred)
+
+    results = {
+        'AUC': auc(fpr, tpr),
+        'ACC' : (tp + tn)/(tp+fp+fn+tn),
+        'SEN' : tp / (tp+fn),
+        'SPE' : tn / (tn + fp),
+        'F1' : f1_score(true, pred, average='binary')
+    }
+    return results

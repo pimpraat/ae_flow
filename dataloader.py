@@ -7,6 +7,7 @@ from PIL import Image, ImageFile
 import glob
 from torch.utils.data import Dataset
 from tqdm import tqdm
+from sklearn.model_selection import KFold
 
 import os
 
@@ -206,3 +207,28 @@ def load(data_dir,batch_size=64, num_workers=4, subset=None, anomalib_dataset=Fa
     else:
         train_abnormal = LoadDataset(data_dir, split='train_abnormal', subset=subset, anomalib_dataset=anomalib_dataset)
         return train_dataset, train_abnormal, test_loader
+    
+def split_data(n_splits, normal_data, abnormal_data):
+    kfold_normal, kfold_abormal = KFold(n_splits, shuffle=True), KFold(n_splits, shuffle=True)
+    normal_split, abnormal_split = list(kfold_normal.split(normal_data)), list(kfold_abormal.split(abnormal_data))
+    train_split_normal = [kfold[0] for kfold in normal_split]
+    test_split_normal = [kfold[1] for kfold in normal_split]
+    train_split_abnormal = [kfold[0] for kfold in abnormal_split]
+    test_split_abnormal = [kfold[1] for kfold in abnormal_split]
+    return train_split_normal, test_split_normal, train_split_abnormal, test_split_abnormal
+
+def fold_to_loaders(fold, train_split_normal, test_split_normal, train_split_abnormal, test_split_abnormal, n_workers, train_loader, train_abnormal):
+    train_ids_normal, train_ids_abnormal = train_split_normal[fold], train_split_abnormal[fold]
+    test_ids_normal, test_ids_abnormal = test_split_normal[fold], test_split_abnormal[fold]
+
+    train_normal_dataset = torch.utils.data.dataset.Subset(train_loader,train_ids_normal)
+    train_normal_loader = data.DataLoader(train_normal_dataset, num_workers = n_workers, shuffle=True, batch_size=64)
+    train_abnormal_dataset =  torch.utils.data.dataset.Subset(train_abnormal,train_ids_abnormal)
+    threshold_dataset = torch.utils.data.ConcatDataset([train_abnormal_dataset, train_normal_dataset])
+    threshold_loader = data.DataLoader(threshold_dataset, num_workers = n_workers, batch_size=64)
+
+    validate_loader_normal = torch.utils.data.dataset.Subset(train_loader,test_ids_normal)
+    validate_loader_abnormal = torch.utils.data.dataset.Subset(train_abnormal,test_ids_abnormal)
+    validate_loader_combined = torch.utils.data.ConcatDataset([validate_loader_normal, validate_loader_abnormal])
+    validate_loader_combined = data.DataLoader(validate_loader_combined, num_workers = n_workers, batch_size=64)
+    return train_normal_loader, threshold_loader, validate_loader_combined
