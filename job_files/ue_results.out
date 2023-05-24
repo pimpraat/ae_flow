@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/home/lcur1708/new_git_directory/ae_flow/generate_ue_results.py", line 17, in <module>
+    assert not torch.equal(torch.load(f'models/model_seed/85.pt', map_location='cpu'), torch.load(f'models/model_seed/59.pt', map_location='cpu'))
+TypeError: equal(): argument 'input' (position 1) must be Tensor, not collections.OrderedDict
+srun: error: r28n2: task 0: Exited with exit code 1

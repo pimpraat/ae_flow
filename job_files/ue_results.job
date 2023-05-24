@@ -2,12 +2,12 @@
 
 #SBATCH --partition=gpu_titanrtx_shared_course
 #SBATCH --gres=gpu:1
-#SBATCH --job-name=RunAE_Normalized_Flow_Development
+#SBATCH --job-name=UE_Results
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=3
-#SBATCH --time=02:00:00
+#SBATCH --time=00:10:00
 #SBATCH --mem=32000M
-#SBATCH --output=job_files/train.out
+#SBATCH --output=job_files/ue_results.out
 
 module purge
 module load 2021
@@ -18,4 +18,4 @@ module load Anaconda3/2021.05
 source activate dl2022
 
 # Run your code
-srun python -u train.py --epochs 10 --dataset chest_xray --subnet_architecture resnet_like --model ae_flow --n_validation_folds 5 --num_workers 3 --seed 42
+srun python -u generate_ue_results.py

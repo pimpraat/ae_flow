@@ -165,7 +165,7 @@ def train_step_AE(epoch, model, train_loader,
 
 
 @torch.no_grad()
-def find_threshold(epoch, model, train_loader, _print=False, baseline=False, anomalib_dataset=False):
+def find_threshold(epoch, model, train_loader, _print=False, baseline=False, anomalib_dataset=False, running_ue_experiments=False):
     anomaly_scores, true_labels = [], []
     # e.g. fastflow
     if baseline:
@@ -211,7 +211,13 @@ def find_threshold(epoch, model, train_loader, _print=False, baseline=False, ano
             reconstructed_x = model(original_x).squeeze(dim=1)
 
             if type(model) == AE_Flow_Model:
-                anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
+
+                if running_ue_experiments:
+                    anomaly_score = model.get_anomaly_score(_beta=0.9, 
+                                                            original_x=original_x, reconstructed_x=reconstructed_x)
+
+                elif running_ue_experiments == False:
+                    anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
                                                             original_x=original_x, reconstructed_x=reconstructed_x)
             else:
                 anomaly_score = model.get_anomaly_score(original_x=original_x, reconstructed_x=reconstructed_x)
@@ -220,10 +226,10 @@ def find_threshold(epoch, model, train_loader, _print=False, baseline=False, ano
             anomaly_scores.append(anomaly_score)
             true_labels.append(y)
 
-    wandb.log({'std anomaly_score of all (training) samples':torch.std(anomaly_score)})
+    if not running_ue_experiments: wandb.log({'std anomaly_score of all (training) samples':torch.std(anomaly_score)})
     if _print: print(f"Now moving onto finding the appropriate threshold (based on training data including abnormal samples):")
     optimal_threshold = optimize_threshold(anomaly_scores, true_labels)
-    wandb.log({'optimal (selection) threshold': optimal_threshold})
+    if not running_ue_experiments: wandb.log({'optimal (selection) threshold': optimal_threshold})
     if _print: print(f"Optimal threshold: {optimal_threshold}")
     return optimal_threshold
 
@@ -244,7 +250,7 @@ def calculate_metrics(true, anomaly_scores, threshold, _print=False):
     return results
 
 @torch.no_grad()
-def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_only_anomaly_scores=False, track_results=True, test_eval=False, baseline=False, anomalib_dataset=False):
+def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_only_anomaly_scores=False, track_results=True, test_eval=False, baseline=False, anomalib_dataset=False, running_ue_experiments=False):
     
     anomaly_scores, true_labels = [], []
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -290,11 +296,18 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
                 # Start implementation of early stopping:
                 v_recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
                 v_flow_loss = model.get_flow_loss(bpd=True)
-                v_loss = args.loss_alpha * v_flow_loss + (1-args.loss_alpha) * v_recon_loss
+                if running_ue_experiments:
+                    v_loss = 0.5 * v_flow_loss + (1-0.5) * v_recon_loss
+                else:
+                    v_loss = args.loss_alpha * v_flow_loss + (1-args.loss_alpha) * v_recon_loss
                 validation_losses.append(v_loss)
-            
-                anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
-                                                        original_x=original_x, reconstructed_x=reconstructed_x)
+
+                if running_ue_experiments:
+                    anomaly_score = model.get_anomaly_score(_beta=0.9, 
+                                                            original_x=original_x, reconstructed_x=reconstructed_x)
+                elif not running_ue_experiments:
+                    anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
+                                                            original_x=original_x, reconstructed_x=reconstructed_x)
             else:
                 anomaly_score = model.get_anomaly_score(original_x=original_x, reconstructed_x=reconstructed_x)
             anomaly_scores.append(anomaly_score)
@@ -450,8 +463,8 @@ def main(args):
                 fold_metrics.append(results['F1'])
                 fold_validation_losses.extend(validation_loss)
             
-            wandb.log({'mean validation loss' : np.mean(fold_validation_losses)})
-            validation_losses_per_epoch.append(np.mean(fold_validation_losses))
+            # wandb.log({'mean validation loss' : np.mean(fold_validation_losses).cpu()})
+            # validation_losses_per_epoch.append(np.mean(fold_validation_losses))
             
             # Do we want early cutoff here?
             #if np.all(validation_losses_per_epoch[-5] <= np.mean(fold_validation_losses)):
