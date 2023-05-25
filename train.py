@@ -190,7 +190,7 @@ def find_threshold(epoch, model, train_loader, _print=False, baseline=False, ano
             anomaly_scores.append(anomaly_score)
             true_labels.append(y)
 
-    print(f"Running inference/getting anomaly scores took: {start - time.time()}")
+    print(f"Running inference/getting anomaly scores took: {time.time() - start}")
     if not running_ue_experiments: wandb.log({'std anomaly_score of all (training) samples':torch.std(anomaly_score)})
     if _print: print(f"Now moving onto finding the appropriate threshold (based on training data including abnormal samples):")
     optimal_threshold = optimize_threshold(anomaly_scores, true_labels)
@@ -363,9 +363,12 @@ def main(args):
   
         train_split_normal, test_split_normal, train_split_abnormal, test_split_abnormal = split_data(n_splits=args.n_validation_folds, normal_data=train_loader, 
                                                                                                       abnormal_data=train_abnormal)
-        
-        test_split_normall = torch.utils.data.dataset.Subset(train_loader,test_split_normal)
-        test_split_abnormall = torch.utils.data.dataset.Subset(train_abnormal,test_split_abnormal)
+
+        test_split_normal_all = [item for sublist in test_split_normal for item in sublist]
+        test_split_abnormal_all = [item for sublist in test_split_abnormal for item in sublist]
+
+        test_split_normall = torch.utils.data.dataset.Subset(train_loader,test_split_normal_all)
+        test_split_abnormall = torch.utils.data.dataset.Subset(train_abnormal,test_split_abnormal_all)
         checkpoint_loader = data.DataLoader(torch.utils.data.ConcatDataset([test_split_normall, test_split_abnormall]), num_workers = 3, batch_size=64)
         
         threshold_loader_all = data.DataLoader(torch.utils.data.ConcatDataset([train_loader, train_abnormal]), num_workers = 3, batch_size=64)
