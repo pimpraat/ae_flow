@@ -9,6 +9,7 @@ from model.ae_flow_model import AE_Flow_Model
 from model.Auto_encoder_seperate import AE_Model
 from dataloader import load, split_data, fold_to_loaders
 from utils import optimize_threshold, calculate_metrics
+from experiment import Experiment
 import wandb
 import torchvision
 import numpy as np
@@ -67,7 +68,7 @@ def train_step(epoch, model, train_loader,optimizer, anomalib_dataset=False, _pr
 
 
 @torch.no_grad()
-def get_anomaly_scores(model, baseline, dataloader, anomalib_dataset, running_ue_experiments=False):
+def get_anomaly_scores(model, baseline, dataloader, anomalib_dataset):
     if baseline: model.training = False
     anomaly_scores, true_labels = [], []
 
@@ -81,18 +82,8 @@ def get_anomaly_scores(model, baseline, dataloader, anomalib_dataset, running_ue
         reconstructed_x = model(original_x).squeeze(dim=1)
 
         if type(model) == FastflowModel: anomaly_score = torch.mean(reconstructed_x, axis=(1, 2))
-
-        if type(model) == AE_Flow_Model:
-
-                if running_ue_experiments:
-                    anomaly_score = model.get_anomaly_score(_beta=0.9, 
-                                                            original_x=original_x, reconstructed_x=reconstructed_x)
-
-                elif running_ue_experiments == False:
-                    anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
-                                                            original_x=original_x, reconstructed_x=reconstructed_x)
-        else:
-            anomaly_score = model.get_anomaly_score(original_x=original_x, reconstructed_x=reconstructed_x)
+        if type(model) == AE_Flow_Model: anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, original_x=original_x, reconstructed_x=reconstructed_x)
+        if type(model) == AE_Model: anomaly_score = model.get_anomaly_score(original_x=original_x, reconstructed_x=reconstructed_x)
 
         anomaly_scores.append(anomaly_score)
         true_labels.append(y)
@@ -101,19 +92,18 @@ def get_anomaly_scores(model, baseline, dataloader, anomalib_dataset, running_ue
     return anomaly_scores, true_labels
 
 @torch.no_grad()
-def find_threshold(epoch, model, train_loader, _print=False, baseline=False, anomalib_dataset=False, running_ue_experiments=False):
-    anomaly_scores, true_labels = get_anomaly_scores(model, baseline, train_loader, anomalib_dataset, running_ue_experiments=False)
-    # if not running_ue_experiments: wandb.log({'std anomaly_score of all (training) samples':torch.std(anomaly_scores)})
-    if _print: print(f"Now moving onto finding the appropriate threshold (based on training data including abnormal samples):")
+def find_threshold(epoch, model, train_loader, verbose=False, baseline=False, anomalib_dataset=False):
+    anomaly_scores, true_labels = get_anomaly_scores(model, baseline, train_loader, anomalib_dataset)
+    if verbose: print(f"Now moving onto finding the appropriate threshold (based on training data including abnormal samples):")
     optimal_threshold = optimize_threshold(anomaly_scores, true_labels)
-    if not running_ue_experiments: wandb.log({'optimal (selection) threshold': optimal_threshold})
-    if _print: print(f"Optimal threshold: {optimal_threshold}")
+    wandb.log({'optimal (selection) threshold': optimal_threshold})
+    if verbose: print(f"Optimal threshold: {optimal_threshold}")
     return optimal_threshold
 
 @torch.no_grad()
 def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_only_anomaly_scores=False, track_results=True, test_eval=False, baseline=False, anomalib_dataset=False, running_ue_experiments=False):
     
-    anomaly_scores, true = get_anomaly_scores(model, baseline, data_loader, anomalib_dataset, running_ue_experiments=False)
+    anomaly_scores, true = get_anomaly_scores(model, baseline, data_loader, anomalib_dataset)
     if return_only_anomaly_scores: return true, anomaly_scores
 
     results = calculate_metrics(true, anomaly_scores, threshold, _print=_print)
@@ -129,7 +119,7 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
 
 def model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, current_best_score, used_thr, best_model, verbose=False):
     if (epoch % 5 == 0) and (epoch != 0):
-        threshold = find_threshold(epoch, model, threshold_loader_all, _print=False)
+        threshold = find_threshold(epoch, model, threshold_loader_all, verbose=False)
         results, _ = eval_model(epoch, model, checkpoint_loader, threshold, _print=True)
         if verbose: print(f"Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: {results['F1']}")
         if results['F1'] > current_best_score:
@@ -169,45 +159,47 @@ def main(args):
     )
     torch.manual_seed(args.seed) # Setting the seed
 
-    # rather than training the entire model on all of the different subsets, we train and evaluate the model seperately on each subset
-    if args.dataset == 'btech':
-        subsets = ['01', '02', '03']
-        anomalib_dataset = True
-    elif args.dataset == 'mvtec':
-        subsets = ['pill', 'toothbrush', 'wood', 'grid', 'capsule', 'transistor', 'screw', 'carpet', 'cable', 'bottle', 'tile', 'metal_nut', 'hazelnut', 'leather', 'zipper']
-        anomalib_dataset = True
-    else:
-        subsets = [None]
-        anomalib_dataset = False
+    experiment = Experiment(args)
+
+    # # rather than training the entire model on all of the different subsets, we train and evaluate the model seperately on each subset
+    # if args.dataset == 'btech':
+    #     subsets = ['01', '02', '03']
+    #     anomalib_dataset = True
+    # elif args.dataset == 'mvtec':
+    #     subsets = ['pill', 'toothbrush', 'wood', 'grid', 'capsule', 'transistor', 'screw', 'carpet', 'cable', 'bottle', 'tile', 'metal_nut', 'hazelnut', 'leather', 'zipper']
+    #     anomalib_dataset = True
+    # else:
+    #     subsets = [None]
+    #     anomalib_dataset = False
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    baseline = False
+    # baseline = False
     # this outer loop is relevant for btad and mvtec, where we train seperate models for each class within the dataset, and average after
-    for subset in subsets:
+    for subset in experiment.subsets:
         if subset != None:
             print(f'Running on subset: {subset}')
         subset_results = []
 
+        experiment.initialize_model()
         # Selecting the correct model with it's model settings specified in the experiments:
-        if args.model == 'ae_flow': model = AE_Flow_Model(subnet_architecture=args.subnet_architecture, n_flowblocks=args.n_flowblocks)
-        elif args.model == 'fastflow':
-            model = FastflowModel(input_size=(256, 256), backbone="wide_resnet50_2", flow_steps=8, pre_trained=False)
-            model.training = True
-            baseline = True
+        # if args.model == 'ae_flow': model = AE_Flow_Model(subnet_architecture=args.subnet_architecture, n_flowblocks=args.n_flowblocks)
+        # elif args.model == 'fastflow':
+        #     model = FastflowModel(input_size=(256, 256), backbone="wide_resnet50_2", flow_steps=8, pre_trained=False)
+        #     model.training = True
+        #     baseline = True
 
-        elif args.model == 'autoencoder':
-            model = AE_Model()
-        else:
-            print("Model not supported")
+        # elif args.model == 'autoencoder':
+        #     model = AE_Model()
+        # else:
+        #     print("Model not supported")
 
         # Loading the data in a splitted way for later use, see the blogpost, discarding the validation set due to it's limited size
         # NOTE: for MVTEC or BTECH the train_abnormal loader will be a validation loader
-        train_loader, train_abnormal, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, subset=subset, anomalib_dataset=anomalib_dataset)
+        train_loader, train_abnormal, test_loader = load(data_dir=args.dataset,batch_size=args.batch_size, num_workers=args.num_workers, subset=subset, anomalib_dataset=experiment.anomalib_dataset)
    
-        model = model.to(device)
+        model = experiment.model.to(device)
         optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, betas=(args.optim_momentum, 0.999))
-        current_best_score, used_thr = 0.0, 0.0
-        best_model = None
+        current_best_score, used_thr, best_model = 0.0, 0.0, None
   
         train_split_normal, test_split_normal, train_split_abnormal, test_split_abnormal = split_data(n_splits=args.n_validation_folds, normal_data=train_loader, 
                                                                                                       abnormal_data=train_abnormal)
@@ -229,14 +221,8 @@ def main(args):
                                                                                               args.num_workers, train_loader, train_abnormal)
             print(f"Length of train_loader({len(train_normal_loader.dataset)}), length of threshold loader {len(threshold_loader.dataset)}, length of validate_loader{len(validate_loader_combined.dataset)}")
             for epoch in range(args.epochs):
-
-                # if args.model in ['fastflow']: model.training = True 
-                # Performing the training step on just the normal samples:
-                # if args.model == 'fastflow': train_fastflow_step(model, train_normal_loader, optimizer, device, anomalib_dataset=anomalib_dataset)
-                # elif args.model == 'autoencoder': train_step_AE(epoch,model,train_normal_loader,optimizer,anomalib_dataset=anomalib_dataset)
-                # else: train_step(epoch, model, train_normal_loader, optimizer, anomalib_dataset=anomalib_dataset)
                 
-                train_step(epoch, model, train_normal_loader,optimizer, anomalib_dataset)
+                train_step(epoch, model, train_normal_loader,optimizer, experiment.anomalib_dataset)
                 
                 used_thr, best_model, current_best_score = model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, current_best_score, used_thr, best_model, verbose=True)
 
@@ -248,8 +234,8 @@ def main(args):
 
         print(f"F1 scores per fold: {metrics_per_fold}, mean={np.mean(metrics_per_fold)}")
         ## Only after all training we are interested in thresholding! Only part of inference not training
-        threshold = find_threshold(epoch, best_model, threshold_loader_all, _print=False, baseline=baseline, anomalib_dataset=anomalib_dataset)
-        final_results, validation_loss = eval_model(epoch, best_model, test_loader, threshold, _print=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
+        threshold = find_threshold(epoch, best_model, threshold_loader_all, verbose=False, baseline=experiment.baseline, anomalib_dataset=experiment.anomalib_dataset)
+        final_results, _ = eval_model(epoch, best_model, test_loader, threshold, _print=True, baseline=experiment.baseline, anomalib_dataset=experiment.anomalib_dataset)
         subset_results.append(final_results)
     
     # for datasets with multiple classes
