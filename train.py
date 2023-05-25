@@ -283,7 +283,7 @@ def model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, curr
     if (epoch % 5 == 0) and (epoch != 0):
         threshold = find_threshold(epoch, model, threshold_loader_all, _print=False)
         results, _ = eval_model(epoch, model, checkpoint_loader, threshold, _print=True)
-        if verbose: print("Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']")
+        if verbose: print(f"Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']")
         if results['F1'] > current_best_score:
             current_best_score = results['F1']
             if verbose: print(f"Found new best: {current_best_score}")

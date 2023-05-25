@@ -30,7 +30,10 @@ def optimize_threshold(anomaly_scores, true_labels):
 
     # t1 = time.time()
     precision, recall, thresholds = precision_recall_curve(true_labels, anomaly_scores)
-    f1_scores = 2*recall*precision/(recall+precision)
+    if recall + precision == 0:
+        f1_scores = 2*recall*precision/1
+    else:
+         f1_scores = 2*recall*precision/(recall+precision)
     # weights = confusion_matrix(true_labels, anomaly_scores).sum(axis=1)
     # weighted_f1_scores = np.average(f1_scores, weights=weights)
     # print('Best threshold: ', thresholds[np.argmax(f1_scores)])
