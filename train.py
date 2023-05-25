@@ -1,8 +1,6 @@
 import torch
-import torchmetrics
 import argparse
 import copy
-import os
 import torch.utils.data as data
 import torch.nn as nn
 from nflows.distributions import normal
@@ -10,8 +8,6 @@ from nflows.distributions import normal
 from model.ae_flow_model import AE_Flow_Model
 from model.Auto_encoder_seperate import AE_Model
 from dataloader import load, split_data, fold_to_loaders
-from model.flow import FlowModule
-from model.encoder import Encoder
 from utils import optimize_threshold, calculate_metrics
 import wandb
 import torchvision
@@ -23,74 +19,45 @@ from sklearn.model_selection import KFold
 
 from tqdm import tqdm
 from anomalib.models.fastflow.torch_model import FastflowModel
-import matplotlib.pyplot as plt 
 
 # Make sure the following reads to a file with your own W&B API/Server key
 WANDBKEY = open("wandbkey.txt", "r").read()
 
-def train_fastflow_step(model, dataloader, optimizer, device, anomalib_dataset=False):
+def train_step(epoch, model, train_loader,optimizer, anomalib_dataset=False, _print=False):
     model.train()
-    train_loss_epoch = 0
-
-    for batch_idx, data in enumerate(dataloader):
-    #for batch_idx, (x, y) in enumerate(dataloader):
-        if anomalib_dataset:
-            x = data['image']
-            y = data['label']
-        else:
-            x = data[0]
-            y = data[1]    
-
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        original_x = x.to(device)#data['image'].to(device)
-
-        optimizer.zero_grad(set_to_none=True)
-        z_prime, log_jac_det = model(original_x)
-
-        # take [-1] as the fastflow model returns the z_prime of all layers, we only want to look at the last
-        log_z = normal.StandardNormal(shape=z_prime[-1].shape[1:]).log_prob(z_prime[-1])
-        
-        # again, only want the log_jac_det corresponding to the last layer
-        log_p = log_z + log_jac_det[-1]
-
-        flow_loss = -log_p.mean()
-
-        #flow_loss = model.get_flow_loss(bpd=True)
-        wandb.log({'flow loss (train)':flow_loss})
-        flow_loss.backward()
-        optimizer.step()
-        train_loss_epoch += flow_loss.item()
-    wandb.log({'Train loss per epoch:': train_loss_epoch / len(dataloader)})
-
-def train_step(epoch, model, train_loader,
-                  optimizer, anomalib_dataset=False, _print=False):
-
-    model.train()
-    for name, param in model.named_parameters():
-        if param.requires_grad == False:
-            print(f'Param does not require grad !! \n {name}')
-            param.requires_grad = True
+    if type(model) == FastflowModel : model.training = True 
 
     train_loss_epoch = 0
     for batch_idx, data in enumerate(train_loader):
         if anomalib_dataset:
             x,y = data['image'],data['label']
-    
         else:
-            x = data[0]
-            y = data[1]   
+            x, y = data[0], data[1]
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         original_x = x.to(device)
 
         optimizer.zero_grad(set_to_none=True)
         reconstructed_x = model(original_x).squeeze(dim=1)  
 
-        recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
-        flow_loss = model.get_flow_loss(bpd=True)
-        wandb.log({'recon_loss (train)':recon_loss, 'flow loss (train)':flow_loss})
+        if type(model) == AE_Flow_Model:
+            recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
+            flow_loss = model.get_flow_loss(bpd=True)
+            wandb.log({'recon_loss (train)':recon_loss, 'flow loss (train)':flow_loss})
+            loss = args.loss_alpha * flow_loss + (1-args.loss_alpha) * recon_loss
 
-        loss = args.loss_alpha * flow_loss + (1-args.loss_alpha) * recon_loss
-
+        if type(model) == AE_Model:
+            loss = model.get_reconstructionloss(original_x, reconstructed_x)
+            wandb.log({'recon_loss (train)':loss})
+        
+        if type(model) == FastflowModel:
+            z_prime, log_jac_det = reconstructed_x
+            # take [-1] as the fastflow model returns the z_prime of all layers, we only want to look at the last
+            log_z = normal.StandardNormal(shape=z_prime[-1].shape[1:]).log_prob(z_prime[-1])
+            # again, only want the log_jac_det corresponding to the last layer
+            log_p = log_z + log_jac_det[-1]
+            loss = -log_p.mean()
+            #flow_loss = model.get_flow_loss(bpd=True)
+            wandb.log({'flow loss (train)':flow_loss})
         loss.backward()
         optimizer.step()
         train_loss_epoch += loss.item()
@@ -99,83 +66,23 @@ def train_step(epoch, model, train_loader,
     return model
 
 
-def train_step_AE(epoch, model, train_loader,
-                  optimizer, anomalib_dataset=False, _print=False):
-    
-    model.train()
-    for name, param in model.named_parameters():
-        if param.requires_grad == False:
-            print(f'Param does not require grad !! \n {name}')
-            param.requires_grad = True
-
-    train_loss_epoch = 0
-    for batch_idx, data in enumerate(train_loader):
-        if anomalib_dataset:
-            x = data['image']
-        else:
-            x = data[0]
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        original_x = x.to(device)
-
-        optimizer.zero_grad(set_to_none=True)
-        reconstructed_x = model(original_x).squeeze(dim=1)  
-        
-        recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
-        wandb.log({'recon_loss (train)':recon_loss})
-
-        loss = recon_loss
-
-        loss.backward()
-        optimizer.step()
-        train_loss_epoch += loss.item()
-    wandb.log({'Train loss per epoch:': train_loss_epoch / len(train_loader)})
-    if _print: print('====> Epoch {} : Average loss: {:.4f}'.format(epoch, train_loss_epoch / len(train_loader)))
-    return model  
-
-
 @torch.no_grad()
-def find_threshold(epoch, model, train_loader, _print=False, baseline=False, anomalib_dataset=False, running_ue_experiments=False):
+def get_anomaly_scores(model, baseline, dataloader, anomalib_dataset, running_ue_experiments=False):
+    if baseline: model.training = False
     anomaly_scores, true_labels = [], []
-    # e.g. fastflow
-    if baseline:
-        model.training = False
-        for batch_idx, data in enumerate(train_loader):
-            
-        #for batch_idx, (x, y) in enumerate(train_loader):
-            if anomalib_dataset:
-                x = data['image']
-                y = data['label']
-            else:
-                x = data[0]
-                y = data[1]    
 
-            device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-            x, y = x.to(device), y.to(device)
+    for batch_idx, data in enumerate(dataloader):
+        if anomalib_dataset:
+            x, y = data['image'], data['label']
+        else:
+            x,y = data[0], data[1] 
+        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        original_x, y = x.to(device), y.to(device)
+        reconstructed_x = model(original_x).squeeze(dim=1)
 
-            if type(model) == FastflowModel:
-                anomaly_mapping = model(x).squeeze(dim=1)
+        if type(model) == FastflowModel: anomaly_score = torch.mean(reconstructed_x, axis=(1, 2))
 
-                # mean over all dimensions, but the batch dimension
-                # this gives an average anomaly score for each image
-                anomaly_score = torch.mean(anomaly_mapping, axis=(1, 2))
-
-            anomaly_scores.append(anomaly_score)
-            true_labels.append(y)
-    else:
-        #for batch_idx, (x, y) in enumerate(train_loader):
-        start = time.time()
-        for batch_idx, data in enumerate(train_loader):
-            if anomalib_dataset:
-                x = data['image']
-                y = data['label']
-            else:
-                x = data[0]
-                y = data[1]    
-            device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-            original_x = x.to(device)
-            reconstructed_x = model(original_x).squeeze(dim=1)
-
-            if type(model) == AE_Flow_Model:
+        if type(model) == AE_Flow_Model:
 
                 if running_ue_experiments:
                     anomaly_score = model.get_anomaly_score(_beta=0.9, 
@@ -184,14 +91,19 @@ def find_threshold(epoch, model, train_loader, _print=False, baseline=False, ano
                 elif running_ue_experiments == False:
                     anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
                                                             original_x=original_x, reconstructed_x=reconstructed_x)
-            else:
-                anomaly_score = model.get_anomaly_score(original_x=original_x, reconstructed_x=reconstructed_x)
-                                
-            anomaly_scores.append(anomaly_score)
-            true_labels.append(y)
+        else:
+            anomaly_score = model.get_anomaly_score(original_x=original_x, reconstructed_x=reconstructed_x)
 
-    print(f"Running inference/getting anomaly scores took: {time.time() - start}")
-    if not running_ue_experiments: wandb.log({'std anomaly_score of all (training) samples':torch.std(anomaly_score)})
+        anomaly_scores.append(anomaly_score)
+        true_labels.append(y)
+    true_labels = [item for sublist in [tensor.cpu().numpy() for tensor in true_labels] for item in sublist]
+    anomaly_scores = [item for sublist in [tensor.cpu().numpy() for tensor in anomaly_scores] for item in sublist]
+    return anomaly_scores, true_labels
+
+@torch.no_grad()
+def find_threshold(epoch, model, train_loader, _print=False, baseline=False, anomalib_dataset=False, running_ue_experiments=False):
+    anomaly_scores, true_labels = get_anomaly_scores(model, baseline, train_loader, anomalib_dataset, running_ue_experiments=False)
+    # if not running_ue_experiments: wandb.log({'std anomaly_score of all (training) samples':torch.std(anomaly_scores)})
     if _print: print(f"Now moving onto finding the appropriate threshold (based on training data including abnormal samples):")
     optimal_threshold = optimize_threshold(anomaly_scores, true_labels)
     if not running_ue_experiments: wandb.log({'optimal (selection) threshold': optimal_threshold})
@@ -201,89 +113,25 @@ def find_threshold(epoch, model, train_loader, _print=False, baseline=False, ano
 @torch.no_grad()
 def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_only_anomaly_scores=False, track_results=True, test_eval=False, baseline=False, anomalib_dataset=False, running_ue_experiments=False):
     
-    anomaly_scores, true_labels = [], []
-    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-    
-    validation_losses = []
-    
-    if baseline:
-        model.training = False
-
-        for batch_idx, data in enumerate(data_loader):
-            if anomalib_dataset:
-                x = data['image']
-                y = data['label']
-            else:
-                x = data[0]
-                y = data[1]    
-            x, y = x.to(device), y.to(device)
-
-            if type(model) == FastflowModel:
-                anomaly_mapping = model(x).squeeze(dim=1)
-                anomaly_score = torch.sum(anomaly_mapping, axis=(1, 2))
-
-            anomaly_scores.append(anomaly_score)
-            true_labels.append(y)
-    else:
-        for batch_idx, data in enumerate(data_loader):
-            if anomalib_dataset:
-                x = data['image']
-                y = data['label']
-            else:
-                x = data[0]
-                y = data[1]    
-            original_x,y = x.to(device), y.to(device)
-            reconstructed_x = model(original_x).squeeze(dim=1)
-
-            if type(model) == AE_Flow_Model:
-                # Start implementation of early stopping:
-                # v_recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
-                # v_flow_loss = model.get_flow_loss(bpd=True)
-                # if running_ue_experiments:
-                #     v_loss = 0.5 * v_flow_loss + (1-0.5) * v_recon_loss
-                # else:
-                #     v_loss = args.loss_alpha * v_flow_loss + (1-args.loss_alpha) * v_recon_loss
-                # validation_losses.append(v_loss)
-
-                if running_ue_experiments:
-                    anomaly_score = model.get_anomaly_score(_beta=0.9, 
-                                                            original_x=original_x, reconstructed_x=reconstructed_x)
-                elif not running_ue_experiments:
-                    anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, 
-                                                            original_x=original_x, reconstructed_x=reconstructed_x)
-            else:
-                anomaly_score = model.get_anomaly_score(original_x=original_x, reconstructed_x=reconstructed_x)
-            anomaly_scores.append(anomaly_score)
-
-            true_labels.append(y)
-
-    true = [item for sublist in [tensor.cpu().numpy() for tensor in true_labels] for item in sublist]
-    anomaly_scores = [item for sublist in [tensor.cpu().numpy() for tensor in anomaly_scores] for item in sublist]
-    
-#     wandb.log({'mean validation loss': np.mean(validation_losses})
-
+    anomaly_scores, true = get_anomaly_scores(model, baseline, data_loader, anomalib_dataset, running_ue_experiments=False)
     if return_only_anomaly_scores: return true, anomaly_scores
-
 
     results = calculate_metrics(true, anomaly_scores, threshold, _print=_print)
     if test_eval and track_results:
         test_results = {}
-        for metric in results:
-            test_results[metric+'-test'] = results[metric]
+        for metric in results: test_results[metric+'-test'] = results[metric]
         wandb.log(test_results) 
 
-    # the validation set contains very few samples
-    # only log the results on the test set (per 10 epochs)
-        # this does not influence the best model selection
+    # the validation set contains very few samples, only log the results on the test set (per 10 epochs), this does not influence the best model selection
     elif track_results: wandb.log(results)
     if _print: print(f"Epoch {epoch}: {results}")
-    return results, validation_losses
+    return results, []
 
 def model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, current_best_score, used_thr, best_model, verbose=False):
     if (epoch % 5 == 0) and (epoch != 0):
         threshold = find_threshold(epoch, model, threshold_loader_all, _print=False)
         results, _ = eval_model(epoch, model, checkpoint_loader, threshold, _print=True)
-        if verbose: print(f"Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']")
+        if verbose: print(f"Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: {results['F1']}")
         if results['F1'] > current_best_score:
             current_best_score = results['F1']
             if verbose: print(f"Found new best: {current_best_score}")
@@ -382,12 +230,14 @@ def main(args):
             print(f"Length of train_loader({len(train_normal_loader.dataset)}), length of threshold loader {len(threshold_loader.dataset)}, length of validate_loader{len(validate_loader_combined.dataset)}")
             for epoch in range(args.epochs):
 
-                if args.model in ['fastflow']: model.training = True 
+                # if args.model in ['fastflow']: model.training = True 
                 # Performing the training step on just the normal samples:
-                if args.model == 'fastflow': train_fastflow_step(model, train_normal_loader, optimizer, device, anomalib_dataset=anomalib_dataset)
-                elif args.model == 'autoencoder': train_step_AE(epoch,model,train_normal_loader,optimizer,anomalib_dataset=anomalib_dataset)
-                else: train_step(epoch, model, train_normal_loader, optimizer, anomalib_dataset=anomalib_dataset)
-
+                # if args.model == 'fastflow': train_fastflow_step(model, train_normal_loader, optimizer, device, anomalib_dataset=anomalib_dataset)
+                # elif args.model == 'autoencoder': train_step_AE(epoch,model,train_normal_loader,optimizer,anomalib_dataset=anomalib_dataset)
+                # else: train_step(epoch, model, train_normal_loader, optimizer, anomalib_dataset=anomalib_dataset)
+                
+                train_step(epoch, model, train_normal_loader,optimizer, anomalib_dataset)
+                
                 used_thr, best_model, current_best_score = model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, current_best_score, used_thr, best_model, verbose=True)
 
             ## After every fold we use the validate-loader 

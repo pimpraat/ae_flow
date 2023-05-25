@@ -25,8 +25,8 @@ def optimize_threshold(anomaly_scores, true_labels):
     # bprc = BinaryPrecisionRecallCurve()
     # p,r, thr = bprc(anomaly_scores, true_labels)
     # f1_scores_torch = 2*r*p/(r+p)
-    anomaly_scores = [item for sublist in [tensor.cpu().numpy() for tensor in anomaly_scores] for item in sublist]
-    true_labels = [item for sublist in [tensor.cpu().numpy() for tensor in true_labels] for item in sublist]
+    # anomaly_scores = [item for sublist in [tensor.cpu().numpy() for tensor in anomaly_scores] for item in sublist]
+    # true_labels = [item for sublist in [tensor.cpu().numpy() for tensor in true_labels] for item in sublist]
 
     # t1 = time.time()
     precision, recall, thresholds = precision_recall_curve(true_labels, anomaly_scores)

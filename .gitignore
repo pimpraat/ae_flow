@@ -20,3 +20,5 @@ models/model_seed/1.pt
 models/model_seed/59.pt
 models/model_seed/85.pt
 models/model_seed/91.pt
+job_files/train.job
+job_files/train.job
