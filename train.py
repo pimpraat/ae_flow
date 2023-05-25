@@ -138,7 +138,7 @@ def main(args):
 
     # In the paper (Section 3.2) the authors mention other hyperparameters for the chest-xray set, so we enforce it:
     if args.dataset == "chest_xray": args.optim_weight_decay, args.optim_lr = 0.0, 1e-3
-    if args.dataset == "chest_xray": args.subnet_arc = 'resnet_like'
+    if args.dataset == "chest_xray": args.subnet_arc = 'convnet_like'
     if args.model == 'autoencoder': args.loss_alpha, args.loss_beta = 0,0
 
     wandb.login(key=WANDBKEY)
