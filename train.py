@@ -364,22 +364,20 @@ def main(args):
         train_split_normal, test_split_normal, train_split_abnormal, test_split_abnormal = split_data(n_splits=args.n_validation_folds, normal_data=train_loader, 
                                                                                                       abnormal_data=train_abnormal)
         
-        test_split_normal = torch.utils.data.dataset.Subset(train_loader,test_split_normal)
-        test_split_abnormal = torch.utils.data.dataset.Subset(train_abnormal,test_split_abnormal)
-        checkpoint_loader = data.DataLoader(torch.utils.data.ConcatDataset([test_split_normal, test_split_abnormal]), num_workers = 3, batch_size=64)
+        test_split_normall = torch.utils.data.dataset.Subset(train_loader,test_split_normal)
+        test_split_abnormall = torch.utils.data.dataset.Subset(train_abnormal,test_split_abnormal)
+        checkpoint_loader = data.DataLoader(torch.utils.data.ConcatDataset([test_split_normall, test_split_abnormall]), num_workers = 3, batch_size=64)
         
         threshold_loader_all = data.DataLoader(torch.utils.data.ConcatDataset([train_loader, train_abnormal]), num_workers = 3, batch_size=64)
 
         # Training loop
         metrics_per_fold = []
         for fold in tqdm(range(args.n_validation_folds)):
-            start_fold = time.time()
             train_normal_loader, threshold_loader, validate_loader_combined = fold_to_loaders(fold, train_split_normal, test_split_normal, 
                                                                                               train_split_abnormal, test_split_abnormal, 
                                                                                               args.num_workers, train_loader, train_abnormal)
             print(f"Length of train_loader({len(train_normal_loader.dataset)}), length of threshold loader {len(threshold_loader.dataset)}, length of validate_loader{len(validate_loader_combined.dataset)}")
             for epoch in range(args.epochs):
-                start_epoch = time.time()
 
                 if args.model in ['fastflow']: model.training = True 
                 # Performing the training step on just the normal samples:
@@ -389,7 +387,6 @@ def main(args):
 
                 used_thr, best_model = model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, current_best_score, used_thr, best_model, verbose=True)
 
-                print(f"Epoch step took {time.time() - start_epoch}")
             ## After every fold we use the validate-loader 
             threshold = find_threshold(epoch, model, threshold_loader)
             results, _ = eval_model(epoch, model, validate_loader_combined, threshold)
@@ -399,14 +396,12 @@ def main(args):
         print(f"F1 scores per fold: {metrics_per_fold}, mean={np.mean(metrics_per_fold)}")
         ## Only after all training we are interested in thresholding! Only part of inference not training
         threshold = find_threshold(epoch, model, threshold_loader_all, _print=False, baseline=baseline, anomalib_dataset=anomalib_dataset)
-        # print(f"Threshold finding incl it's inference took {time.time() - done_training}")
-        done_thresholdd = time.time()
         final_results, validation_loss = eval_model(epoch, model, test_loader, threshold, _print=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
         print(results)
-        print(f"Eval incl it's inference took {time.time() - done_thresholdd}")
+        # print(f"Eval incl it's inference took {time.time() - done_thresholdd}")
         # fold_metrics.append(results['F1'])
         # print(f"Epoch took {time.time() - start_epoch}")
-        print(f"Fold took {time.time() - start_fold}")
+        # print(f"Fold took {time.time() - start_fold}")
 
             # Save reconstruction resuls every epoch for later analysis:
             # if args.model == 'ae_flow': wandb.log(sample_images(model, device))
