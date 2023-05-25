@@ -163,6 +163,7 @@ def find_threshold(epoch, model, train_loader, _print=False, baseline=False, ano
             true_labels.append(y)
     else:
         #for batch_idx, (x, y) in enumerate(train_loader):
+        start = time.time()
         for batch_idx, data in enumerate(train_loader):
             if anomalib_dataset:
                 x = data['image']
@@ -186,10 +187,10 @@ def find_threshold(epoch, model, train_loader, _print=False, baseline=False, ano
             else:
                 anomaly_score = model.get_anomaly_score(original_x=original_x, reconstructed_x=reconstructed_x)
                                 
-
             anomaly_scores.append(anomaly_score)
             true_labels.append(y)
 
+    print(f"Running inference/getting anomaly scores took: {start - time.time()}")
     if not running_ue_experiments: wandb.log({'std anomaly_score of all (training) samples':torch.std(anomaly_score)})
     if _print: print(f"Now moving onto finding the appropriate threshold (based on training data including abnormal samples):")
     optimal_threshold = optimize_threshold(anomaly_scores, true_labels)
@@ -236,13 +237,13 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
 
             if type(model) == AE_Flow_Model:
                 # Start implementation of early stopping:
-                v_recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
-                v_flow_loss = model.get_flow_loss(bpd=True)
-                if running_ue_experiments:
-                    v_loss = 0.5 * v_flow_loss + (1-0.5) * v_recon_loss
-                else:
-                    v_loss = args.loss_alpha * v_flow_loss + (1-args.loss_alpha) * v_recon_loss
-                validation_losses.append(v_loss)
+                # v_recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
+                # v_flow_loss = model.get_flow_loss(bpd=True)
+                # if running_ue_experiments:
+                #     v_loss = 0.5 * v_flow_loss + (1-0.5) * v_recon_loss
+                # else:
+                #     v_loss = args.loss_alpha * v_flow_loss + (1-args.loss_alpha) * v_recon_loss
+                # validation_losses.append(v_loss)
 
                 if running_ue_experiments:
                     anomaly_score = model.get_anomaly_score(_beta=0.9, 
@@ -277,6 +278,18 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
     elif track_results: wandb.log(results)
     if _print: print(f"Epoch {epoch}: {results}")
     return results, validation_losses
+
+def model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, current_best_score, used_thr, best_model, verbose=False):
+    if (epoch % 10 == 0) and (epoch != 0):
+        threshold = find_threshold(epoch, model, threshold_loader_all, _print=False)
+        results, _ = eval_model(epoch, model, checkpoint_loader, threshold, _print=True)
+        if verbose: print("Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']")
+        if results['F1'] > current_best_score:
+            current_best_score = results['F1']
+            if verbose: print(f"Found new best: {current_best_score}")
+            used_thr = threshold
+            best_model = copy.deepcopy(model)
+    return used_thr, best_model
 
 def main(args):
     """
@@ -348,72 +361,96 @@ def main(args):
         current_best_score, used_thr = 0.0, 0.0
         best_model = None
   
+        train_split_normal, test_split_normal, train_split_abnormal, test_split_abnormal = split_data(n_splits=args.n_validation_folds, normal_data=train_loader, 
+                                                                                                      abnormal_data=train_abnormal)
+        
+        test_split_normal = torch.utils.data.dataset.Subset(train_loader,test_split_normal)
+        test_split_abnormal = torch.utils.data.dataset.Subset(train_abnormal,test_split_abnormal)
+        checkpoint_loader = data.DataLoader(torch.utils.data.ConcatDataset([test_split_normal, test_split_abnormal]), num_workers = 3, batch_size=64)
+        
+        threshold_loader_all = data.DataLoader(torch.utils.data.ConcatDataset([train_loader, train_abnormal]), num_workers = 3, batch_size=64)
 
         # Training loop
-        for epoch in range(args.epochs):
-            fold_metrics = []
-            train_split_normal, test_split_normal, train_split_abnormal, test_split_abnormal = split_data(n_splits=args.n_validation_folds, normal_data=train_loader, abnormal_data=train_abnormal)
+        metrics_per_fold = []
+        for fold in tqdm(range(args.n_validation_folds)):
+            start_fold = time.time()
+            train_normal_loader, threshold_loader, validate_loader_combined = fold_to_loaders(fold, train_split_normal, test_split_normal, 
+                                                                                              train_split_abnormal, test_split_abnormal, 
+                                                                                              args.num_workers, train_loader, train_abnormal)
+            print(f"Length of train_loader({len(train_normal_loader.dataset)}), length of threshold loader {len(threshold_loader.dataset)}, length of validate_loader{len(validate_loader_combined.dataset)}")
+            for epoch in range(args.epochs):
+                start_epoch = time.time()
 
-            start = time.time()
-            for fold in tqdm(range(args.n_validation_folds)):
                 if args.model in ['fastflow']: model.training = True 
-
-                train_normal_loader, threshold_loader, validate_loader_combined = fold_to_loaders(fold, train_split_normal, test_split_normal, train_split_abnormal, test_split_abnormal, args.num_workers, train_loader, train_abnormal)
-
                 # Performing the training step on just the normal samples:
-                if args.model == 'fastflow':
-                    train_fastflow_step(model, train_normal_loader, optimizer, device, anomalib_dataset=anomalib_dataset)
-                elif args.model == 'autoencoder':
-                    train_step_AE(epoch,model,train_normal_loader,optimizer,anomalib_dataset=anomalib_dataset)
-                else:
-                    train_step(epoch, model, train_normal_loader, optimizer, anomalib_dataset=anomalib_dataset)
+                if args.model == 'fastflow': train_fastflow_step(model, train_normal_loader, optimizer, device, anomalib_dataset=anomalib_dataset)
+                elif args.model == 'autoencoder': train_step_AE(epoch,model,train_normal_loader,optimizer,anomalib_dataset=anomalib_dataset)
+                else: train_step(epoch, model, train_normal_loader, optimizer, anomalib_dataset=anomalib_dataset)
 
-                threshold = find_threshold(epoch, model, threshold_loader, _print=False, baseline=baseline, anomalib_dataset=anomalib_dataset)
-                
-                results, validation_loss = eval_model(epoch, model, validate_loader_combined, threshold, _print=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
-                fold_metrics.append(results['F1'])
+                used_thr, best_model = model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, current_best_score, used_thr, best_model, verbose=True)
+
+                print(f"Epoch step took {time.time() - start_epoch}")
+            ## After every fold we use the validate-loader 
+            threshold = find_threshold(epoch, model, threshold_loader)
+            results, _ = eval_model(epoch, model, validate_loader_combined, threshold)
+            print(f"After fold {fold} results on validate_loader_combined: {results}")
+            metrics_per_fold.append(results['F1'])
+
+        print(f"F1 scores per fold: {metrics_per_fold}, mean={np.mean(metrics_per_fold)}")
+        ## Only after all training we are interested in thresholding! Only part of inference not training
+        threshold = find_threshold(epoch, model, threshold_loader_all, _print=False, baseline=baseline, anomalib_dataset=anomalib_dataset)
+        # print(f"Threshold finding incl it's inference took {time.time() - done_training}")
+        done_thresholdd = time.time()
+        final_results, validation_loss = eval_model(epoch, model, test_loader, threshold, _print=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
+        print(results)
+        print(f"Eval incl it's inference took {time.time() - done_thresholdd}")
+        # fold_metrics.append(results['F1'])
+        # print(f"Epoch took {time.time() - start_epoch}")
+        print(f"Fold took {time.time() - start_fold}")
 
             # Save reconstruction resuls every epoch for later analysis:
             # if args.model == 'ae_flow': wandb.log(sample_images(model, device))
-            print(f"Duration for epoch {epoch}: {time.time() - start}")
-            wandb.log({'time per epoch': time.time() - start})
+            # print(f"Duration for epoch {epoch}: {time.time() - start}")
+            # wandb.log({'time per epoch': time.time() - start})
         
             # Save if best evaluation according to the cross validation:
             # dont save if the model is subset specific
-            current_score = np.mean(fold_metrics)
-            print(f'epoch {epoch} F1 score over folds = {current_score}')
-            if (current_score >= current_best_score):
-                print(f'Current best score: {current_best_score}')
-                current_best_score = current_score
-                print(f'New best score: {current_best_score}')
-                best_model = copy.deepcopy(model)
-                used_thr = threshold
+          
+            ## FOR NOWWW
+        #     current_score = np.mean(fold_metrics)
+        #     print(f'epoch {epoch} F1 score over folds = {current_score}')
+        #     if (current_score >= current_best_score):
+        #         print(f'Current best score: {current_best_score}')
+        #         current_best_score = current_score
+        #         print(f'New best score: {current_best_score}')
+        #         best_model = copy.deepcopy(model)
+        #         used_thr = threshold
 
-                if args.ue_model: torch.save(model.state_dict(), str(f"models/model_seed/{args.seed}.pt"))
-                if not args.ue_model:
-                    if subset == None:
-                        torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
-                    else:
-                        torch.save(model.state_dict(), str(f"models/{wandb.config}_{subset}.pt"))
+        #         if args.ue_model: torch.save(model.state_dict(), str(f"models/model_seed/{args.seed}.pt"))
+        #         if not args.ue_model:
+        #             if subset == None:
+        #                 torch.save(model.state_dict(), str(f"models/{wandb.config}.pt"))
+        #             else:
+        #                 torch.save(model.state_dict(), str(f"models/{wandb.config}_{subset}.pt"))
 
 
-            track_test_performance = True
-            if (epoch % 10 == 0) and (epoch != 0) and (track_test_performance == True):
-                print(f'Results on test set after {epoch} epochs')
-                eval_model(epoch, best_model, test_loader, used_thr, _print=True, track_results=True, test_eval=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
-        results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, track_results=True, test_eval=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
-        if subset != None:
-            results = {key+f'-{subset}': results[key] for key in results}
-        wandb.log(results)
-        subset_results.append(results)
+        #     track_test_performance = True
+        #     if (epoch % 10 == 0) and (epoch != 0) and (track_test_performance == True):
+        #         print(f'Results on test set after {epoch} epochs')
+        #         eval_model(epoch, best_model, test_loader, used_thr, _print=True, track_results=True, test_eval=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
+        # results = eval_model(epoch, best_model, test_loader, threshold=used_thr, _print=True, track_results=True, test_eval=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
+        # if subset != None:
+        #     results = {key+f'-{subset}': results[key] for key in results}
+        # wandb.log(results)
+        # subset_results.append(results)
     
     # average the subset results for the btad and mvtec datasets
-    if subsets != [None]:
-        result_metrics = results.keys()
-        final_results = {key+'-subsets-avg': np.mean([d[key] for d in subset_results]) for key in result_metrics}
-    # otherwise, the last results represent our final results on the test set
-    else:
-        final_results = results
+    # if subsets != [None]:
+    #     result_metrics = results.keys()
+    #     final_results = {key+'-subsets-avg': np.mean([d[key] for d in subset_results]) for key in result_metrics}
+    # # otherwise, the last results represent our final results on the test set
+    # else:
+    #     final_results = results
 
     wandb.log(final_results) 
 

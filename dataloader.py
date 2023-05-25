@@ -253,6 +253,7 @@ def fold_to_loaders(fold, train_split_normal, test_split_normal, train_split_abn
     train_normal_dataset = torch.utils.data.dataset.Subset(train_loader,train_ids_normal)
     train_normal_loader = data.DataLoader(train_normal_dataset, num_workers = n_workers, shuffle=True, batch_size=64)
     train_abnormal_dataset =  torch.utils.data.dataset.Subset(train_abnormal,train_ids_abnormal)
+    print(f"Number of abnormal vs normal samples in the threshold set: {len(train_abnormal_dataset.dataset)} vs {len(train_normal_dataset.dataset)}")
     threshold_dataset = torch.utils.data.ConcatDataset([train_abnormal_dataset, train_normal_dataset])
     threshold_loader = data.DataLoader(threshold_dataset, num_workers = n_workers, batch_size=64)
 
