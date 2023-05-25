@@ -280,7 +280,7 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
     return results, validation_losses
 
 def model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, current_best_score, used_thr, best_model, verbose=False):
-    if (epoch % 10 == 0) and (epoch != 0):
+    if (epoch % 5 == 0) and (epoch != 0):
         threshold = find_threshold(epoch, model, threshold_loader_all, _print=False)
         results, _ = eval_model(epoch, model, checkpoint_loader, threshold, _print=True)
         if verbose: print("Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']")
@@ -289,7 +289,7 @@ def model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, curr
             if verbose: print(f"Found new best: {current_best_score}")
             used_thr = threshold
             best_model = copy.deepcopy(model)
-    return used_thr, best_model
+    return used_thr, best_model, current_best_score
 
 def main(args):
     """
@@ -388,7 +388,7 @@ def main(args):
                 elif args.model == 'autoencoder': train_step_AE(epoch,model,train_normal_loader,optimizer,anomalib_dataset=anomalib_dataset)
                 else: train_step(epoch, model, train_normal_loader, optimizer, anomalib_dataset=anomalib_dataset)
 
-                used_thr, best_model = model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, current_best_score, used_thr, best_model, verbose=True)
+                used_thr, best_model, current_best_score = model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, current_best_score, used_thr, best_model, verbose=True)
 
             ## After every fold we use the validate-loader 
             threshold = find_threshold(epoch, model, threshold_loader)
@@ -398,9 +398,15 @@ def main(args):
 
         print(f"F1 scores per fold: {metrics_per_fold}, mean={np.mean(metrics_per_fold)}")
         ## Only after all training we are interested in thresholding! Only part of inference not training
-        threshold = find_threshold(epoch, model, threshold_loader_all, _print=False, baseline=baseline, anomalib_dataset=anomalib_dataset)
-        final_results, validation_loss = eval_model(epoch, model, test_loader, threshold, _print=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
-        print(results)
+        threshold = find_threshold(epoch, best_model, threshold_loader_all, _print=False, baseline=baseline, anomalib_dataset=anomalib_dataset)
+        final_results, validation_loss = eval_model(epoch, best_model, test_loader, threshold, _print=True, baseline=baseline, anomalib_dataset=anomalib_dataset)
+        subset_results.append(final_results)
+    
+    # for datasets with multiple classes
+    result_metrics = results.keys()
+    final_results = {key: np.mean([d[key] for d in subset_results]) for key in result_metrics}
+    print(final_results)
+
         # print(f"Eval incl it's inference took {time.time() - done_thresholdd}")
         # fold_metrics.append(results['F1'])
         # print(f"Epoch took {time.time() - start_epoch}")
