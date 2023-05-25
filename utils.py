@@ -29,23 +29,36 @@ def optimize_threshold(anomaly_scores, true_labels):
     # true_labels = [item for sublist in [tensor.cpu().numpy() for tensor in true_labels] for item in sublist]
 
     # t1 = time.time()
-    # precision, recall, thresholds = precision_recall_curve(true_labels, anomaly_scores)
-    # precision, recall = precision+1, recall+1 #catch
-    # f1_scores = 2*recall*precision/(recall+precision)
+    precision, recall, thresholds = precision_recall_curve(true_labels, anomaly_scores)
+    precision, recall = precision+1, recall+1 #catch
+    f1_scores = 2*recall*precision/(recall+precision)
     # print(np.array(anomaly_scores >= thresholds[np.argmax(f1_scores)]).shape)
     # print(true_labels.shape)
     # print("above two should have same shape")
-    # print(np.array(anomaly_scores >= thresholds[np.argmax(f1_scores)]))
-    # weights = confusion_matrix(true_labels, (np.array(anomaly_scores >= thresholds[np.argmax(f1_scores)]))).sum(axis=1)
+    # print(np.array(anomaly_scores >= list(thresholds[np.argmax(f1_scores)])))
+    # print(confusion_matrix(true_labels, (np.array(anomaly_scores >= thresholds[np.argmax(f1_scores)], dtype=np.int))))
+
+    # weights = confusion_matrix(true_labels, (np.array(anomaly_scores >= thresholds[np.argmax(f1_scores)], dtype=np.int))).sum(axis=1)
     # print(f"Shape of F1 scores: {f1_scores.shape}")
-    # print(weights.shape, weights)
-    # weighted_f1_scores = np.average(f1_scores, weights=weights)
-    # return thresholds[np.argmax(weighted_f1_scores)]
+    # print(type(weights))
+    # weights = weights.tolist()
+    # print(f"weights: {weights}")
+    # print(type(f1_scores), f1_scores)
+    # weighted_f1_scores = np.average(f1_scores.tolist(), weights=[weights[0], weights[1]], axis=1)
+    # weighted_f1_scores = np.average(f1_scores, weights=weights[0], axis=1)
+    # print(weighted_f1_scores)
+    return thresholds[np.argmax(f1_scores)]
+
+    # Calculate metrics for each label, and find their average weighted by 
+    # support (the number of true instances for each label). 
+    # This alters ‘macro’ to account for label imbalance; 
+    # it can result in an F-score that is not between precision and recall.
+
     # print('Best threshold: ', thresholds[np.argmax(f1_scores)])
     # print(f"Approach 1: {time.time() - t1}")
     # print(np.argmax(f1_scores), torch.argmax(f1_scores_torch))
 
-    return scipy.optimize.fmin(thr_to_f1, args=(true_labels, anomaly_scores), x0=np.mean(anomaly_scores)+np.std(anomaly_scores), disp=0)
+    # return scipy.optimize.fmin(thr_to_f1, args=(true_labels, anomaly_scores), x0=np.mean(anomaly_scores), disp=0)
     # return thresholds[np.argmax(f1_scores)]
     t1 = time.time()
     # print('Best F1-Score: ', np.max(f1_scores))

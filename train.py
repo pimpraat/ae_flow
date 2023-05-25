@@ -138,6 +138,7 @@ def main(args):
 
     # In the paper (Section 3.2) the authors mention other hyperparameters for the chest-xray set, so we enforce it:
     if args.dataset == "chest_xray": args.optim_weight_decay, args.optim_lr = 0.0, 1e-3
+    if args.dataset == "chest_xray": args.subnet_arc = 'resnet_like'
     if args.model == 'autoencoder': args.loss_alpha, args.loss_beta = 0,0
 
     wandb.login(key=WANDBKEY)
@@ -188,6 +189,11 @@ def main(args):
             results = eval_model(epoch, model, validate_loader_combined, threshold)
             print(f"After fold {fold} results on validate_loader_combined: {results}")
             metrics_per_fold.append(results['F1'])
+
+            ## After every fold also run quickly test analysis:
+            threshold = find_threshold(epoch, best_model, experiment.threshold_loader_all, verbose=False, baseline=experiment.baseline, anomalib_dataset=experiment.anomalib_dataset)
+            final_results = eval_model(epoch, best_model, experiment.test_loader, threshold, _print=True, baseline=experiment.baseline, anomalib_dataset=experiment.anomalib_dataset)
+            print(f"After fold {fold}, performance on test set is the following: {final_results}")
 
         print(f"F1 scores per fold: {metrics_per_fold}, mean={np.mean(metrics_per_fold)}")
         ## Only after all training we are interested in thresholding! Only part of inference not training
