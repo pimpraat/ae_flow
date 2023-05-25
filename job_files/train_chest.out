@@ -115,3 +115,8 @@ Length of train_loader(1073), length of threshold loader 4173, length of validat
 Number of predicted anomalies in the (test-)set: 5210
 Epoch 5: {'AUC': 0.5017352481297058, 'ACC': 0.7436733128834356, 'SEN': 0.9997419354838709, 'SPE': 0.0037285607755406414, 'F1': 0.8528343423225097}
 Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5213
+Epoch 10: {'AUC': 0.5011185682326622, 'ACC': 0.7434815950920245, 'SEN': 1.0, 'SPE': 0.0022371364653243847, 'F1': 0.8527728873239436}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 11825083 ON r29n3 CANCELLED AT 2023-05-25T15:49:13 ***
