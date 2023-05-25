@@ -169,6 +169,7 @@ def main(args):
         # Loading the data in a splitted way for later use, see the blogpost, discarding the validation set due to it's limited size
         # NOTE: for MVTEC or BTECH the train_abnormal loader will be a validation loader
         model = experiment.model.to(device)
+        for _, param in model.named_parameters(): param.requires_grad=True
         optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, betas=(args.optim_momentum, 0.999))
         current_best_score, used_thr, best_model = 0.0, 0.0, None
 
