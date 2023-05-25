@@ -9,7 +9,7 @@ import torch
 def thr_to_f1(thr, Y_test, predictions):
    """Calculating the negative (binary) F1 score for a set of predictions and true values using a proposed threshold 
    to minimize using fmin"""
-   return - f1_score(Y_test, np.array(predictions>=thr, dtype=np.int), average='binary')
+   return - f1_score(Y_test, np.array(predictions>=thr, dtype=np.int), average='weighted')
 
 def optimize_threshold(anomaly_scores, true_labels):
     """Optimizing the threshold used to classify a anomaly score as an anomaly. We use fmin for this with
@@ -29,19 +29,26 @@ def optimize_threshold(anomaly_scores, true_labels):
     # true_labels = [item for sublist in [tensor.cpu().numpy() for tensor in true_labels] for item in sublist]
 
     # t1 = time.time()
-    precision, recall, thresholds = precision_recall_curve(true_labels, anomaly_scores)
-    precision, recall = precision+1, recall+1 #catch
-    f1_scores = 2*recall*precision/(recall+precision)
-    # weights = confusion_matrix(true_labels, anomaly_scores).sum(axis=1)
+    # precision, recall, thresholds = precision_recall_curve(true_labels, anomaly_scores)
+    # precision, recall = precision+1, recall+1 #catch
+    # f1_scores = 2*recall*precision/(recall+precision)
+    # print(np.array(anomaly_scores >= thresholds[np.argmax(f1_scores)]).shape)
+    # print(true_labels.shape)
+    # print("above two should have same shape")
+    # print(np.array(anomaly_scores >= thresholds[np.argmax(f1_scores)]))
+    # weights = confusion_matrix(true_labels, (np.array(anomaly_scores >= thresholds[np.argmax(f1_scores)]))).sum(axis=1)
+    # print(f"Shape of F1 scores: {f1_scores.shape}")
+    # print(weights.shape, weights)
     # weighted_f1_scores = np.average(f1_scores, weights=weights)
+    # return thresholds[np.argmax(weighted_f1_scores)]
     # print('Best threshold: ', thresholds[np.argmax(f1_scores)])
     # print(f"Approach 1: {time.time() - t1}")
     # print(np.argmax(f1_scores), torch.argmax(f1_scores_torch))
 
-
-    return thresholds[np.argmax(f1_scores)]
+    return scipy.optimize.fmin(thr_to_f1, args=(true_labels, anomaly_scores), x0=np.mean(anomaly_scores)+np.std(anomaly_scores), disp=0)
+    # return thresholds[np.argmax(f1_scores)]
     t1 = time.time()
-    print('Best F1-Score: ', np.max(f1_scores))
+    # print('Best F1-Score: ', np.max(f1_scores))
     print('VS:')
     print(scipy.optimize.fmin(thr_to_f1, args=(true_labels, anomaly_scores), x0=np.mean(anomaly_scores), disp=0))
     print(f"Approach 2: {time.time() - t1}")
