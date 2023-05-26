@@ -209,7 +209,7 @@ def main(args):
         experiment.subset_results.append(final_results)
     
     # for datasets with multiple classes
-    result_metrics = results.keys()
+    result_metrics = final_results.keys()
     final_results = {key: np.mean([d[key] for d in experiment.subset_results]) for key in result_metrics}
     print(final_results)
 
