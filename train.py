@@ -38,26 +38,33 @@ def train_step(epoch, model, train_loader,optimizer, anomalib_dataset=False, _pr
         original_x = x.to(device)
 
         optimizer.zero_grad(set_to_none=True)
-        reconstructed_x = model(original_x).squeeze(dim=1)  
 
         if type(model) == AE_Flow_Model:
+            reconstructed_x = model(original_x).squeeze(dim=1)  
+
             recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
             flow_loss = model.get_flow_loss(bpd=True)
             wandb.log({'recon_loss (train)':recon_loss, 'flow loss (train)':flow_loss})
             loss = args.loss_alpha * flow_loss + (1-args.loss_alpha) * recon_loss
 
         if type(model) == AE_Model:
+            reconstructed_x = model(original_x).squeeze(dim=1)  
             loss = model.get_reconstructionloss(original_x, reconstructed_x)
             wandb.log({'recon_loss (train)':loss})
         
         if type(model) == FastflowModel:
-            z_prime, log_jac_det = reconstructed_x
+            out = model(original_x)
+
             # take [-1] as the fastflow model returns the z_prime of all layers, we only want to look at the last
-            log_z = normal.StandardNormal(shape=z_prime[-1].shape[1:]).log_prob(z_prime[-1])
+            z_prime, log_jac_det = out[0][-1], out[1][-1]
+            # delete the full model output to save memory
+            del out
+            log_z = normal.StandardNormal(shape=z_prime.shape[1:]).log_prob(z_prime)
+
             # again, only want the log_jac_det corresponding to the last layer
             log_p = log_z + log_jac_det[-1]
             loss = -log_p.mean()
-            wandb.log({'flow loss (train)':flow_loss})
+            wandb.log({'flow loss (train)':loss})
         loss.backward()
         optimizer.step()
         train_loss_epoch += loss.item()
@@ -67,8 +74,8 @@ def train_step(epoch, model, train_loader,optimizer, anomalib_dataset=False, _pr
 
 
 @torch.no_grad()
-def get_anomaly_scores(model, baseline, dataloader, anomalib_dataset):
-    if baseline: model.training = False
+def get_anomaly_scores(model, dataloader, anomalib_dataset):
+    if type(model) == FastflowModel: model.training = False
     anomaly_scores, true_labels = [], []
 
     for batch_idx, data in enumerate(dataloader):
@@ -91,8 +98,8 @@ def get_anomaly_scores(model, baseline, dataloader, anomalib_dataset):
     return anomaly_scores, true_labels
 
 @torch.no_grad()
-def find_threshold(epoch, model, train_loader, verbose=False, baseline=False, anomalib_dataset=False):
-    anomaly_scores, true_labels = get_anomaly_scores(model, baseline, train_loader, anomalib_dataset)
+def find_threshold(epoch, model, train_loader, verbose=False, anomalib_dataset=False):
+    anomaly_scores, true_labels = get_anomaly_scores(model, train_loader, anomalib_dataset)
     if verbose: print(f"Now moving onto finding the appropriate threshold (based on training data including abnormal samples):")
     optimal_threshold = optimize_threshold(anomaly_scores, true_labels)
     wandb.log({'optimal (selection) threshold': optimal_threshold})
@@ -100,9 +107,9 @@ def find_threshold(epoch, model, train_loader, verbose=False, baseline=False, an
     return optimal_threshold
 
 @torch.no_grad()
-def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_only_anomaly_scores=False, track_results=True, test_eval=False, baseline=False, anomalib_dataset=False, running_ue_experiments=False):
+def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_only_anomaly_scores=False, track_results=True, test_eval=False, anomalib_dataset=False, running_ue_experiments=False):
     
-    anomaly_scores, true = get_anomaly_scores(model, baseline, data_loader, anomalib_dataset)
+    anomaly_scores, true = get_anomaly_scores(model, data_loader, anomalib_dataset)
     if return_only_anomaly_scores: return true, anomaly_scores
 
     results = calculate_metrics(true, anomaly_scores, threshold, _print=_print)
@@ -169,7 +176,7 @@ def main(args):
         # Loading the data in a splitted way for later use, see the blogpost, discarding the validation set due to it's limited size
         # NOTE: for MVTEC or BTECH the train_abnormal loader will be a validation loader
         model = experiment.model.to(device)
-        for _, param in model.named_parameters(): param.requires_grad=True
+        #for _, param in model.named_parameters(): param.requires_grad=True
         optimizer = torch.optim.Adam(params=model.parameters(), lr=args.optim_lr, weight_decay=args.optim_weight_decay, betas=(args.optim_momentum, 0.999))
         current_best_score, used_thr, best_model = 0.0, 0.0, None
 
@@ -180,7 +187,6 @@ def main(args):
         for fold in tqdm(range(args.n_validation_folds)):
             train_normal_loader, threshold_loader, validate_loader_combined = experiment.load_fold_data(fold)
             for epoch in range(args.epochs):
-                
                 train_step(epoch, model, train_normal_loader,optimizer, experiment.anomalib_dataset)
                 
                 used_thr, best_model, current_best_score = model_checkpoint(epoch, model, experiment.threshold_loader_all, experiment.checkpoint_loader, current_best_score, used_thr, best_model, verbose=True, anomalib_dataset=experiment.anomalib_dataset)
@@ -192,14 +198,14 @@ def main(args):
             metrics_per_fold.append(results['F1'])
 
             ## After every fold also run quickly test analysis:
-            threshold = find_threshold(epoch, best_model, experiment.threshold_loader_all, verbose=False, baseline=experiment.baseline, anomalib_dataset=experiment.anomalib_dataset)
-            final_results = eval_model(epoch, best_model, experiment.test_loader, threshold, _print=True, baseline=experiment.baseline, anomalib_dataset=experiment.anomalib_dataset)
+            threshold = find_threshold(epoch, best_model, experiment.threshold_loader_all, verbose=False, anomalib_dataset=experiment.anomalib_dataset)
+            final_results = eval_model(epoch, best_model, experiment.test_loader, threshold, _print=True, anomalib_dataset=experiment.anomalib_dataset)
             print(f"After fold {fold}, performance on test set is the following: {final_results}")
 
         print(f"F1 scores per fold: {metrics_per_fold}, mean={np.mean(metrics_per_fold)}")
         ## Only after all training we are interested in thresholding! Only part of inference not training
-        threshold = find_threshold(epoch, best_model, experiment.threshold_loader_all, verbose=False, baseline=experiment.baseline, anomalib_dataset=experiment.anomalib_dataset)
-        final_results = eval_model(epoch, best_model, experiment.test_loader, threshold, _print=True, baseline=experiment.baseline, anomalib_dataset=experiment.anomalib_dataset)
+        threshold = find_threshold(epoch, best_model, experiment.threshold_loader_all, verbose=False, anomalib_dataset=experiment.anomalib_dataset)
+        final_results = eval_model(epoch, best_model, experiment.test_loader, threshold, _print=True, anomalib_dataset=experiment.anomalib_dataset)
         experiment.subset_results.append(final_results)
     
     # for datasets with multiple classes

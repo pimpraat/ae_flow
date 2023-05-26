@@ -222,8 +222,8 @@ def preprocess_img(img):
     return img
 
 def load(data_dir,batch_size=64, num_workers=4, subset=None, anomalib_dataset=False):
-    train_dataset = LoadDataset(data_dir, split='train', subset=subset, num_workers=num_workers, anomalib_dataset=anomalib_dataset)
-    test_dataset = LoadDataset(data_dir, split='test', subset=subset, num_workers=num_workers, anomalib_dataset=anomalib_dataset)
+    train_dataset = LoadDataset(data_dir, split='train', subset=subset, num_workers=num_workers, batch_size=batch_size, anomalib_dataset=anomalib_dataset)
+    test_dataset = LoadDataset(data_dir, split='test', subset=subset, num_workers=num_workers, batch_size=batch_size, anomalib_dataset=anomalib_dataset)
 
     # only the test set is loaded into the dataloader
     test_loader = data.DataLoader(
@@ -231,10 +231,10 @@ def load(data_dir,batch_size=64, num_workers=4, subset=None, anomalib_dataset=Fa
    
 
     if data_dir in ['btech', 'mvtec']:
-        train_abnormal = LoadDataset(data_dir, split='val', subset=subset, anomalib_dataset=anomalib_dataset)
+        train_abnormal = LoadDataset(data_dir, split='val', subset=subset, batch_size=batch_size, anomalib_dataset=anomalib_dataset)
         return train_dataset, train_abnormal, test_loader
     else:
-        train_abnormal = LoadDataset(data_dir, split='train_abnormal', subset=subset, anomalib_dataset=anomalib_dataset)
+        train_abnormal = LoadDataset(data_dir, split='train_abnormal', batch_size=batch_size, subset=subset, anomalib_dataset=anomalib_dataset)
         return train_dataset, train_abnormal, test_loader
     
 def split_data(n_splits, normal_data, abnormal_data):

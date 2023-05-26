@@ -25,7 +25,6 @@ class Experiment():
             self.subsets = [None]
             self.anomalib_dataset = False
         
-        self.baseline=False
         self.verbose= verbose
         self.model = None
 
@@ -36,7 +35,6 @@ class Experiment():
         elif self.args.model == 'fastflow':
             self.model = FastflowModel(input_size=(256, 256), backbone="wide_resnet50_2", flow_steps=8, pre_trained=False)
             self.model.training = True
-            self.baseline = True
 
         elif self.args.model == 'autoencoder':
             self.model = AE_Model()
@@ -46,7 +44,6 @@ class Experiment():
     def load_data(self):
 
         if self.subsets != None: print(f'Running on subset: {self.current_subset}')
-
         self.train_loader, self.train_abnormal, self.test_loader = load(data_dir=self.args.dataset,batch_size=self.args.batch_size, num_workers=self.args.num_workers, subset=self.current_subset, anomalib_dataset=self.anomalib_dataset)
         self.train_split_normal, self.test_split_normal, self.train_split_abnormal, self.test_split_abnormal = split_data(n_splits=self.args.n_validation_folds, normal_data=self.train_loader, 
                                                                                                       abnormal_data=self.train_abnormal)
