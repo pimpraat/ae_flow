@@ -116,10 +116,10 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
     if _print: print(f"Epoch {epoch}: {results}")
     return results
 
-def model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, current_best_score, used_thr, best_model, verbose=False):
+def model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, current_best_score, used_thr, best_model, verbose=False, anomalib_dataset=False):
     if (epoch % 5 == 0) and (epoch != 0):
-        threshold = find_threshold(epoch, model, threshold_loader_all, verbose=False)
-        results = eval_model(epoch, model, checkpoint_loader, threshold, _print=True)
+        threshold = find_threshold(epoch, model, threshold_loader_all, verbose=False, anomalib_dataset=anomalib_dataset)
+        results = eval_model(epoch, model, checkpoint_loader, threshold, _print=True, anomalib_dataset=anomalib_dataset)
         if verbose: print(f"Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: {results['F1']}")
         if results['F1'] > current_best_score:
             current_best_score = results['F1']
@@ -183,11 +183,11 @@ def main(args):
                 
                 train_step(epoch, model, train_normal_loader,optimizer, experiment.anomalib_dataset)
                 
-                used_thr, best_model, current_best_score = model_checkpoint(epoch, model, experiment.threshold_loader_all, experiment.checkpoint_loader, current_best_score, used_thr, best_model, verbose=True)
+                used_thr, best_model, current_best_score = model_checkpoint(epoch, model, experiment.threshold_loader_all, experiment.checkpoint_loader, current_best_score, used_thr, best_model, verbose=True, anomalib_dataset=experiment.anomalib_dataset)
 
             ## After every fold we use the validate-loader 
-            threshold = find_threshold(epoch, model, threshold_loader)
-            results = eval_model(epoch, model, validate_loader_combined, threshold)
+            threshold = find_threshold(epoch, model, threshold_loader, anomalib_dataset=experiment.anomalib_dataset)
+            results = eval_model(epoch, model, validate_loader_combined, threshold, anomalib_dataset=experiment.anomalib_dataset)
             print(f"After fold {fold} results on validate_loader_combined: {results}")
             metrics_per_fold.append(results['F1'])
 

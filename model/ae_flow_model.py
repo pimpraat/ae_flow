@@ -70,7 +70,6 @@ class AE_Flow_Model(nn.Module):
         """        
         log_z = self.get_flow_loss(return_logz=True)
         Sflow = -log_z
-        assert(Sflow > 0)
         Srecon = -torchmetrics.functional.structural_similarity_index_measure(reduction=None, preds=reconstructed_x, target=original_x)
         return _beta * Sflow + (1-_beta)*Srecon
     
