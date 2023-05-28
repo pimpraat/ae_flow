@@ -99,7 +99,7 @@ Deep ensembles successfully quantify uncertainty while being computationally les
 
 Due to computational limitations, we decided to perform this experiment only on the X-ray dataset, as we can reasonably assume that these results are representative of the other datasets. The ensemble consists of three models that are trained with different seeds. We chose to use three models instead of five, as proposed in the original paper [[7]](#works-cited), due to computational limitations. 
 
-We aggregate the anomaly scores outputted by each model by taking their mean $\mu$ and standard deviation $\sigma$, resulting in a normal distribution output $(\mu, \sigma)$ for the deep ensemble. We can utilize $\mu$ as the resultant score, which can then be compared to a threshold to get a prediction on the sample. $\sigma$ is used as an indication of uncertainty. We expect that incorrect predictions will have much higher uncertainties than correct predictions. 
+We aggregate the anomaly scores calculated by each model in the ensemble by taking their mean $\mu$ and standard deviation $\sigma$, resulting in a normal distribution $(\mu, \sigma)$. We can utilize $\mu$ as the aggregated anomaly score, which can then be compared to a threshold to get a prediction on the sample. $\sigma$ is used as an indication of uncertainty, as it represents the variance between predictions. We expect that incorrect predictions will generally have much higher uncertainties than correct predictions. 
 
 ## Results
 ### Reproduction
