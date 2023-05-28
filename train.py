@@ -170,6 +170,7 @@ def main(args):
     'n_validation_folds': args.n_validation_folds}
     )
     torch.manual_seed(args.seed) # Setting the seed
+    print('running with seed: ', args.seed)
 
     experiment = Experiment(args)
 
@@ -191,7 +192,7 @@ def main(args):
         metrics_per_fold = []
         for fold in tqdm(range(args.n_validation_folds)):
             train_normal_loader, threshold_loader, validate_loader_combined = experiment.load_fold_data(fold)
-            for epoch in range(args.epochs):
+            for epoch in range(1, args.epochs+1):
                 train_step(epoch, model, train_normal_loader,optimizer, experiment.anomalib_dataset)
                 
                 used_thr, best_model, current_best_score = model_checkpoint(epoch, model, experiment.threshold_loader_all, experiment.checkpoint_loader, current_best_score, used_thr, best_model, verbose=True, anomalib_dataset=experiment.anomalib_dataset)
@@ -213,6 +214,8 @@ def main(args):
         final_results = eval_model(epoch, best_model, experiment.test_loader, threshold, _print=True, anomalib_dataset=experiment.anomalib_dataset)
         experiment.subset_results.append(final_results)
     
+    torch.save(model.state_dict(), f'models/seed/{args.seed}.pth')
+
     # for datasets with multiple classes
     result_metrics = final_results.keys()
     final_results = {key: np.mean([d[key] for d in experiment.subset_results]) for key in result_metrics}

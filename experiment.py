@@ -33,7 +33,11 @@ class Experiment():
         self.subset_results = []
         if self.args.model == 'ae_flow': self.model = AE_Flow_Model(subnet_architecture=self.args.subnet_architecture, n_flowblocks=self.args.n_flowblocks)
         elif self.args.model == 'fastflow':
-            self.model = FastflowModel(input_size=(256, 256), backbone="wide_resnet50_2", flow_steps=8, pre_trained=False)
+            if self.dataset in ['btech', 'mvtec']:
+                input_size = (256, 256)
+            else:
+                input_size = (224, 224)
+            self.model = FastflowModel(input_size=input_size, backbone="wide_resnet50_2", flow_steps=8, pre_trained=False)
             self.model.training = True
 
         elif self.args.model == 'autoencoder':
