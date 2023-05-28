@@ -51,3 +51,11 @@ Multiple files can be used to run the model (located in src):
 
 ## Deliverables
 Please refer to the blogpost.md for our further research efforts for the course
+
+## Some trained models
+
+[Chest X-Ray dataset, AE-FLOW, Seed 1](https://drive.google.com/file/d/1rMMlnK9ks2fRLyQWLkFIYkQyfyXpVOOW/view?usp=sharing)
+
+[Chest X-Ray dataset, AE-FLOW, Seed 59](https://drive.google.com/file/d/1XGOdyca1x2p_fjGWvJQFf7c6_edIWYfe/view?usp=sharing)
+
+[Chest X-Ray dataset, AE-FLOW, Seed 85](https://drive.google.com/file/d/1JaDeL_u2HblXSouPBgB6yY_E8tP5-Y0Y/view?usp=sharing)
