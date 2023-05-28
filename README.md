@@ -9,6 +9,13 @@ The directory 'src/script/job_files' contains all files needed to install the en
 
 Please install any missing requirements on your own.
 
+## Data
+The chest_xray dataset is included in the repo, however other datasets are too large for git so please download them manually if you want to run these. They should be downloaded into the dataset folder. Links to the datasets can be found;
+OCT2017: https://www.kaggle.com/datasets/paultimothymooney/kermany2018
+ISIC: https://www.kaggle.com/datasets/paultimothymooney/kermany2018
+MIIC: https://researchdata.ntu.edu.sg/dataset.xhtml?persistentId=doi:10.21979/N9/WBLTFI
+BRATS: http://braintumorsegmentation.org/
+
 ## Running locally
 Multiple files can be used to run the model (located in src):
 * train.py: used for running the autoencoder, Fastflow, AE-FLOW models. Please see the main function for details on arguments.
