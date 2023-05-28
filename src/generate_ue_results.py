@@ -134,7 +134,8 @@ if __name__ == '__main__':
     
     # Training settings
     parser = argparse.ArgumentParser(description='Deep ensemble for AE Normalized Flow')
-
+    parser.add_argument('--std_threshold', type=float, default=0.0785,
+                        help='Standard deviation threshold')
     args = parser.parse_args()
 
     main(args)
