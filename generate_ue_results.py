@@ -22,10 +22,10 @@ def uncertainty_table(true, preds, stds, std_threshold=0.025, fname="ue.txt"):
 
 
     # 3. get array of uncertainty correct predictions
-    incorrect_uncertain = high_uncertainty[correct]
+    correct_uncertain = high_uncertainty[correct]
     
     # uncertainty for incorrect
-    correct_uncertain = high_uncertainty[incorrect]
+    incorrect_uncertain = high_uncertainty[incorrect]
     
     # 4. count
     # uncertain correct
@@ -59,7 +59,7 @@ INCORRECT    {ic_low}  {ic_high}
 
 def main(args):
     # model_names = ['1.pt', '59.pt', '85.pt', '91.pt', '68.pt']
-    model_names = ["1.pt", "59.pt"]
+    model_names = ["1.pt", "59.pt", "85.pt"]
     model_results = []
 
     train_loader, train_abnormal, test_loader = load(data_dir='chest_xray',batch_size=8, num_workers=3, subset=False)
@@ -149,18 +149,23 @@ def main(args):
         optimal_threshold += model_threshold
 
     # calculate optimal threshold
-    optimal_threshold /= len(model_names)
+
+    # get means and stds
+    #softmax_res = [torch.nn.functional.sigmoid(torch.tensor([model_results[i][1]]).unsqueeze(-1)).squeeze() for i in range(len(model_names))]
+    #softmax_res = [np.array(s) for s in softmax_res]
+    res = [model_results[i][1] for i in range(len(model_names))]
 
     # calculate mean and standard deviation
     true_labels = np.array(model_results[0][0], dtype=int)
-    means = np.mean([model_results[0][1], model_results[1][1]], axis=0, dtype=float)
-    stds = np.std([model_results[0][1], model_results[1][1]], axis=0, dtype=float)
+    means = np.mean(res, axis=0, dtype=float)
+    stds = np.std(res, axis=0, dtype=float)
 
     # prediction based on means
     preds = np.array(means > optimal_threshold, dtype=int)
 
-    print("MEAN STD:", np.mean(stds))
-    results = uncertainty_table(true_labels, preds, stds, std_threshold=.07)
+    print("MEAN DIST:", np.mean(means), np.std(means))
+    print("STD:", np.mean(stds), np.std(stds))
+    results = uncertainty_table(true_labels, preds, stds, std_threshold=0.079)
 
     n_models = [1, 2, 3, 4, 5]
 
