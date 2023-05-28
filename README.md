@@ -2,7 +2,7 @@
 
 *The main branch conforms to the required structure. Please refer to the 'andre' branch if any errors are encountered while running scripts.*
 
-This repository contains our work for a mini-project for the DL2 cours at the University of Amsterdam (https://uvadl2c.github.io/, 2023), aiming to firstly replicate the work "AE-FLOW: Autoencoders with Normalizing Flows for Anomaly Detection" by Yuzhong Zhao, Qiaoqiao Ding and Xiaoqun Zhang (2023), and secondly to extend this work by determining it's generalization of it's finding to other data-sets and uncertainty quantification using Deep Ensembles.
+This repository contains our work for a mini-project for the DL2 course at the University of Amsterdam (https://uvadl2c.github.io/, 2023), aiming to firstly replicate the work "AE-FLOW: Autoencoders with Normalizing Flows for Anomaly Detection" by Yuzhong Zhao, Qiaoqiao Ding and Xiaoqun Zhang (2023), and secondly to extend this work by determining it's generalizability, by applying it to other data-sets. We furthermore extend the AE-FLOW model by implementing uncertainty quantification using Deep Ensembles.
 
 ## ‼️ WandB Authentication !!
 Our repository uses WandB to log runs. Please generate a WandB key and put it into a file in the ./src folder called 'wandbkey.txt'.
