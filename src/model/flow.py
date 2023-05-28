@@ -1,10 +1,6 @@
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torchvision
 import FrEIA.framework as Ff
 import FrEIA.modules as Fm
-import FrEIA
 
 
 class FlowModule(nn.Module):
