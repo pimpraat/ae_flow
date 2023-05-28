@@ -98,42 +98,6 @@ def main(args):
         wandb.init()
         model_threshold = find_threshold(0, model, threshold_loader)
 
-        # thr_anomaly_scores, thr_true_labels = [], []
-        # for batch_idx, data in enumerate(threshold_loader):
-        #     torch.cuda.empty_cache()
-        #     x = data[0]
-        #     y = data[1]    
-        #     original_x = x.to(device)
-        #     reconstructed_x = model(original_x).squeeze(dim=1)
-
-
-        #     anomaly_score = model.get_anomaly_score(_beta=0.9,original_x=original_x, reconstructed_x=reconstructed_x)
-                                    
-
-        #     thr_anomaly_scores.append(anomaly_score)
-        #     thr_true_labels.append(y)
-
-
-        # optimal_threshold = optimize_threshold(anomaly_scores, true_labels)
-
-        # for batch_idx, data in enumerate(test_loader):
-        #     x = data[0]
-        #     y = data[1]    
-        #     original_x,y = x.to(device), y.to(device)
-        #     reconstructed_x = model(original_x).squeeze(dim=1)
-        #     recon_loss = model.get_reconstructionloss(original_x, reconstructed_x)
-        #     flow_loss = model.get_flow_loss(bpd=True)
-        #     loss = 0.5 * flow_loss + (1-0.5) * recon_loss
-        
-        #     anomaly_score = model.get_anomaly_score(_beta=0.9, 
-        #                                             original_x=original_x, reconstructed_x=reconstructed_x)
-        #     anomaly_scores.append(anomaly_score)
-
-        #     true_labels.append(y)
-        
-        # true = [item for sublist in [tensor.cpu().numpy() for tensor in true_labels] for item in sublist]
-        # anomaly_scores = [item for sublist in [tensor.cpu().numpy() for tensor in anomaly_scores] for item in sublist]
-
         true, anomaly_scores = eval_model(0, model, test_loader, threshold=model_threshold, return_only_anomaly_scores=True, running_ue_experiments=True)
         
         print(f"Just to check, running final inference using the test data: {calculate_metrics(true, anomaly_scores, model_threshold)} using model {model_path}")
@@ -172,25 +136,6 @@ def main(args):
     print("MEAN DIST:", np.mean(means), np.std(means))
     print("STD:", np.mean(stds), np.std(stds))
     results = uncertainty_table(true_labels, preds, stds, std_threshold=args.std_threshold)
-
-    n_models = [1, 2, 3, 4, 5]
-
-    # Accuracy
-    accuracies = []
-
-    accuracies.append(sklearn.metrics.accuracy_score(y_true=true_labels, y_pred=model_results[0][1]))
-    
-
-    # Classification error
-    # print(sklearn.metrics.accuracy_score(y_true=model_results[0]['true'], y_pred=model_results[0]['preds'], normalize=False))
-
-    # Negative log-likelihood
-    print(sklearn.metrics.log_loss(y_true=model_results[0][0], y_pred=model_results[0][1]))
-    
-    # Brier
-    # print(sklearn.metrics.brier_score_loss(y_true=model_results[0][0], y_pred=model_results[0][1]))
-
-
 
 
 
