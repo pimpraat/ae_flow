@@ -17,6 +17,7 @@ Please install any missing requirements on your own.
 ## Data
 Please download the datasets into src/data/ using the following structure:
 
+```text
 repo
 |
 |-- src
@@ -32,6 +33,7 @@ repo
         |--miic
             |--test
             |--train
+```
 
 Chest_Xray: https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia
 
