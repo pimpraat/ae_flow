@@ -11,9 +11,9 @@ Please install any missing requirements on your own.
 
 ## Running locally
 Multiple files can be used to run the model (located in src):
-* generate_ue_results.py: can be ran out of the box. It will evaluate the deep ensemble and provide results. No models are required to run this file, as the model results and thresholds are pickled and available in the repository.
-* generate_experiment_files.py: generates the job files for the final experiments. No practical use.
 * train.py: used for running the autoencoder, Fastflow, AE-FLOW models. Please see the main function for details on arguments.
+* generate_ue_results.py: can be ran out of the box. It will evaluate the deep ensemble and provide results. No models are required to run this file, as the model results and thresholds are pickled and available in the repository.
+* generate_experiment_files.py: generates the job files for the final experiments. No practical use outside of our experiment.
 
 ## Deliverables
 Please refer to the blogpost.md for our further research efforts for the course
