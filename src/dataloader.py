@@ -1,19 +1,13 @@
 import torchvision.transforms as transforms
 import torch
 import torch.utils.data as data
-from torch.utils.data import random_split
-import numpy as np
 from PIL import Image, ImageFile
 import glob
 from torch.utils.data import Dataset
-from tqdm import tqdm
 from sklearn.model_selection import KFold
-
-import os
 
 from pathlib import Path
 
-from anomalib.data import TaskType
 from anomalib.data.btech import BTech
 from anomalib.data.mvtec import MVTec
 from anomalib.data.utils import InputNormalizationMethod
@@ -21,7 +15,6 @@ from anomalib.data.utils import InputNormalizationMethod
 # required for certain images in OCT2017
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-# TODO: train per subset
 def load_btad(split, subset, batch_size=64, num_workers=8):
     dataset_root = Path.cwd().parent / "datasets" / "BTech"
 
@@ -48,7 +41,6 @@ def load_btad(split, subset, batch_size=64, num_workers=8):
         raise NotImplementedError
 
 
-# TODO: train per subset
 def load_mvtec(split, subset, batch_size=64, num_workers=8):
     dataset_root = Path.cwd().parent / "datasets" / "MVTec"
     # MVTec Classification Train Set
