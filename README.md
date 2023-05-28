@@ -1,10 +1,10 @@
 # Study of "AE-FLOW: Autoencoders with Normalizing Flows for Anomaly Detection"
 
-*The main branch conforms to the required structure. Please refer to the 'andre' branch if any errors are encountered while running scripts.*
+*The main branch conforms to the required structure, and was thoroughly tested to work before submission. However, if any difficult errors occur, please refer to the 'andre' branch if any errors are encountered while running scripts.*
 
 This repository contains our work for a mini-project for the DL2 cours at the University of Amsterdam (https://uvadl2c.github.io/, 2023), aiming to firstly replicate the work "AE-FLOW: Autoencoders with Normalizing Flows for Anomaly Detection" by Yuzhong Zhao, Qiaoqiao Ding and Xiaoqun Zhang (2023), and secondly to extend this work by determining it's generalization of it's finding to other data-sets and uncertainty quantification using Deep Ensembles.
 
-## ‼️ WandB Authentication !!
+## ‼️ WandB Authentication ‼️
 Our repository uses WandB to log runs. Please generate a WandB key and put it into a file in the ./src folder called 'wandbkey.txt'.
 For further instructions, go to the [WandB guide](https://docs.wandb.ai/quickstart).
 
