@@ -81,7 +81,10 @@ AE-FLOW's results prove that it is a promising model and an interesting developm
 * We make a novel contribution and investigate the potential incorporation of uncertainty quantification into AE-FLOW by developing and testing an AE-FLOW based deep ensemble on the Chest X-ray images dataset,
 * Finally, we assess the model's generalizability by testing it on the beanTech Anomaly Detection (BTAD) dataset, which consists of industrial images.
 
-## Extensions
+## Methodology
+### Reprocudubility study
+We reproduce AE-FLOW following the implementation details provided by Zhao et al. (2023). The AE-FLOW model consists of an encoder, flow module and decoder. We note that 
+
 ### Uncertainty quantification via deep ensembles
 Deep ensembling is an uncertainty quantification (UQ) method proposed by Lakshminarayanan et al. (2017) that utilises differently-trained ensembles of neural networks, all of which make predictions on the same input. The input is combined using an aggregation function to produce an output and its corresponding uncertainty.
 Deep ensembles successfully quantify uncertainty while being computationally less expensive and being easier to implement from an existing pointwise model (Lakshminarayanan et al., 2017).
@@ -126,9 +129,43 @@ The anomaly scores produced by the model are not bounded or normalized. As a res
 
 Furthermore, the hyperparameter tuning indicates that there is much overlap between standard deviations for true and false predictions. This is likely due to the implementation of the deep ensemble, rather than due to the uncertainty in the dataset being unquantifiable. We suggest further research, such as trying other UQ methods, to determine whether the issues we faced are because our deep ensemble is unsuited for this task, or if AE-FLOW's structure is simply a difficult model to integrate with UQ.
 
+## Individual contributions
+* **Jan Athmer** - AE-FLOW implementation, debugging, running experiments, writing notebook/blogpost, poster
+
+* **Pim Praat** - AE-FLOW implementation, debugging, extension implementation, running experiments, writing notebook/blogpost, poster
+
+* **Andre de Brandt** - Writing notebook/blogpost, debugging, extension and baseline implementation, running experiments
+
+* **Farrukh Baratov** - Writing notebook/blogpost, debugging, deep ensemble and baseline implementation, author contact attempt
+
+* **Thijs Wijnheijmer** - Writing notebook/blogpost, debugging, poster
+
 ## Works cited
-- Codella, N., Rotemberg, V., Tschandl, P., Celebi, M. E., Dusza, S., Gutman, D., Helba, B., Kalloo, A., Liopyris, K., Marchetti, M., Kittler, H., & Halpern, A. (2019). Skin Lesion Analysis Toward Melanoma Detection 2018: A Challenge Hosted by the International Skin Imaging Collaboration (ISIC) (Version 2). arXiv. https://doi.org/10.48550/ARXIV.1902.03368
-- Zhao, Y., Ding, Q., & Zhang, X. AE-FLOW: Autoencoders with Normalizing Flows for Medical Images Anomaly Detection. In The Eleventh International Conference on Learning Representations.
-- Pang, G., Shen, C., Cao, L., &amp; Hengel, A. V. (2021). Deep Learning for Anomaly Detection. ACM Computing Surveys, 54(2), 1–38. https://doi.org/10.1145/3439950 
-- Mishra, P., Verk, R., Fornasier, D., Piciarelli, C., &amp; Foresti, G. L. (2021). VT-ADL: A Vision Transformer network for IMAGE ANOMALY DETECTION and localization. 2021 IEEE 30th International Symposium on Industrial Electronics (ISIE). https://doi.org/10.1109/isie45552.2021.9576231
-- Schlegl, T., Seeböck, P., Waldstein, S. M., Langs, G., &amp; Schmidt-Erfurth, U. (2019). F-anogan: Fast unsupervised anomaly detection with generative adversarial networks. Medical Image Analysis, 54, 30–44. https://doi.org/10.1016/j.media.2019.01.010
+[1] Ling Huang, Deruo Cheng, Xulei Yang, Tong Lin, Yiqiong Shi, Kaiyi Yang, Bah Hwee Gwee, and
+Bihan Wen. Joint anomaly detection and inpainting for microscopy images via deep self-supervised
+learning. In 2021 IEEE International Conference on Image Processing (ICIP), pages 3497–3501,
+2021.
+
+[2] Daniel S. Kermany, Michael Goldbaum, Wenjia Cai, Carolina C.S. Valentim, Huiying Liang,
+Sally L. Baxter, Alex McKeown, Ge Yang, Xiaokang Wu, Fangbing Yan, Justin Dong, Made K.
+Prasadha, Jacqueline Pei, Magdalene Y.L. Ting, Jie Zhu, Christina Li, Sierra Hewett, Jason Dong,
+Ian Ziyar, Alexander Shi, Runze Zhang, Lianghong Zheng, Rui Hou, William Shi, Xin Fu, Yaou
+Duan, Viet A.N. Huu, Cindy Wen, Edward D. Zhang, Charlotte L. Zhang, Oulan Li, Xiaobo Wang,
+Michael A. Singer, Xiaodong Sun, Jie Xu, Ali Tafreshi, M. Anthony Lewis, Huimin Xia, and Kang
+Zhang. Identifying medical diagnoses and treatable diseases by image-based deep learning. Cell,
+172(5):1122–1131.e9, February 2018.
+
+[3] Yuchen Lu and Peng Xu. Anomaly detection for skin disease images using variational autoencoder,
+2018.
+
+[4] Pankaj Mishra, Riccardo Verk, Daniele Fornasier, Claudio Piciarelli, and Gian Luca Foresti. Vt-
+adl: A vision transformer network for image anomaly detection and localization. 2021 IEEE 30th
+International Symposium on Industrial Electronics (ISIE), pages 01–06, 2021.
+
+[5] Thomas Schlegl, Philipp Seeb ̈ock, Sebastian M. Waldstein, Georg Langs, and Ursula Margarethe
+Schmidt-Erfurth. f-anogan: Fast unsupervised anomaly detection with generative adversarial net-
+works. Medical Image Analysis, 54:30–44, 2019.
+
+[6] Yuzhong Zhao, Qiaoqiao Ding, and Xiaoqun Zhang. AE-FLOW: Autoencoders with normalizing
+flows for medical images anomaly detection. In The Eleventh International Conference on Learning
+Representations, 2023.
