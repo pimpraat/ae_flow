@@ -149,6 +149,7 @@ def main(args):
         optimal_threshold += model_threshold
 
     # calculate optimal threshold
+    optimal_threshold /= len(model_names)
 
     # get means and stds
     #softmax_res = [torch.nn.functional.sigmoid(torch.tensor([model_results[i][1]]).unsqueeze(-1)).squeeze() for i in range(len(model_names))]
@@ -165,7 +166,7 @@ def main(args):
 
     print("MEAN DIST:", np.mean(means), np.std(means))
     print("STD:", np.mean(stds), np.std(stds))
-    results = uncertainty_table(true_labels, preds, stds, std_threshold=0.079)
+    results = uncertainty_table(true_labels, preds, stds, std_threshold=0.0785)
 
     n_models = [1, 2, 3, 4, 5]
 
