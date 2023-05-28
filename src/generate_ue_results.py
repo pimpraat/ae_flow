@@ -60,14 +60,11 @@ INCORRECT    {ic_low}  {ic_high}
     return c_low, c_high, ic_low, ic_high
 
 def main(args):
-    # model_names = ['1.pt', '59.pt', '85.pt', '91.pt', '68.pt']
     model_names = ["1.pt", "59.pt", "85.pt"]
     model_results = []
 
     train_loader, train_abnormal, test_loader = load(data_dir='chest_xray',batch_size=8, num_workers=3, subset=False)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-
-    # assert not torch.equal(torch.load(f'models/model_seed/85.pt', map_location='cpu'), torch.load(f'models/model_seed/59.pt', map_location='cpu'))
 
     optimal_threshold = 0
     
@@ -81,7 +78,6 @@ def main(args):
             print(f"Done with processing model {idx}")
             continue
         torch.cuda.empty_cache()
-        # ress = {}
         
         model = AE_Flow_Model(subnet_architecture='conv_like', n_flowblocks=8)
         state_dict = torch.load(f'models/model_seed/{model_path}', map_location='cpu')
@@ -117,12 +113,7 @@ def main(args):
     # calculate optimal threshold
     optimal_threshold /= len(model_names)
 
-    if args.score_threshold > 0:
-        optimal_threshold = args.score_threshold
-
     # get means and stds
-    #softmax_res = [torch.nn.functional.sigmoid(torch.tensor([model_results[i][1]]).unsqueeze(-1)).squeeze() for i in range(len(model_names))]
-    #softmax_res = [np.array(s) for s in softmax_res]
     res = [model_results[i][1] for i in range(len(model_names))]
 
     # calculate mean and standard deviation
@@ -143,12 +134,6 @@ if __name__ == '__main__':
     
     # Training settings
     parser = argparse.ArgumentParser(description='Deep ensemble for AE Normalized Flow')
-
-    # Optimizer hyper-parameters 
-    parser.add_argument('--score_threshold', default=0., type=float,
-                        help='Anomaly score threshold')
-    parser.add_argument('--std_threshold', type=float, default=0.0785,
-                        help='Standard deviation threshold')
 
     args = parser.parse_args()
 

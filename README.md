@@ -4,7 +4,12 @@
 
 This repository contains our work for a mini-project for the DL2 cours at the University of Amsterdam (https://uvadl2c.github.io/, 2023), aiming to firstly replicate the work "AE-FLOW: Autoencoders with Normalizing Flows for Anomaly Detection" by Yuzhong Zhao, Qiaoqiao Ding and Xiaoqun Zhang (2023), and secondly to extend this work by determining it's generalization of it's finding to other data-sets and uncertainty quantification using Deep Ensembles.
 
+## ‼️ WandB Authentication !!
+Our repository uses WandB to log runs. Please generate a WandB key and put it into a file in the ./src folder called 'wandbkey.txt'.
+For further instructions, go to the [WandB guide](https://docs.wandb.ai/quickstart).
+
 ## Getting started
+
 The directory 'src/script/job_files' contains all files needed to install the environment using our supplied 'src/script/job_files/environment.yml' file, and run the experiments. Using these will be enough to run the repository on a SLURM-based cluster such as LISA. For setting/defining parameters both with regard to model-setup and running experiments we currently refer to the train.py file.
 
 Please install any missing requirements on your own.
