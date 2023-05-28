@@ -87,8 +87,13 @@ def get_anomaly_scores(model, dataloader, anomalib_dataset):
         original_x, y = x.to(device), y.to(device)
         reconstructed_x = model(original_x).squeeze(dim=1)
 
+        try:
+            beta = args.loss_beta
+        except NameError:
+            beta = 0.9 # 
+
         if type(model) == FastflowModel: anomaly_score = torch.mean(reconstructed_x, axis=(1, 2))
-        if type(model) == AE_Flow_Model: anomaly_score = model.get_anomaly_score(_beta=args.loss_beta, original_x=original_x, reconstructed_x=reconstructed_x)
+        if type(model) == AE_Flow_Model: anomaly_score = model.get_anomaly_score(_beta=beta, original_x=original_x, reconstructed_x=reconstructed_x)
         if type(model) == AE_Model: anomaly_score = model.get_anomaly_score(original_x=original_x, reconstructed_x=reconstructed_x)
 
         anomaly_scores.append(anomaly_score)
