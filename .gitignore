@@ -15,3 +15,6 @@ __pycache__
 models/per_epoch
 wandbkey.txt
 job_files/train.out
+models/model_seed/1.pt
+models/model_seed/59.pt
+models/model_seed/85.pt
