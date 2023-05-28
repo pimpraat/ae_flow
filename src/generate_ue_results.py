@@ -9,6 +9,8 @@ import os
 import pickle
 from experiment import Experiment
 import wandb
+import argparse
+
 def uncertainty_table(true, preds, stds, std_threshold=0.025, fname="ue.txt"):
     """
     
@@ -151,6 +153,9 @@ def main(args):
     # calculate optimal threshold
     optimal_threshold /= len(model_names)
 
+    if args.score_threshold > 0:
+        optimal_threshold = args.score_threshold
+
     # get means and stds
     #softmax_res = [torch.nn.functional.sigmoid(torch.tensor([model_results[i][1]]).unsqueeze(-1)).squeeze() for i in range(len(model_names))]
     #softmax_res = [np.array(s) for s in softmax_res]
@@ -166,7 +171,7 @@ def main(args):
 
     print("MEAN DIST:", np.mean(means), np.std(means))
     print("STD:", np.mean(stds), np.std(stds))
-    results = uncertainty_table(true_labels, preds, stds, std_threshold=0.0785)
+    results = uncertainty_table(true_labels, preds, stds, std_threshold=args.std_threshold)
 
     n_models = [1, 2, 3, 4, 5]
 
@@ -191,48 +196,15 @@ def main(args):
 
 if __name__ == '__main__':
     
-    """# Training settings
-    parser = argparse.ArgumentParser(description='AE Normalized Flow')
+    # Training settings
+    parser = argparse.ArgumentParser(description='Deep ensemble for AE Normalized Flow')
 
     # Optimizer hyper-parameters 
-    parser.add_argument('--batch_size', default=64, type=int,
-                        help='Batch size to use for training')
-    parser.add_argument('--loss_alpha', type=float, default=0.5,
-                        help='')
-    parser.add_argument('--loss_beta', type=float, default=0.9,
-                        help='')
-    parser.add_argument('--optim_lr', type=float, default=2e-3,
-                        help='')
-    parser.add_argument('--optim_momentum', type=float, default=0.9, 
-                        help='')
-    parser.add_argument('--optim_weight_decay', type=float, default=10e-5,
-                        help='')
-    parser.add_argument('--dataset',default='chest_xray', type=str, help='Which dataset to run. Choose from: [OCT2017, chest_xray, ISIC, BRATS, MIIC]')
-    parser.add_argument('--model',default='ae_flow', type=str, help='Which dataset to run. Choose from: [autoencoder, fastflow, ae_flow]')
+    parser.add_argument('--score_threshold', default=0., type=float,
+                        help='Anomaly score threshold')
+    parser.add_argument('--std_threshold', type=float, default=0.0785,
+                        help='Standard deviation threshold')
 
-    parser.add_argument('--subnet_architecture', default='conv_like', type=str,
-                        help='Which subflow architecture to use when using the ae_flow model: conv_like or resnet_like')
+    args = parser.parse_args()
 
-    # Other hyper-parameters
-    parser.add_argument('--data_dir', default='../data/', type=str,
-                        help='Directory where to look for the data. For jobs on Lisa, this should be $TMPDIR.')
-
-    parser.add_argument('--final_experiments', default=False, type=bool, help='Whether to save results as for final experiments')
-    
-    parser.add_argument('--ue_model', default=False, type=bool, help='Whether to just train a model with a specific seed and save it.')
-
-    parser.add_argument('--n_validation_folds', default=5, type=int, help='')
-    parser.add_argument('--n_flowblocks', default=8, type=int, help='')
-    parser.add_argument('--fully_deterministic', default=True, type=bool, help='Whether to run with torch.backends.cudnn.deterministic')
-    parser.add_argument('--torch_benchmark', default=False, type=bool, help='Whether to run with torch.backends.cudnn.benchmark')
-
-    parser.add_argument('--epochs', default=15, type=int,
-                        help='Number of epochs to train.')
-    parser.add_argument('--seed', default=42, type=int,
-                        help='Seed to use for reproducing results')
-    parser.add_argument('--num_workers', default=4, type=int,
-                        help='Number of workers to use in the data loaders.' +
-                             'To have a truly deterministic run, this has to be 0.')"""
-
-    #args = parser.parse_args()
-    main("FUCK YOU")
+    main(args)
