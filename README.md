@@ -35,7 +35,7 @@ repo
             |--train
 ```
 
-Chest_Xray: https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia
+Chest X-ray: https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia
 
 OCT2017: https://www.kaggle.com/datasets/paultimothymooney/kermany2018
 
