@@ -15,6 +15,10 @@ __pycache__
 models/per_epoch
 wandbkey.txt
 job_files/train.out
+models/{'model': 'ae_flow', 'subnet_arc': 'resnet_like', 'n_flowblocks': 8, 'dataset': 'chest_xray', 'epochs': 10, 'loss_alpha': 0.5, 'loss_beta': 0.9, 'optim_lr': 0.001, 'optim_momentum': 0.9, 'optim_weight_decay': 0.0, 'n_validation_folds': 5}.pt
 models/model_seed/1.pt
 models/model_seed/59.pt
 models/model_seed/85.pt
+models/model_seed/91.pt
+job_files/train.job
+job_files/train.job

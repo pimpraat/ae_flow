@@ -7,34 +7,143 @@ from PIL import Image, ImageFile
 import glob
 from torch.utils.data import Dataset
 from tqdm import tqdm
+from sklearn.model_selection import KFold
+
+import os
+
+from pathlib import Path
+
+from anomalib.data import TaskType
+from anomalib.data.btech import BTech
+from anomalib.data.mvtec import MVTec
+from anomalib.data.utils import InputNormalizationMethod
 
 # required for certain images in OCT2017
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
+# TODO: train per subset
+def load_btad(split, subset, batch_size=64, num_workers=8):
+    dataset_root = Path.cwd().parent / "datasets" / "BTech"
+
+    btech_datamodule = BTech(
+        root=dataset_root,
+        category=subset,
+        image_size=256,
+        train_batch_size=batch_size,
+        eval_batch_size=batch_size,
+        num_workers=num_workers,
+        task='classification',
+        normalization=InputNormalizationMethod.NONE,  # don't apply normalization, as we want to visualize the images
+    )
+    # check if the data is available and setup
+    btech_datamodule.prepare_data()
+    btech_datamodule.setup()
+    if split == 'train':
+        return btech_datamodule.train_data
+    elif split == 'test':
+        return btech_datamodule.test_data
+    elif split == 'val':
+        return btech_datamodule.val_data
+    else:
+        raise NotImplementedError
+
+
+# TODO: train per subset
+def load_mvtec(split, subset, batch_size=64, num_workers=8):
+    dataset_root = Path.cwd().parent / "datasets" / "MVTec"
+    # MVTec Classification Train Set
+    mvtec_datamodule = MVTec(
+        root=dataset_root,
+        category=subset,
+        image_size=256,
+        train_batch_size=batch_size,
+        eval_batch_size=batch_size,
+        num_workers=num_workers,
+        task="classification",
+        normalization=InputNormalizationMethod.NONE,  # don't apply normalization, as we want to visualize the images
+    )
+    # check if the data is available and setup
+    mvtec_datamodule.prepare_data()
+    mvtec_datamodule.setup()
+    if split == 'train':
+        return mvtec_datamodule.train_data
+    elif split == 'test':
+        return mvtec_datamodule.test_data
+    elif split == 'val':
+        return mvtec_datamodule.val_data
+    else:
+        raise NotImplementedError
+    
+def load_miic(split):
+    file_list, label_list = [], []
+    data_dir = f'data/miic/{split}/'
+    paths = []
+    # only normal samples
+    if split == 'train':
+        path = (0, data_dir+'test_normal_*.jpg')
+        paths.append(path)
+    # only abnormal
+    elif split == 'train_abnormal':
+        data_dir = data_dir = f'data/miic/train/'
+        path = (1, data_dir+'test_abnormal_*.jpg')
+        paths.append(path)
+    # abnormal and normal
+    # ignore any masks or paddings
+    elif split == 'test':
+        path_normal = (0, data_dir+'*normal_[0-9][0-9][0-9][0-9][0-9].jpg')
+        path_abnormal = (1, data_dir+'*abnormal_[0-9][0-9][0-9][0-9][0-9].jpg')
+        paths.append(path_normal)
+        paths.append(path_abnormal)
+    for label, path in paths:
+        for filename in glob.glob(path):
+            file_list.append(filename)
+            label_list.append(label)
+
+    return file_list, label_list
 class LoadDataset(Dataset):
-    def __init__(self, data_dir, split, ext='jpeg', preload=False):
+    def __init__(self, data_dir, split, ext='jpeg', subset=None, batch_size=64, num_workers=8, anomalib_dataset=False):
         self.data_dir = data_dir
         self.ext = ext
         self.split = split
-        self.preload = preload
-        self.file_list, self.labels = self._get_file_list()            
-        if preload:
+        self.num_workers = num_workers
+    
+
+        # relevant for BTAD and MVTEC datasets
+        self.subset = subset
+        self.batch_size = batch_size
+        
+        # relevant for fastflow
+        self.anomalib_dataset = anomalib_dataset
+        if (data_dir == 'btech') or (data_dir == 'mvtec'):
             self.preload_files()
+            # preload relavant at the get_item function
+            self.preload = True
+        
+        else:
+            self.file_list, self.labels = self._get_file_list()
+            self.preload = False
 
     def preload_files(self):
-        image_list = []
-        for label, path in zip(self.labels, self.file_list):
-            img = Image.open(path)
-            img = preprocess_img(img)
-            image_list.append((img, label))
-        self.image_list = image_list
+        if self.data_dir == 'btech':
+            self.image_list = load_btad(self.split, self.subset, batch_size=self.batch_size, num_workers=self.num_workers)
+        elif self.data_dir == 'mvtec':
+            self.image_list = load_mvtec(self.split, self.subset, batch_size=self.batch_size, num_workers=self.num_workers)
+        else:
+            image_list = []
+            for label, path in zip(self.labels, self.file_list):
+                img = Image.open(path)
+                img = preprocess_img(img)
+                image_list.append((img, label))
+            self.image_list = image_list
 
     def _get_file_list(self):
         file_list = []
         label_list = []
 
+        if self.data_dir == 'miic':
+            return load_miic(self.split)
         # set split to 'train'
-        if self.split == 'train_complete':
+        if self.split == 'train_abnormal':
             split = 'train'
         else:
             split = self.split
@@ -47,57 +156,22 @@ class LoadDataset(Dataset):
             paths = [path0, path1, path2, path3]
         elif self.data_dir == 'chest_xray':
             path0 = (0, 'data/'+self.data_dir+'/'+split+'/NORMAL/')
-            path1 = (1, 'data/'+self.data_dir+'/'+split+'PNEUMONIA/')
+            path1 = (1, 'data/'+self.data_dir+'/'+split+'/PNEUMONIA/')
             paths = [path0, path1]
 
-        # different procedure for btech
-        # TODO: this needs some cleaning up
-        if self.data_dir == 'btad':
-            datasets = ['01', '02', '03']
-            exts = ['bmp', 'png', 'bmp']
-            # if validation split: take 2 of each class for each dataset
-            if self.split in ['val', 'test']:
-
-                # path to dirs
-                for dataset, ext in zip(datasets, exts):
-                    path0 = (0, f'data/{self.data_dir}/{dataset}/test/ok/')
-                    path1 = (1, f'data/{self.data_dir}/{dataset}/test/ko/')
-                    paths = [path0, path1]
-
-                    # select 2 samples of each class for each dataset
-                    if self.split == 'val':
-                        for label, path in paths:
-                            # one path is one class, reset files_added
-                            files_added = 0
-                            for filename in glob.glob(path+'*.'+ext):
-                                if files_added <= 2:
-                                    file_list.append(filename)
-                                    label_list.append(label)
-                                    files_added += 1
-                    # otherwise select everything but the last 2 samples of each class of each dataset
-                    else:
-                        for label, path in paths:
-                            files_added = 0
-                            for filename in glob.glob(path+'*.'+ext):
-                                # only start adding to file list after the first two have
-                                if files_added > 2:
-                                    file_list.append(filename)
-                                    label_list.append(label)
-                                else:
-                                    files_added += 1
-                        
-            # train set
-            else:
-                for dataset, ext in zip(datasets, exts):
-                    path = f'data/{self.data_dir}/{dataset}/train/ok/'
-                    for filename in glob.glob(path+'*.'+ext):
-                        file_list.append(filename)
-                        label_list.append(0)
-
-        # non bean tech datasets
+        if self.data_dir == 'mvtec':
+            file_list, label_list = load_mvtec(self.split, subset=self.subset, batch_size=self.batch_size)
+        elif self.data_dir == 'btech':
+            file_list, label_list = load_btad(self.split, subset=self.subset, batch_size=self.batch_size)
         else:
+            # OCT or chest_xray
             if self.split == 'train':
                 paths = [path0]
+            elif self.split == 'train_abnormal':
+                if self.data_dir == 'OCT2017':
+                    paths = [path1, path2, path3]
+                else:
+                    paths = [path1]
             for label, path in paths:
                 for filename in glob.glob(path+'*.'+self.ext):
                     file_list.append(filename)
@@ -106,8 +180,17 @@ class LoadDataset(Dataset):
 
     def __getitem__(self, index):
         if self.preload:
-            img = self.image_list[index][0]
-            label = self.image_list[index][1]
+            if self.anomalib_dataset:
+                data = {'image':self.image_list[index]['image'], 'label':self.image_list[index]['label']}
+                return data
+            else:
+                img = self.image_list[index][0]
+                label = self.image_list[index][1]
+
+            # an extra check for when loading in data with anomalib
+            # we need to make sure the train set only contains normal samples
+            if (self.split == 'train') and (label != 0):
+                raise ValueError('Train contains non-zero labels. The train set should not contain any samples considered abnormal.')
         else:
             file_path = self.file_list[index]
             img = Image.open(file_path)
@@ -116,6 +199,8 @@ class LoadDataset(Dataset):
         return img, label
     
     def __len__(self):
+        if self.preload:
+            return len(self.image_list) 
         return len(self.file_list)
 
 def preprocess_img(img):
@@ -129,24 +214,51 @@ def preprocess_img(img):
                                  std=[0.229, 0.224, 0.225])
     apply_greyscale = transforms.Grayscale(num_output_channels=3)
     img = resizer(img)
-    img = apply_greyscale(img) 
+    img = apply_greyscale(img)
+    center_crop = transforms.CenterCrop(224)
+    img = center_crop(img)
     img = convert_tensor(img)
     img = normalize(img)
     return img
 
-def load(data_dir,batch_size=64, num_workers=4):
-    train_dataset = LoadDataset(data_dir, split='train')
-    val_dataset = LoadDataset(data_dir, split='val')
-    test_dataset = LoadDataset(data_dir, split='test')
-    train_dataset_complete = LoadDataset(data_dir, split='train_complete')
+def load(data_dir,batch_size=64, num_workers=4, subset=None, anomalib_dataset=False):
+    train_dataset = LoadDataset(data_dir, split='train', subset=subset, num_workers=num_workers, batch_size=batch_size, anomalib_dataset=anomalib_dataset)
+    test_dataset = LoadDataset(data_dir, split='test', subset=subset, num_workers=num_workers, batch_size=batch_size, anomalib_dataset=anomalib_dataset)
 
-    ## As we use Nvidia GPU's pin_memory for speedup using pinned memmory
-    train_loader = data.DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
-    val_loader = data.DataLoader(
-            val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
+    # only the test set is loaded into the dataloader
     test_loader = data.DataLoader(
-            test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
-    train_complete = data.DataLoader(
-        train_dataset_complete, batch_size=batch_size, shuffle=True, num_workers=num_workers, drop_last=False, pin_memory=False)
-    return train_loader, train_complete, val_loader, test_loader
+        test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, drop_last=False, pin_memory=False)
+   
+
+    if data_dir in ['btech', 'mvtec']:
+        train_abnormal = LoadDataset(data_dir, split='val', subset=subset, batch_size=batch_size, anomalib_dataset=anomalib_dataset)
+        return train_dataset, train_abnormal, test_loader
+    else:
+        train_abnormal = LoadDataset(data_dir, split='train_abnormal', batch_size=batch_size, subset=subset, anomalib_dataset=anomalib_dataset)
+        return train_dataset, train_abnormal, test_loader
+    
+def split_data(n_splits, normal_data, abnormal_data):
+    kfold_normal, kfold_abormal = KFold(n_splits, shuffle=True), KFold(n_splits, shuffle=True)
+    normal_split, abnormal_split = list(kfold_normal.split(normal_data)), list(kfold_abormal.split(abnormal_data))
+    train_split_normal = [kfold[0] for kfold in normal_split]
+    test_split_normal = [kfold[1] for kfold in normal_split]
+    train_split_abnormal = [kfold[0] for kfold in abnormal_split]
+    test_split_abnormal = [kfold[1] for kfold in abnormal_split]
+    return train_split_normal, test_split_normal, train_split_abnormal, test_split_abnormal
+
+def fold_to_loaders(fold, train_split_normal, test_split_normal, train_split_abnormal, test_split_abnormal, n_workers, train_loader, train_abnormal):
+    train_ids_normal, train_ids_abnormal = train_split_normal[fold], train_split_abnormal[fold]
+    test_ids_normal, test_ids_abnormal = test_split_normal[fold], test_split_abnormal[fold]
+
+    train_normal_dataset = torch.utils.data.dataset.Subset(train_loader,train_ids_normal)
+    train_normal_loader = data.DataLoader(train_normal_dataset, num_workers = n_workers, shuffle=True, batch_size=64)
+    train_abnormal_dataset =  torch.utils.data.dataset.Subset(train_abnormal,train_ids_abnormal)
+    print(f"Number of abnormal vs normal samples in the threshold set: {len(train_abnormal_dataset.dataset)} vs {len(train_normal_dataset.dataset)}")
+    threshold_dataset = torch.utils.data.ConcatDataset([train_abnormal_dataset, train_normal_dataset])
+    threshold_loader = data.DataLoader(threshold_dataset, num_workers = n_workers, batch_size=64)
+
+    validate_loader_normal = torch.utils.data.dataset.Subset(train_loader,test_ids_normal)
+    validate_loader_abnormal = torch.utils.data.dataset.Subset(train_abnormal,test_ids_abnormal)
+    validate_loader_combined = torch.utils.data.ConcatDataset([validate_loader_normal, validate_loader_abnormal])
+    validate_loader_combined = data.DataLoader(validate_loader_combined, num_workers = n_workers, batch_size=64)
+    return train_normal_loader, threshold_loader, validate_loader_combined

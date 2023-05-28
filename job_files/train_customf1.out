@@ -1,0 +1,51 @@
+wandb: Currently logged in as: pimpraat (dl2_ae_flow). Use `wandb login --relogin` to force relogin
+wandb: Appending key for api.wandb.ai to your netrc file: /home/lcur1708/.netrc
+wandb: wandb version 0.15.3 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.15.0
+wandb: Run data is saved locally in /home/lcur1708/new_git_directory/ae_flow/wandb/run-20230525_191643-9xr5uudo
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run silvery-sponge-503
+wandb: ⭐️ View project at https://wandb.ai/dl2_ae_flow/ae_flow
+wandb: 🚀 View run at https://wandb.ai/dl2_ae_flow/ae_flow/runs/9xr5uudo
+/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=Wide_ResNet50_2_Weights.IMAGENET1K_V1`. You can also use `weights=Wide_ResNet50_2_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+Running on subset: None
+Number of abnormal vs normal samples in the threshold set: 3875 vs 1341
+<class 'numpy.ndarray'>
+weights: [1072, 3100]
+<class 'numpy.ndarray'> [1.86270492 1.86235471 1.86217955 ... 1.33390669 1.33362004 1.33333333]
+  0%|          | 0/5 [00:00<?, ?it/s]  0%|          | 0/5 [01:29<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/lcur1708/new_git_directory/ae_flow/train.py", line 257, in <module>
+    main(args)
+  File "/home/lcur1708/new_git_directory/ae_flow/train.py", line 187, in main
+    threshold = find_threshold(epoch, model, threshold_loader)
+  File "/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torch/autograd/grad_mode.py", line 27, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/lcur1708/new_git_directory/ae_flow/train.py", line 97, in find_threshold
+    optimal_threshold = optimize_threshold(anomaly_scores, true_labels)
+  File "/home/lcur1708/new_git_directory/ae_flow/utils.py", line 47, in optimize_threshold
+    weighted_f1_scores = np.average(f1_scores.tolist(), weights=[weights[0], weights[1]], axis=1)
+  File "<__array_function__ internals>", line 180, in average
+  File "/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/numpy/lib/function_base.py", line 537, in average
+    if wgt.shape[0] != a.shape[axis]:
+IndexError: tuple index out of range
+wandb: Waiting for W&B process to finish... (failed 1). Press Control-C to abort syncing.
+wandb: 
+wandb: Run history:
+wandb: Train loss per epoch: █▁
+wandb:     flow loss (train) ▄▄▄█▃▄▄▄▄▄▄▄▄▄▄▄▄▄▄▃▃▃▃▃▃▂▂▂▂▂▂▁▁▁
+wandb:    recon_loss (train) █▇▇█▆▆▆▆▅▅▅▃▃▂▂▂▂▂▂▂▂▂▂▁▂▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb: Train loss per epoch: 0.39075
+wandb:     flow loss (train) -0.41375
+wandb:    recon_loss (train) 0.37245
+wandb: 
+wandb: 🚀 View run silvery-sponge-503 at: https://wandb.ai/dl2_ae_flow/ae_flow/runs/9xr5uudo
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20230525_191643-9xr5uudo/logs
+srun: error: r36n4: task 0: Exited with exit code 1

@@ -2,12 +2,12 @@
 
 #SBATCH --partition=gpu_titanrtx_shared_course
 #SBATCH --gres=gpu:1
-#SBATCH --job-name=RunAE_Normalized_Flow_Development
+#SBATCH --job-name=UE_Results
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=3
-#SBATCH --time=00:45:00
+#SBATCH --time=00:10:00
 #SBATCH --mem=32000M
-#SBATCH --output=job_files/data.out
+#SBATCH --output=job_files/ue_results.out
 
 module purge
 module load 2021
@@ -18,4 +18,4 @@ module load Anaconda3/2021.05
 source activate dl2022
 
 # Run your code
-srun python -u data/chest_xray/get_data.py --competition https://www.kaggle.com/datasets/paultimothymooney/kermany2018 --username Jan Athmer --password 7P&#npHd846TCfm
+srun python -u generate_ue_results.py
