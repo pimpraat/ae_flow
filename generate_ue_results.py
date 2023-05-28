@@ -5,7 +5,38 @@ import numpy as np
 import sklearn
 from train import find_threshold, eval_model, calculate_metrics
 import torch.utils.data as data
+import os
 
+def uncertainty_table(true, scores, stds, std_threshold=0.025, fname="ue.txt"):
+    """
+    
+    """
+    high_uncertainty = np.array(stds > std_threshold, dtype=int) # 1 if high uncertainty, otherwise 0
+
+    # get total correct/incorrect numbers
+    total_correct = len(high_uncertainty[true == scores])
+    total_incorrect = len(high_uncertainty[true != scores])
+
+    c_high = np.sum(total_correct)
+    c_low  = 1 - c_high
+    ic_high = np.sum(total_incorrect)
+    ic_low = 1 - ic_high
+    
+    results = f"""
+            LOW    HIGH
+  CORRECT    {c_low}    {c_high}
+INCORRECT    {ic_low}  {ic_high}
+    """
+
+    if not os.exists("results/ue"):
+        os.mkdir("results/ue")
+    
+    with open("results/ue/ue.txt", "w") as f:
+        f.write(results)
+
+    print(results)
+
+    return c_low, c_high, ic_low, ic_high
 
 # model_names = ['1.pt', '59.pt', '85.pt', '91.pt', '68.pt']
 model_names = ["85.pt", "59.pt"]
@@ -72,11 +103,22 @@ for idx, model_path in enumerate(model_names):
     
     print(f"Just to check, running final inference using the test data: {calculate_metrics(true, anomaly_scores, optimial_threshold)} using model {model_path}")
 
-    preds = np.array(anomaly_scores >= optimial_threshold, dtype=int)
-    # ress['true'] = true
-    # ress['preds'] = preds
-    model_results.append([true, preds])
+
+    # save anomaly scores
+    scores = np.array(anomaly_scores, dtype=float)
+    model_results.append([true, scores])
     print(f"Done with processing model {idx}")
+
+# calculate mean and standard deviation
+true_labels = np.mean([model_results[0][0], model_results[1][0]])
+means = np.mean([model_results[0][1], model_results[1][1]], axis=0, dtype=float)
+stds = np.std([model_results[0][1], model_results[1][1]], axis=0, dtype=float)
+
+# prediction based on means
+preds = np.array(means > optimial_threshold, dtype=int)
+
+
+results = uncertainty_table(true, preds, stds)
 
 n_models = [1, 2, 3, 4, 5]
 
@@ -85,9 +127,8 @@ accuracies = []
 
 print(model_results[0])
 
-accuracies.append(sklearn.metrics.accuracy_score(y_true=model_results[0][0], y_pred=model_results[0][1]))
-accuracies.append(sklearn.metrics.accuracy_score(y_true=np.mean([model_results[0][0], model_results[1][0]], axis=0, dtype=int), y_pred=np.mean([model_results[0][1], model_results[1][1]], axis=0, dtype=int)))
-print(accuracies)
+accuracies.append(sklearn.metrics.accuracy_score(y_true=true_labels, y_pred=model_results[0][1]))
+
 
 # Classification error
 # print(sklearn.metrics.accuracy_score(y_true=model_results[0]['true'], y_pred=model_results[0]['preds'], normalize=False))
