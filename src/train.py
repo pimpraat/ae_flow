@@ -1,22 +1,17 @@
 import torch
 import argparse
 import copy
-import torch.utils.data as data
-import torch.nn as nn
 from nflows.distributions import normal
 
 from model.ae_flow_model import AE_Flow_Model
 from model.Auto_encoder_seperate import AE_Model
+
 # from dataloader import load, split_data, fold_to_loaders
 from utils import optimize_threshold, calculate_metrics
 from experiment import Experiment
 import wandb
-# import torchvision
 import numpy as np
-# import sklearn
-# import time
-# import json
-# from sklearn.model_selection import KFold
+
 
 from tqdm import tqdm
 from anomalib.models.fastflow.torch_model import FastflowModel
@@ -31,9 +26,9 @@ def train_step(epoch, model, train_loader,optimizer, anomalib_dataset=False, _pr
     train_loss_epoch = 0
     for batch_idx, data in enumerate(train_loader):
         if anomalib_dataset:
-            x,y = data['image'],data['label']
+            x = data['image']
         else:
-            x, y = data[0], data[1]
+            x = data[0]
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         original_x = x.to(device)
 

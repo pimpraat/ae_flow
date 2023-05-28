@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch
 from nflows.distributions import normal
 import torchmetrics
-from torchvision.utils import make_grid, save_image
+from torchvision.utils import make_grid
 import torchvision
 
 from model.decoder import Decoder
