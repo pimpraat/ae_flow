@@ -27,6 +27,7 @@ The  is traiend using a loss function that accounts for reconstruction accuracy 
 
 AE-FLOW's novel approach proves useful, exhibiting significant improvements with multiple metrics across all tested datasets. It is most consistent with the ISIC 2018 dataset (Codella et al. 2018), where it outperforms all five tested reconstruction and likelihood-based models across five different metrics, exhibiting percentage increases of up to 40.1 points. 
 
+
 <!-- Exposition of its weaknesses/strengths/potential which triggered your group to come up with a response. -->
 The results prove it to be a promising approach to anomaly detection, with good performance on multiple medical datasets and one integrated circuit dataset. This shows that AE-FLOW can potentially be suited to perform tasks across all domains, rather than simply being a one-trick medical pony. Furthermore, its approach of combining the two previously established methods of anomaly detection is simple yet elegant. It combines two different architectures such that they compensate for each others weaknesses while avoiding the additional complications that arise when completely novel and untested architectures are introduced. Overall, AE-FLOW is an architecture that is worth investigating further.
 
