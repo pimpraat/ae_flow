@@ -6,6 +6,8 @@ import sklearn
 from train import find_threshold, eval_model, calculate_metrics
 import torch.utils.data as data
 import os
+import pickle
+
 
 def uncertainty_table(true, scores, stds, std_threshold=0.025, fname="ue.txt"):
     """
@@ -39,18 +41,20 @@ INCORRECT    {ic_low}  {ic_high}
     return c_low, c_high, ic_low, ic_high
 
 # model_names = ['1.pt', '59.pt', '85.pt', '91.pt', '68.pt']
-model_names = ["85.pt", "59.pt"]
+model_names = ["1.pt", "85.pt"]
 model_results = []
 
 train_loader, train_abnormal, test_loader = load(data_dir='chest_xray',batch_size=64, num_workers=3, subset=False)
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-assert not torch.equal(torch.load(f'models/model_seed/85.pt', map_location='cpu'), torch.load(f'models/model_seed/59.pt', map_location='cpu'))
+# assert not torch.equal(torch.load(f'models/model_seed/85.pt', map_location='cpu'), torch.load(f'models/model_seed/59.pt', map_location='cpu'))
+
+optimal_threshold = 0
 
 for idx, model_path in enumerate(model_names):
     torch.cuda.empty_cache()
     # ress = {}
-    model = AE_Flow_Model(subnet_architecture='resnet_like', n_flowblocks=8)
+    model = AE_Flow_Model(subnet_architecture='convnet_like', n_flowblocks=8)
     model.load_state_dict(torch.load(f'models/model_seed/{model_path}', map_location='cpu'))
     model = model.to(device)
     model.eval()
@@ -61,7 +65,7 @@ for idx, model_path in enumerate(model_names):
     threshold_dataset = torch.utils.data.ConcatDataset([train_loader, train_abnormal])
     threshold_loader = data.DataLoader(threshold_dataset, num_workers = 3, batch_size=64)
 
-    optimial_threshold = find_threshold(0, model, threshold_loader, running_ue_experiments=True)
+    model_threshold = find_threshold(0, model, threshold_loader, running_ue_experiments=True)
 
     # thr_anomaly_scores, thr_true_labels = [], []
     # for batch_idx, data in enumerate(threshold_loader):
@@ -99,9 +103,9 @@ for idx, model_path in enumerate(model_names):
     # true = [item for sublist in [tensor.cpu().numpy() for tensor in true_labels] for item in sublist]
     # anomaly_scores = [item for sublist in [tensor.cpu().numpy() for tensor in anomaly_scores] for item in sublist]
 
-    true, anomaly_scores = eval_model(0, model, test_loader, threshold=optimial_threshold, return_only_anomaly_scores=True, running_ue_experiments=True)
+    true, anomaly_scores = eval_model(0, model, test_loader, threshold=model_threshold, return_only_anomaly_scores=True, running_ue_experiments=True)
     
-    print(f"Just to check, running final inference using the test data: {calculate_metrics(true, anomaly_scores, optimial_threshold)} using model {model_path}")
+    print(f"Just to check, running final inference using the test data: {calculate_metrics(true, anomaly_scores, model_threshold)} using model {model_path}")
 
 
     # save anomaly scores
@@ -109,13 +113,22 @@ for idx, model_path in enumerate(model_names):
     model_results.append([true, scores])
     print(f"Done with processing model {idx}")
 
+    # i'm not taking any chances here
+    pickle.dump(model_threshold, open(f"models/model_seed/thresh{idx}.pkl","wb"))
+    pickle.dump(model_results, open(f"models/model_seed/results{idx}.pkl","wb"))
+
+    optimal_threshold += model_threshold
+
+# calculate optimal threshold
+optimal_threshold /= len(model_names)
+
 # calculate mean and standard deviation
 true_labels = np.mean([model_results[0][0], model_results[1][0]])
 means = np.mean([model_results[0][1], model_results[1][1]], axis=0, dtype=float)
 stds = np.std([model_results[0][1], model_results[1][1]], axis=0, dtype=float)
 
 # prediction based on means
-preds = np.array(means > optimial_threshold, dtype=int)
+preds = np.array(means > optimal_threshold, dtype=int)
 
 
 results = uncertainty_table(true, preds, stds)
