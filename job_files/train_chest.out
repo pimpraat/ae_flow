@@ -1,0 +1,122 @@
+wandb: Currently logged in as: pimpraat (dl2_ae_flow). Use `wandb login --relogin` to force relogin
+wandb: Appending key for api.wandb.ai to your netrc file: /home/lcur1708/.netrc
+wandb: wandb version 0.15.3 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.15.0
+wandb: Run data is saved locally in /home/lcur1708/new_git_directory/ae_flow/wandb/run-20230525_141958-hja4qf7p
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run drawn-firefly-459
+wandb: ⭐️ View project at https://wandb.ai/dl2_ae_flow/ae_flow
+wandb: 🚀 View run at https://wandb.ai/dl2_ae_flow/ae_flow/runs/hja4qf7p
+/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:208: UserWarning: The parameter 'pretrained' is deprecated since 0.13 and may be removed in the future, please use 'weights' instead.
+  warnings.warn(
+/home/lcur1708/.conda/envs/dl2022/lib/python3.10/site-packages/torchvision/models/_utils.py:223: UserWarning: Arguments other than a weight enum or `None` for 'weights' are deprecated since 0.13 and may be removed in the future. The current behavior is equivalent to passing `weights=Wide_ResNet50_2_Weights.IMAGENET1K_V1`. You can also use `weights=Wide_ResNet50_2_Weights.DEFAULT` to get the most up-to-date weights.
+  warnings.warn(msg)
+Number of abnormal vs normal samples in the threshold set: 3875 vs 1341
+Length of train_loader(1072), length of threshold loader 4172, length of validate_loader1044
+Param does not require grad !! 
+ flow.inn.module_list.0.w_perm
+Param does not require grad !! 
+ flow.inn.module_list.0.w_perm_inv
+Param does not require grad !! 
+ flow.inn.module_list.1.w_perm
+Param does not require grad !! 
+ flow.inn.module_list.1.w_perm_inv
+Param does not require grad !! 
+ flow.inn.module_list.2.w_perm
+Param does not require grad !! 
+ flow.inn.module_list.2.w_perm_inv
+Param does not require grad !! 
+ flow.inn.module_list.3.w_perm
+Param does not require grad !! 
+ flow.inn.module_list.3.w_perm_inv
+Param does not require grad !! 
+ flow.inn.module_list.4.w_perm
+Param does not require grad !! 
+ flow.inn.module_list.4.w_perm_inv
+Param does not require grad !! 
+ flow.inn.module_list.5.w_perm
+Param does not require grad !! 
+ flow.inn.module_list.5.w_perm_inv
+Param does not require grad !! 
+ flow.inn.module_list.6.w_perm
+Param does not require grad !! 
+ flow.inn.module_list.6.w_perm_inv
+Param does not require grad !! 
+ flow.inn.module_list.7.w_perm
+Param does not require grad !! 
+ flow.inn.module_list.7.w_perm_inv
+Number of predicted anomalies in the (test-)set: 5214
+Epoch 5: {'AUC': 0.49974193548387097, 'ACC': 0.7425230061349694, 'SEN': 0.9994838709677419, 'SPE': 0.0, 'F1': 0.8522389701837385}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Found new best: 0.8522389701837385
+Number of predicted anomalies in the (test-)set: 5215
+Epoch 10: {'AUC': 0.49987096774193546, 'ACC': 0.7427147239263804, 'SEN': 0.9997419354838709, 'SPE': 0.0, 'F1': 0.8523652365236523}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Found new best: 0.8523652365236523
+Number of predicted anomalies in the (test-)set: 5216
+Epoch 15: {'AUC': 0.5, 'ACC': 0.7429064417177914, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.8524914750852493}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Found new best: 0.8524914750852493
+Number of predicted anomalies in the (test-)set: 5216
+Epoch 20: {'AUC': 0.5, 'ACC': 0.7429064417177914, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.8524914750852493}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5216
+Epoch 25: {'AUC': 0.5, 'ACC': 0.7429064417177914, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.8524914750852493}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5216
+Epoch 30: {'AUC': 0.5, 'ACC': 0.7429064417177914, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.8524914750852493}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5216
+Epoch 35: {'AUC': 0.5, 'ACC': 0.7429064417177914, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.8524914750852493}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5199
+Epoch 40: {'AUC': 0.5043309999759448, 'ACC': 0.7446319018404908, 'SEN': 0.9989677419354839, 'SPE': 0.009694258016405667, 'F1': 0.8532069649548158}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Found new best: 0.8532069649548158
+Number of predicted anomalies in the (test-)set: 5199
+Epoch 45: {'AUC': 0.5048328883115633, 'ACC': 0.7450153374233128, 'SEN': 0.9992258064516129, 'SPE': 0.010439970171513796, 'F1': 0.8534273749173463}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Found new best: 0.8534273749173463
+Number of predicted anomalies in the (test-)set: 5216
+Epoch 50: {'AUC': 0.5, 'ACC': 0.7429064417177914, 'SEN': 1.0, 'SPE': 0.0, 'F1': 0.8524914750852493}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5212
+Epoch 55: {'AUC': 0.49948387096774194, 'ACC': 0.7421395705521472, 'SEN': 0.9989677419354839, 'SPE': 0.0, 'F1': 0.8519863541322769}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5213
+Epoch 60: {'AUC': 0.5011185682326622, 'ACC': 0.7434815950920245, 'SEN': 1.0, 'SPE': 0.0022371364653243847, 'F1': 0.8527728873239436}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5210
+Epoch 65: {'AUC': 0.5022371364653244, 'ACC': 0.7440567484662577, 'SEN': 1.0, 'SPE': 0.0044742729306487695, 'F1': 0.8530544854155201}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5215
+Epoch 70: {'AUC': 0.49987096774193546, 'ACC': 0.7427147239263804, 'SEN': 0.9997419354838709, 'SPE': 0.0, 'F1': 0.8523652365236523}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5210
+Epoch 75: {'AUC': 0.5022371364653244, 'ACC': 0.7440567484662577, 'SEN': 1.0, 'SPE': 0.0044742729306487695, 'F1': 0.8530544854155201}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5212
+Epoch 80: {'AUC': 0.5014914243102162, 'ACC': 0.7436733128834356, 'SEN': 1.0, 'SPE': 0.002982848620432513, 'F1': 0.8528667326950589}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5197
+Epoch 85: {'AUC': 0.5055786004666715, 'ACC': 0.745398773006135, 'SEN': 0.9992258064516129, 'SPE': 0.011931394481730051, 'F1': 0.8536155202821868}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Found new best: 0.8536155202821868
+Number of predicted anomalies in the (test-)set: 5209
+Epoch 90: {'AUC': 0.5026099925428784, 'ACC': 0.7442484662576687, 'SEN': 1.0, 'SPE': 0.005219985085756898, 'F1': 0.8531483927785116}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5212
+Epoch 95: {'AUC': 0.5014914243102162, 'ACC': 0.7436733128834356, 'SEN': 1.0, 'SPE': 0.002982848620432513, 'F1': 0.8528667326950589}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+After fold 0 results on validate_loader_combined: {'AUC': 0.501213574769157, 'ACC': 0.7423371647509579, 'SEN': 0.9987096774193548, 'SPE': 0.0037174721189591076, 'F1': 0.8519537699504679}
+Number of abnormal vs normal samples in the threshold set: 3875 vs 1341
+Length of train_loader(1073), length of threshold loader 4173, length of validate_loader1043
+Number of predicted anomalies in the (test-)set: 5210
+Epoch 5: {'AUC': 0.5017352481297058, 'ACC': 0.7436733128834356, 'SEN': 0.9997419354838709, 'SPE': 0.0037285607755406414, 'F1': 0.8528343423225097}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+Number of predicted anomalies in the (test-)set: 5213
+Epoch 10: {'AUC': 0.5011185682326622, 'ACC': 0.7434815950920245, 'SEN': 1.0, 'SPE': 0.0022371364653243847, 'F1': 0.8527728873239436}
+Running model checkpoint using threshold_loader_all and checkpoint_loader, F1 score now is: results['F1']
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 11825083 ON r29n3 CANCELLED AT 2023-05-25T15:49:13 ***
