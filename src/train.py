@@ -16,10 +16,22 @@ import numpy as np
 from tqdm import tqdm
 from anomalib.models.fastflow.torch_model import FastflowModel
 
+
+"""Main method for training models; this file contains methods for training and evaluating models.    
+"""
+
 # Make sure the following reads to a file with your own W&B API/Server key
 WANDBKEY = open("wandbkey.txt", "r").read()
 
 def train_step(epoch, model, train_loader,optimizer, anomalib_dataset=False, _print=False):
+    """
+    Args:
+        epoch: Epoch number
+        model: Model that should be trained on
+        train_loader: dataloader with training data
+        optimizer: optimizer for the training
+        anomalib_dataset: Whether or not the given dataset is from anomalib.
+    """
     model.train()
     if type(model) == FastflowModel : model.training = True 
 
@@ -70,6 +82,12 @@ def train_step(epoch, model, train_loader,optimizer, anomalib_dataset=False, _pr
 
 @torch.no_grad()
 def get_anomaly_scores(model, dataloader, anomalib_dataset):
+    """
+    Args:
+        model: Model of which the anomaly score needs to be calculated
+        dataloader: dataloader with validation data from which the anomaly score will be calculated
+        anomalib_dataset: Whether or not the given dataset is from anomalib.
+    """
     if type(model) == FastflowModel: model.training = False
     anomaly_scores, true_labels = [], []
 
@@ -99,6 +117,14 @@ def get_anomaly_scores(model, dataloader, anomalib_dataset):
 
 @torch.no_grad()
 def find_threshold(epoch, model, train_loader, verbose=False, anomalib_dataset=False):
+    """
+    Args:
+        epoch: the epoch
+        model: Model of which we want to calculate a threshold for
+        train_loader: dataloader with training data from which the anomaly threshold will be calculated (this is both train data and the anomly data from train)
+        verbose: printing on or off
+        anomalib_dataset: Whether or not the given dataset is from anomalib.
+    """
     anomaly_scores, true_labels = get_anomaly_scores(model, train_loader, anomalib_dataset)
     if verbose: print(f"Now moving onto finding the appropriate threshold (based on training data including abnormal samples):")
     optimal_threshold = optimize_threshold(anomaly_scores, true_labels)
@@ -108,6 +134,19 @@ def find_threshold(epoch, model, train_loader, verbose=False, anomalib_dataset=F
 
 @torch.no_grad()
 def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_only_anomaly_scores=False, track_results=True, test_eval=False, anomalib_dataset=False, running_ue_experiments=False):
+
+    """
+    Args:
+        epoch: the epoch to evaluate
+        model: Model of which we want to evaluate
+        data_loader: validation loader/testloader
+        threshold: evaluate with a given threshold
+        return_only_anomaly_scores: debugging parameter for only printing anomaly scores
+        track_results: track resutls in wandb
+        test_eval: use the test set for evaluating
+        anomalib_dataset: Whether or not the given dataset is from anomalib.
+        running_ue_experiments: no longer in use, was for Uncertanty estimation (might braeak code if I remove it now)
+    """
     
     anomaly_scores, true = get_anomaly_scores(model, data_loader, anomalib_dataset)
     if return_only_anomaly_scores: return true, anomaly_scores
@@ -124,6 +163,18 @@ def eval_model(epoch, model, data_loader, threshold=None, _print=False, return_o
     return results
 
 def model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, current_best_score, used_thr, best_model, verbose=False, anomalib_dataset=False):
+    """
+    Args:
+        epoch: the epoch to evaluate
+        model: Model of which we want to checkpoint
+        threshold_loader_all: dataloader with training data from which the anomaly threshold will be calculated (this is both train data and the anomly data from train)
+        checkpoint_loader: test set (should have been called test_loader probably)
+        current_best_score: 
+        used_thr: used threshold for model
+        best_model: best model save
+        verbose: printing on or off
+        anomalib_dataset: Whether or not the given dataset is from anomalib.
+    """
     if (epoch % 5 == 0) and (epoch != 0):
         threshold = find_threshold(epoch, model, threshold_loader_all, verbose=False, anomalib_dataset=anomalib_dataset)
         results = eval_model(epoch, model, checkpoint_loader, threshold, _print=True, anomalib_dataset=anomalib_dataset)
@@ -137,6 +188,8 @@ def model_checkpoint(epoch, model, threshold_loader_all, checkpoint_loader, curr
 
 def main(args):
     """
+    ARGS:
+    This method enherits the args give by the parser.
     """
 
     # For our final experiments we want both of these to be set to True for full reproducibility
